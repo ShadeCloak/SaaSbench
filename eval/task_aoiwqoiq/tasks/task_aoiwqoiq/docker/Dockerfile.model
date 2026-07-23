@@ -1,0 +1,61 @@
+# =============================================================================
+# Dockerfile.model — clean development environment for the candidate model.
+# =============================================================================
+# Inherits a generic dev-base image and adds Ruby + Rust toolchains so the
+# candidate can build the application stack required by this task.
+#
+# Build args:
+#   BASE_IMAGE: dev-base image to inherit from. Override at build time to swap
+#               in a different base. Default keeps internal CI-friendly naming.
+ARG BASE_IMAGE=shadetocloak/saasbench-dev:base
+FROM ${BASE_IMAGE}
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+# Ruby + native build deps required by common Rails / image-processing gems.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        ruby-full ruby-dev libyaml-dev libpq-dev libxml2-dev libxslt1-dev \
+        libmagickwand-dev imagemagick libffi-dev libidn11-dev libicu-dev \
+        libvips-dev ffmpeg \
+ && rm -rf /var/lib/apt/lists/* \
+ && ruby --version
+
+# Configurable RubyGems mirror (default: public rubygems.org; override with a
+# regional mirror such as https://gems.ruby-china.com/ if needed).
+ARG RUBY_GEM_MIRROR=https://rubygems.org/
+RUN gem sources --remove https://rubygems.org/ 2>/dev/null || true \
+ && gem sources -a "${RUBY_GEM_MIRROR}" \
+ && gem install bundler --no-document \
+ && bundle config mirror.https://rubygems.org "${RUBY_GEM_MIRROR}"
+
+# Rust toolchain. Mirrors are configurable via RUSTUP_DIST_SERVER /
+# RUST_REGISTRY_MIRROR build args (default: upstream / crates.io).
+ARG RUSTUP_DIST_SERVER=https://static.rust-lang.org
+ARG RUSTUP_UPDATE_ROOT=https://static.rust-lang.org/rustup
+ARG RUST_REGISTRY_MIRROR=https://index.crates.io/
+ENV RUSTUP_DIST_SERVER=${RUSTUP_DIST_SERVER} \
+    RUSTUP_UPDATE_ROOT=${RUSTUP_UPDATE_ROOT} \
+    CARGO_HOME=/root/.cargo
+
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --no-modify-path \
+ && /root/.cargo/bin/rustc --version
+
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Cargo registry config (writes a single source so private mirrors can be
+# swapped in without rebuilding the layer above).
+RUN mkdir -p /root/.cargo && cat > /root/.cargo/config.toml <<EOF
+[source.crates-io]
+replace-with = 'mirror'
+
+[source.mirror]
+registry = "${RUST_REGISTRY_MIRROR}"
+
+[net]
+git-fetch-with-cli = true
+EOF
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

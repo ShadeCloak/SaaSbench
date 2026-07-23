@@ -1,0 +1,436 @@
+{
+  "_meta": {
+    "task_id": "task_rjhcjrst",
+    "stage": "Stage 5.2 (v4 final)",
+    "generated_at": "2026-04-22T14:28:48.422668+00:00",
+    "v4_patches": [
+      "P07 envelope assertion appended to 5 RBAC allow nodes"
+    ],
+    "last_audit_patch_at": "2026-04-22T15:20:37.215985+00:00",
+    "round4_patches": [
+      "Backfilled prereqs on 10 previously-isolated nodes",
+      "Added ArtifactStore class to harness.py (PIPELINE L1010-1050)",
+      "Fixed config.py LLM defaults to commonstack endpoint",
+      "Made run_all.py self-bootstrap when invoked directly"
+    ]
+  },
+  "categories": {
+    "API": {
+      "maxScore": 225,
+      "node_count": 43
+    },
+    "ArchitectureQuality": {
+      "maxScore": 310,
+      "node_count": 15
+    },
+    "Authentication": {
+      "maxScore": 58,
+      "node_count": 8
+    },
+    "BusinessLogic_2FA": {
+      "maxScore": 26,
+      "node_count": 3
+    },
+    "BusinessLogic_Bill": {
+      "maxScore": 38,
+      "node_count": 5
+    },
+    "BusinessLogic_Budget": {
+      "maxScore": 46,
+      "node_count": 5
+    },
+    "BusinessLogic_DoubleEntry": {
+      "maxScore": 62,
+      "node_count": 7
+    },
+    "BusinessLogic_MultiCurrency": {
+      "maxScore": 56,
+      "node_count": 6
+    },
+    "BusinessLogic_PiggyBank": {
+      "maxScore": 34,
+      "node_count": 4
+    },
+    "BusinessLogic_Recurrence": {
+      "maxScore": 40,
+      "node_count": 4
+    },
+    "BusinessLogic_Rule": {
+      "maxScore": 62,
+      "node_count": 6
+    },
+    "BusinessLogic_Webhook": {
+      "maxScore": 54,
+      "node_count": 6
+    },
+    "CLI": {
+      "maxScore": 34,
+      "node_count": 8
+    },
+    "CronJobs": {
+      "maxScore": 34,
+      "node_count": 6
+    },
+    "DataModel": {
+      "maxScore": 130,
+      "node_count": 25
+    },
+    "Deployment": {
+      "maxScore": 19,
+      "node_count": 8
+    },
+    "EdgeCases": {
+      "maxScore": 111,
+      "node_count": 15
+    },
+    "Frontend": {
+      "maxScore": 35,
+      "node_count": 8
+    },
+    "RBAC": {
+      "maxScore": 98,
+      "node_count": 46
+    },
+    "Setup": {
+      "maxScore": 17,
+      "node_count": 4
+    }
+  },
+  "total_maxScore": 1489,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 80,
+      "maxScore": 448
+    },
+    "marketplace_rbac": {
+      "node_count": 53,
+      "maxScore": 154
+    },
+    "high_concurrency": {
+      "node_count": 4,
+      "maxScore": 34
+    },
+    "workflow_automator": {
+      "node_count": 95,
+      "maxScore": 853
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": {
+      "node_count": 182,
+      "maxScore": 1012
+    },
+    "weighted": {
+      "node_count": 35,
+      "maxScore": 167
+    },
+    "llm-judge": {
+      "node_count": 15,
+      "maxScore": 310
+    }
+  },
+  "depth_classification": {
+    "deep": {
+      "node_count": 155,
+      "maxScore": 952,
+      "percent": 63.94
+    },
+    "shallow": {
+      "node_count": 62,
+      "maxScore": 227,
+      "percent": 15.25
+    },
+    "llm_judge": {
+      "node_count": 15,
+      "maxScore": 310,
+      "percent": 20.82
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "node_ids": [
+        "SETUP_CREATE_ADMIN_USER",
+        "SETUP_CREATE_ACCESS_TOKEN",
+        "SETUP_OAUTH_PASSPORT_KEYS",
+        "SETUP_DB_SEED_DEFAULT",
+        "DEPLOY_HEALTH",
+        "DEPLOY_COMPOSER_JSON",
+        "DEPLOY_PHP_VERSION",
+        "DEPLOY_NODE_VERSION",
+        "DEPLOY_CRON_INSTALLED",
+        "DEPLOY_PHP_EXTENSIONS",
+        "DEPLOY_DB_MIGRATIONS_RAN",
+        "DEPLOY_PUBLIC_INDEX_PHP",
+        "DB_TABLE_USERS",
+        "DB_TABLE_USER_GROUPS",
+        "DB_TABLE_GROUP_MEMBERSHIPS",
+        "DB_TABLE_USER_ROLES",
+        "DB_TABLE_ACCOUNTS",
+        "DB_TABLE_ACCOUNT_TYPES",
+        "DB_TABLE_ACCOUNT_META",
+        "DB_TABLE_TRANSACTION_GROUPS",
+        "DB_TABLE_TRANSACTION_JOURNALS",
+        "DB_TABLE_TRANSACTIONS",
+        "DB_TABLE_TRANSACTION_TYPES",
+        "DB_TABLE_TRANSACTION_CURRENCIES",
+        "DB_TABLE_CURRENCY_EXCHANGE_RATES",
+        "DB_TABLE_BUDGETS",
+        "DB_TABLE_BUDGET_LIMITS",
+        "DB_TABLE_AUTO_BUDGETS",
+        "DB_TABLE_AVAILABLE_BUDGETS",
+        "DB_TABLE_BILLS",
+        "DB_TABLE_PIGGY_BANKS",
+        "DB_TABLE_RECURRENCES",
+        "DB_TABLE_RULES",
+        "DB_TABLE_WEBHOOKS",
+        "DB_TABLE_OAUTH_TABLES",
+        "AUTH_LOGIN_PASSWORD_GRANT",
+        "AUTH_LOGIN_BAD_CREDENTIALS",
+        "AUTH_PAT_USED_OK",
+        "AUTH_BEARER_MISSING",
+        "AUTH_BEARER_INVALID",
+        "API_ACCOUNT_CREATE",
+        "API_ACCOUNT_LIST_PAGINATED",
+        "API_ACCOUNT_OPENING_BALANCE_CREATES_JOURNAL",
+        "API_TRANSACTION_CREATE_WITHDRAWAL",
+        "API_TRANSACTION_DOUBLE_ENTRY_INVARIANT",
+        "API_TRANSACTION_FOREIGN_AMOUNT_NULL_WHEN_SAME_CURRENCY",
+        "API_BUDGET_CREATE",
+        "API_BUDGETLIMIT_CREATE",
+        "API_BUDGET_LIST_FILTER",
+        "API_BILL_CREATE",
+        "API_CATEGORY_CREATE",
+        "API_TAG_CREATE",
+        "API_PIGGYBANK_CREATE",
+        "API_PIGGYBANK_LIST_EVENTS",
+        "API_PIGGYBANK_TRANSFER_MOVES_AMOUNT",
+        "API_RECURRENCE_CREATE",
+        "API_RECURRENCE_TRIGGER_CREATES_TRANSACTIONS",
+        "API_RULE_CREATE",
+        "API_WEBHOOK_CREATE",
+        "API_ATTACHMENT_CREATE_AND_UPLOAD",
+        "API_ATTACHMENT_DOWNLOAD",
+        "API_CURRENCY_LIST",
+        "API_AUTOCOMPLETE_ACCOUNTS",
+        "API_CHART_ACCOUNT_OVERVIEW",
+        "API_SUMMARY_BASIC",
+        "API_ABOUT_RETURNS_VERSION",
+        "API_ABOUT_USER_RETURNS_CURRENT",
+        "API_OAUTH_CREATE_CLIENT_PERSISTED",
+        "API_OAUTH_CREATE_PAT",
+        "API_OAUTH_LIST_TOKENS",
+        "BIZ_DE_SUM_ZERO_INVARIANT",
+        "BIZ_DE_TWO_ROWS_PER_JOURNAL",
+        "BIZ_DE_OPPOSITE_SIGN",
+        "BIZ_DE_CURRENCY_MATCH",
+        "BIZ_DE_RECONCILIATION_ACCOUNT_TYPE",
+        "BIZ_DE_OPENING_BALANCE_AUTO_TYPE",
+        "BIZ_DE_DELETE_GROUP_CASCADES_JOURNALS",
+        "BIZ_MC_DECIMAL_PLACES_JPY",
+        "BIZ_MC_DECIMAL_PLACES_USD_VS_BTC",
+        "BIZ_MC_FOREIGN_AMOUNT_DIFF_CURRENCY",
+        "BIZ_MC_FOREIGN_AMOUNT_SAME_CURRENCY_NULL"
+      ],
+      "node_count": 81,
+      "maxScore": 447
+    },
+    "advanced_workflows": {
+      "node_ids": [
+        "DB_INDEX_TRANSACTIONS_FK",
+        "DB_DECIMAL_PRECISION",
+        "AUTH_2FA_SECRET_PLAINTEXT",
+        "AUTH_OWNER_GLOBAL_ROLE",
+        "AUTH_DEFAULT_USER_GROUP",
+        "RBAC_SETUP_USER_OWNER",
+        "RBAC_SETUP_USER_FULL",
+        "RBAC_SETUP_USER_RO",
+        "RBAC_SETUP_USER_MNG_TRX",
+        "RBAC_SETUP_USER_MNG_BUDGETS",
+        "RBAC_SETUP_USER_READ_BUDGETS",
+        "RBAC_SETUP_USER_VIEW_REPORTS",
+        "RBAC_SETUP_USER_VIEW_MEMBERSHIPS",
+        "RBAC_SETUP_GROUP_B_ISOLATION",
+        "RBAC_OWNER_CAN_LIST_ACCOUNTS",
+        "RBAC_OWNER_CAN_CREATE_BUDGET",
+        "RBAC_FULL_CAN_PURGE_DATA",
+        "RBAC_RO_CAN_LIST_ACCOUNTS",
+        "RBAC_RO_CANNOT_CREATE_ACCOUNT",
+        "RBAC_RO_CANNOT_CREATE_BUDGET",
+        "RBAC_RO_CANNOT_DELETE_TRANSACTION",
+        "RBAC_MNG_TRX_CAN_CREATE_TRANSACTION",
+        "RBAC_MNG_TRX_CANNOT_CREATE_BUDGET",
+        "RBAC_MNG_TRX_CANNOT_CREATE_RULE",
+        "RBAC_MNG_TRX_CAN_LIST_BUDGETS",
+        "RBAC_MNG_BUDGETS_CAN_CREATE_BUDGET",
+        "RBAC_MNG_BUDGETS_CANNOT_CREATE_TRANSACTION",
+        "RBAC_MNG_BUDGETS_CAN_CREATE_BUDGETLIMIT",
+        "RBAC_READ_BUDGETS_CAN_LIST_BUDGETS",
+        "RBAC_READ_BUDGETS_CANNOT_CREATE_BUDGET",
+        "RBAC_READ_BUDGETS_CANNOT_LIST_RULES",
+        "RBAC_VIEW_REPORTS_CAN_GET_INSIGHT",
+        "RBAC_VIEW_REPORTS_CANNOT_CREATE_BUDGET",
+        "RBAC_VIEW_MEMBERSHIPS_CAN_LIST_MEMBERS",
+        "RBAC_VIEW_MEMBERSHIPS_CANNOT_INVITE",
+        "RBAC_USER_B_CANNOT_SEE_USER_A_ACCOUNT",
+        "RBAC_USER_B_CANNOT_DELETE_USER_A_BUDGET",
+        "RBAC_USER_B_CANNOT_LIST_GROUP_A_RESOURCES",
+        "RBAC_GROUP_SWITCH_USE_ENDPOINT",
+        "RBAC_DEFAULT_GROUP_ON_REGISTRATION",
+        "RBAC_OWNER_CANNOT_BE_REMOVED_FROM_OWN_GROUP",
+        "RBAC_ADMIN_CAN_LIST_USERS",
+        "RBAC_NON_ADMIN_CANNOT_LIST_USERS",
+        "RBAC_ADMIN_CAN_PUT_CONFIGURATION",
+        "RBAC_NON_ADMIN_CANNOT_PUT_CONFIGURATION",
+        "RBAC_ADMIN_CAN_ENABLE_CURRENCY",
+        "API_TRANSACTION_INVALID_TYPE_REJECTED",
+        "API_BILL_SUBSCRIPTIONS_ALIAS",
+        "API_CATEGORY_UNIQUE_NAME_REJECTED",
+        "API_TAG_FIND_BY_TAG_OR_ID",
+        "API_RULE_TEST_DRY_RUN",
+        "API_RULE_TRIGGER_APPLIES_ACTIONS",
+        "API_WEBHOOK_LIST_MESSAGES",
+        "API_WEBHOOK_SUBMIT_REDELIVER",
+        "API_EXCHANGE_RATE_CREATE",
+        "API_SEARCH_TRANSACTIONS",
+        "API_CRON_TOKEN_AUTH_NO_BEARER",
+        "API_ERROR_404_FORMAT",
+        "API_ERROR_422_FORMAT",
+        "BIZ_MC_EXCHANGE_RATE_CALCULATION",
+        "BIZ_MC_USER_DEFAULT_CURRENCY_PIVOT",
+        "BIZ_BUDGET_AUTOBUDGET_RESET_MONTHLY",
+        "BIZ_BUDGET_AUTOBUDGET_ROLLOVER_FORMULA",
+        "BIZ_BUDGET_LIMIT_PERIOD_BOUNDARY_WEEKLY",
+        "BIZ_BUDGET_AVAILABLE_VS_SPENT",
+        "BIZ_BUDGET_AUTOBUDGET_TYPE_ENUM_MATCH",
+        "BIZ_BILL_AUTO_MATCH_KEYWORD",
+        "BIZ_BILL_NO_MATCH_AMOUNT_OUT_OF_RANGE",
+        "BIZ_BILL_NO_MATCH_KEYWORD_MISSING",
+        "BIZ_BILL_NEXT_DATE_CALCULATION",
+        "BIZ_BILL_REPEAT_FREQ_HALF_YEAR_HYPHEN",
+        "BIZ_RULE_DESCRIPTION_CONTAINS_TRIGGER",
+        "BIZ_RULE_AMOUNT_MORE_TRIGGER",
+        "BIZ_RULE_STRICT_AND_VS_OR",
+        "BIZ_RULE_STOP_PROCESSING",
+        "BIZ_RULE_ACTION_SET_CATEGORY",
+        "BIZ_RULE_ACTION_SET_AMOUNT_BALANCED",
+        "BIZ_RECURRENCE_DAILY_FIRES",
+        "BIZ_RECURRENCE_WEEKEND_TO_FRIDAY",
+        "BIZ_RECURRENCE_NDOM_FIRST_MONDAY",
+        "BIZ_RECURRENCE_REPETITIONS_CAP",
+        "BIZ_PIGGY_ADD_EVENT_UPDATES_CURRENT",
+        "BIZ_PIGGY_REMOVE_EVENT_DECREMENTS",
+        "BIZ_PIGGY_RULE_ACTION_UPDATE",
+        "BIZ_PIGGY_TARGET_REACHED_FLAG",
+        "BIZ_WEBHOOK_HMAC_SHA3_512",
+        "BIZ_WEBHOOK_TRIGGER_STORE_TRANSACTION",
+        "BIZ_WEBHOOK_RETRY_3_TIMES",
+        "BIZ_WEBHOOK_RESPONSE_TRANSACTIONS_PAYLOAD",
+        "BIZ_WEBHOOK_DELIVERY_JSON_CONTENT_TYPE",
+        "BIZ_WEBHOOK_INACTIVE_NOT_TRIGGERED",
+        "BIZ_2FA_MFA_SECRET_PLAINTEXT",
+        "BIZ_2FA_RECOVERY_CODES_FORMAT",
+        "BIZ_2FA_DISABLE_CLEARS_SECRET",
+        "EDGE_FP_ACCOUNT_TYPE_MATRIX",
+        "EDGE_FP_USER_GROUP_404_HIDE",
+        "EDGE_FP_PASSPORT_MANUAL_ROUTES",
+        "EDGE_FP_RULE_ENGINE_SEARCH_COMBO",
+        "EDGE_FP_AUTOBUDGET_CALENDAR_BOUNDARY",
+        "EDGE_FP_WEBHOOK_SHA3_NOT_SHA256",
+        "EDGE_FP_CURRENCY_DECIMAL_INVALID_PRECISION",
+        "EDGE_FP_CRON_TOKEN_NO_AUTH",
+        "EDGE_FP_PIVOT_TABLE_NAMING",
+        "EDGE_INVALID_TRANSACTION_TYPE_REJECTED",
+        "EDGE_VIRTUAL_BALANCE_REJECTED_NON_ASSET",
+        "EDGE_PAGINATION_LIMIT_CLAMPED",
+        "EDGE_FRONTEND_LOGIN_PAGE_RENDERS",
+        "EDGE_FRONTEND_DASHBOARD_REQUIRES_AUTH",
+        "EDGE_FRONTEND_CSRF_TOKEN_PRESENT",
+        "FRONTEND_DASHBOARD_LOADS",
+        "FRONTEND_ACCOUNTS_LIST_RENDERS",
+        "FRONTEND_TRANSACTION_CREATE_FORM",
+        "FRONTEND_2FA_ENABLE_QR_PAGE",
+        "FRONTEND_RULE_BUILDER_PAGE",
+        "FRONTEND_BUDGETS_DRAGDROP_REORDER",
+        "FRONTEND_LANGUAGE_SWITCH",
+        "FRONTEND_LAYOUT_BLADE_FILE_EXISTS",
+        "CRON_HTTP_TRIGGER_OK",
+        "CRON_HTTP_BAD_TOKEN_404",
+        "CRON_RECURRING_CREATES_JOURNAL",
+        "CRON_AUTOBUDGET_CREATES_BUDGETLIMIT",
+        "CRON_BILL_WARNING_LOGS",
+        "CRON_FORCE_FLAG_BYPASS_GUARD",
+        "CLI_CREATE_USER",
+        "CLI_CREATE_ACCESS_TOKEN",
+        "CLI_PASSWORD_FOR_USER",
+        "CLI_UPGRADE_DATABASE_IDEMPOTENT",
+        "CLI_CRON_INVOKES_ALL_JOBS",
+        "CLI_INSTRUCTIONS_INSTALL",
+        "CLI_VERIFY_SECURITY_ALERTS",
+        "CLI_CREATE_FIRST_USER_IDEMPOTENT",
+        "ARCH_REPOSITORY_PATTERN",
+        "ARCH_RULE_ENGINE_DESIGN",
+        "ARCH_FACTORY_PATTERN",
+        "ARCH_CODE_SMELLS",
+        "ARCH_FRONTEND_BLADE_PARTIALS",
+        "ARCH_UI_DASHBOARD_LAYOUT_QUALITY",
+        "ARCH_UI_TRANSACTION_FORM_USABILITY",
+        "ARCH_UI_BUDGET_VISUALIZATION",
+        "ARCH_ERROR_MSG_VALIDATION_QUALITY",
+        "ARCH_ERROR_MSG_404_INFORMATIVE",
+        "ARCH_CODE_REPOSITORY_PATTERN_PRESENCE",
+        "ARCH_CODE_FACTORY_PATTERN_USAGE",
+        "ARCH_RULE_ENGINE_STRATEGY_PATTERN",
+        "ARCH_I18N_COVERAGE_QUALITY",
+        "ARCH_API_DOC_QUALITY",
+        "RBAC_FULL_CAN_CREATE_TRANSACTION",
+        "RBAC_MNG_PIGGIES_CAN_CREATE_PIGGYBANK",
+        "RBAC_MNG_RULES_CAN_CREATE_RULE",
+        "RBAC_MNG_WEBHOOKS_CAN_CREATE_WEBHOOK",
+        "RBAC_READ_PIGGIES_CAN_LIST_PIGGYBANKS"
+      ],
+      "node_count": 151,
+      "maxScore": 1042
+    },
+    "coverage_percent": 100.0
+  },
+  "pipeline_constraints": {
+    "deep_pct_target_min": 60,
+    "deep_pct_actual": 63.94,
+    "deep_pct_pass": true,
+    "shallow_pct_target_max": 20,
+    "shallow_pct_actual": 15.25,
+    "shallow_pct_pass": true,
+    "llm_judge_pct_target_min": 20,
+    "llm_judge_pct_actual": 20.82,
+    "llm_judge_pct_pass": true,
+    "total_nodes_target_min": 150,
+    "total_nodes_actual": 232,
+    "total_nodes_pass": true,
+    "trajectory_coverage_target_min": 95,
+    "trajectory_coverage_actual": 100.0,
+    "trajectory_coverage_pass": true,
+    "rbac_allow_to_deny_ratio_target_min": 0.9,
+    "rbac_allow_to_deny_ratio_actual": 1.188,
+    "rbac_allow_to_deny_pass": true,
+    "isolated_nodes_target_max": 10,
+    "isolated_nodes_actual": 0,
+    "isolated_nodes_pass": true
+  },
+  "dag_quality_check": {
+    "verdict": "PASS",
+    "total_nodes": 232,
+    "has_cycle": false,
+    "root_nodes": 18,
+    "leaf_nodes": 168,
+    "isolated_nodes_count": 0,
+    "isolated_nodes_list": [],
+    "dangling_prereqs": 0,
+    "topological_sort_feasible": true,
+    "status_only_violations": [],
+    "rbac_deny_count": 16,
+    "rbac_allow_count": 19,
+    "rbac_allow_to_deny_ratio": 1.188,
+    "trajectories_coverage_pct": 100.0
+  }
+}

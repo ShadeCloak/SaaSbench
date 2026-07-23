@@ -1,0 +1,25 @@
+# PFM evaluation framework — Python dependencies.
+# Pinned to versions known to be stable as of 2026-04.
+
+# HTTP client
+requests>=2.31,<3
+
+# MySQL driver
+PyMySQL>=1.1,<2
+
+# JSONPath query helper (used by P07 json_value_assert)
+jsonpath-ng>=1.6,<2
+
+# LLM API (used by P17 llm_judge)
+openai>=1.35,<2
+
+# Browser automation (optional, used by P18 / P19 / P20)
+# Install additional browser binaries with: playwright install chromium
+playwright>=1.42,<2
+
+# WebSocket client (used by P21 websocket_connect)
+websocket-client>=1.7,<2
+
+# CLI niceties (optional but useful for coloured output)
+# colorama is a tiny cross-platform ANSI wrapper
+colorama>=0.4,<1

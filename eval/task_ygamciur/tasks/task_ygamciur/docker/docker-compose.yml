@@ -1,0 +1,39 @@
+name: task_ygamciur
+
+services:
+  app:
+    image: shadetocloak/task_ygamciur-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: ${APP_CONTAINER_NAME:-lowcode-platform}
+    ports:
+      - "${APP_PORT:-8007}:8007"
+      - "${CLIENT_PORT:-18017}:8017"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+      - mongo-data:/data/db
+      - redis-data:/data/redis
+    stdin_open: true
+    tty: true
+    # In baseline mode the container uses /entrypoint.sh (the in-image
+    # auto-start script for the reference implementation). In model mode the
+    # model image has no /entrypoint.sh, so prepare_workspace.sh sets
+    # ENTRYPOINT="" to override it. Note: ${ENTRYPOINT-/entrypoint.sh} uses '-'
+    # (not ':-') so that an empty value also overrides the default.
+    entrypoint: ${ENTRYPOINT-/entrypoint.sh}
+    command: ["bash", "-c", "tail -f /dev/null"]
+    # Weak healthcheck: container liveness only. Per-service readiness is
+    # validated by the prepare / test scripts. In model mode PID 1 is
+    # sleep infinity, so _wait_compose_ready will not block on this check.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+volumes:
+  mongo-data:
+  redis-data:

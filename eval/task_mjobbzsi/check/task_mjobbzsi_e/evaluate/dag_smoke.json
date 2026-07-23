@@ -1,0 +1,2951 @@
+{
+  "meta": {
+    "task_id": "task_mjobbzsi",
+    "total_nodes": 68,
+    "source_prd": "task/task.md",
+    "generated_at": "2026-04-02T16:00:00Z",
+    "score_budget": {
+      "total": 297,
+      "shallow_score": 21,
+      "shallow_pct": 7.1,
+      "deep_score": 214,
+      "deep_pct": 72.1,
+      "llm_judge_score": 62,
+      "llm_judge_pct": 20.9
+    }
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_PORT_ACCESSIBLE",
+      "description": "Application is reachable on port 8026",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              301,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Accessibility",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_BUILD_SUCCESS",
+      "description": "npm install + webpack build successfully produced app.bundle and index.html",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "package.json"
+          }
+        },
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "webpack.config.js"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "BuildOutput",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_FEATURE_MODULE_COUNT",
+      "description": "At least 40 feature module directories and 50 reducer files exist",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "react/features/*/",
+            "base_dir": ".",
+            "min_expected": 40
+          }
+        },
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "**/reducer.ts",
+            "base_dir": "react/features",
+            "min_expected": 50
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "ModuleCount",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_I18N_LANGUAGES",
+      "description": "At least 10 internationalisation language files exist",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "lang/main-*.json",
+            "base_dir": ".",
+            "min_expected": 10
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "I18N",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CONFIG_JS_RUNTIME",
+      "description": "config.js loads via HTTP and exposes hosts.domain plus resolution=720",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/config.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "resolution"
+              },
+              {
+                "path": "body_contains",
+                "expected": "p2p"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Configuration",
+        "subcategory": "RuntimeValues",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "behavior_verified": "config.js runtime values: resolution=720, p2p.enabled=true"
+      }
+    },
+    {
+      "id": "CONFIG_CODEC_ORDER_RUNTIME",
+      "description": "config.js codec preference order: AV1 > VP9 > VP8 > H264",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/config.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "AV1"
+              },
+              {
+                "path": "body_contains",
+                "expected": "VP9"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Configuration",
+        "subcategory": "CodecOrder",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONFIG_START_MUTED_THRESHOLD",
+      "description": "startAudioMuted=10, startVideoMuted=10: first 10 join unmuted, 11th onward muted",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/config.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "startAudioMuted"
+              },
+              {
+                "path": "body_contains",
+                "expected": "startVideoMuted"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Configuration",
+        "subcategory": "StartMutedThreshold",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "XMPP_WS_CONNECT",
+      "description": "WebSocket connection to /xmpp-websocket succeeds and returns an <open> stanza",
+      "prereqs": [
+        "DEPLOY_PORT_ACCESSIBLE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "send": "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='conference.local' version='1.0'/>",
+            "expect_message": {
+              "timeout_ms": 5000,
+              "match": {
+                "content_contains": "<open"
+              }
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "XMPPSignaling",
+        "subcategory": "WebSocketConnect",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "XMPP_ANON_AUTH_FLOW",
+      "description": "Full ANONYMOUS auth flow: open -> features -> auth -> success -> re-open -> bind",
+      "prereqs": [
+        "XMPP_WS_CONNECT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "steps": [
+              {
+                "send": "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='conference.local' version='1.0'/>",
+                "expect": "<open"
+              },
+              {
+                "expect": "ANONYMOUS"
+              },
+              {
+                "send": "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='ANONYMOUS'/>",
+                "expect": "<success"
+              },
+              {
+                "send": "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='conference.local' version='1.0'/>",
+                "expect": "<open"
+              },
+              {
+                "expect": "bind"
+              }
+            ],
+            "timeout_ms": 15000
+          }
+        }
+      ],
+      "scoring": {
+        "category": "XMPPSignaling",
+        "subcategory": "AnonymousAuthFlow",
+        "method": "binary",
+        "maxScore": 8
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "XMPP_BOSH_SESSION",
+      "description": "BOSH POST returns an XMPP body containing sid and the ANONYMOUS mechanism",
+      "prereqs": [
+        "DEPLOY_PORT_ACCESSIBLE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/http-bind",
+            "headers": {
+              "Content-Type": "text/xml"
+            },
+            "body": "<body rid='1234' xmlns='http://jabber.org/protocol/httpbind' to='conference.local' xml:lang='en' wait='60' hold='1' ver='1.6' xmpp:version='1.0' xmlns:xmpp='urn:xmpp:xbosh'/>"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "sid"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "XMPPSignaling",
+        "subcategory": "BOSHSession",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "XMPP_STREAM_LIMITS",
+      "description": "XMPP stream features include max-bytes and idle-seconds limits",
+      "prereqs": [
+        "XMPP_WS_CONNECT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "send": "<open xmlns=\"urn:ietf:params:xml:ns:xmpp-framing\" to=\"conference.local\" version=\"1.0\"/>",
+            "expect_message": {
+              "timeout_ms": 10000,
+              "match": {
+                "content_contains": "<open"
+              }
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "XMPPSignaling",
+        "subcategory": "StreamLimits",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "XMPP_MUC_JOIN",
+      "description": "Multi-step causal chain: auth -> bind -> send MUC presence -> verify presence reply",
+      "prereqs": [
+        "XMPP_ANON_AUTH_FLOW"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "steps": [
+              {
+                "send": "<open xmlns=\"urn:ietf:params:xml:ns:xmpp-framing\" to=\"conference.local\" version=\"1.0\"/>",
+                "expect": "<open"
+              },
+              {
+                "expect": "ANONYMOUS"
+              },
+              {
+                "send": "<auth xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\" mechanism=\"ANONYMOUS\"/>",
+                "expect": "<success"
+              },
+              {
+                "send": "<open xmlns=\"urn:ietf:params:xml:ns:xmpp-framing\" to=\"conference.local\" version=\"1.0\"/>",
+                "expect": "bind"
+              }
+            ],
+            "timeout_ms": 20000
+          }
+        }
+      ],
+      "scoring": {
+        "category": "XMPPSignaling",
+        "subcategory": "MUCJoin",
+        "method": "binary",
+        "maxScore": 8
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "IFRAME_API_LOADS",
+      "description": "external_api.js returns HTTP 200 and is at least 20 KB (note: implementations may export different class names)",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/external_api.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "JitsiMeetExternalAPI"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "IFrameAPI",
+        "subcategory": "ScriptLoad",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "IFRAME_API_CONSTRUCTOR",
+      "description": "External API script can be instantiated: new ExternalAPI(domain, {roomName}) creates an iframe",
+      "prereqs": [
+        "IFRAME_API_LOADS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/external_api.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "constructor"
+              },
+              {
+                "path": "body_contains",
+                "expected": "roomName"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "IFrameAPI",
+        "subcategory": "Constructor",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "IFRAME_COMMANDS_COUNT",
+      "description": "External API defines at least 30 command methods (toggle*/send*/set*/kick*/grant* etc.)",
+      "prereqs": [
+        "IFRAME_API_LOADS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "curl -s http://localhost/external_api.js | grep -oE 'toggleAudio|toggleVideo|sendChatMessage|kickParticipant|grantModerator|startRecording|stopRecording|hangup|endConference|setTileView|setVideoQuality|muteEveryone|overwriteConfig|toggleLobby|toggleE2EE|addBreakoutRoom|sendParticipantToRoom|setSubtitles|toggleWhiteboard|answerKnockingParticipant|submitFeedback|pinParticipant|setFollowMe|toggleModeration|showNotification|hideNotification|resizeFilmStrip|toggleParticipantsPane|toggleChat|toggleRaiseHand' | sort -u | wc -l"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.output_int",
+                "expected": 15,
+                "operator": "gte"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "IFrameAPI",
+        "subcategory": "CommandCount",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "IFRAME_EVENTS_DEFINED",
+      "description": "External API defines key event names (videoConferenceJoined, participantJoined, readyToClose, etc.)",
+      "prereqs": [
+        "IFRAME_API_LOADS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "curl -s http://localhost/external_api.js | grep -oE 'videoConferenceJoined|participantJoined|readyToClose|audioMuteStatusChanged|chatUpdated|recordingStatusChanged|knockingParticipant|breakoutRoomsUpdated|participantKickedOut|moderationStatusChanged' | sort -u | wc -l"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.output_int",
+                "expected": 6,
+                "operator": "gte"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "IFrameAPI",
+        "subcategory": "EventDefinitions",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "IFRAME_POSTMESSAGE",
+      "description": "IFrame API uses postMessage for communication",
+      "prereqs": [
+        "IFRAME_API_LOADS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/external_api.js",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "postMessage"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "IFrameAPI",
+        "subcategory": "PostMessage",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONF_ROOM_HTML",
+      "description": "Room URL returns the SPA HTML, including a #react root and script references",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/testroom",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "#react, #root",
+                "exists": true
+              },
+              {
+                "selector": "script[src*='bundle'], script[src*='app.']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConferenceFlow",
+        "subcategory": "RoomHTML",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CONF_WELCOME_PAGE",
+      "description": "Welcome page contains a room-name input and join button",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/"
+              },
+              {
+                "action": "wait",
+                "timeout": 8000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "input",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConferenceFlow",
+        "subcategory": "WelcomePage",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CONF_PREJOIN_SCREEN",
+      "description": "Navigating to a room shows the prejoin screen with display-name input and join button",
+      "prereqs": [
+        "CONF_ROOM_HTML"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/evalroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[data-testid='prejoin.screen'], .prejoin-screen, .prejoin, .premeeting, #premeeting, [class*='prejoin'], [class*='premeeting']",
+                "exists": true
+              },
+              {
+                "selector": "input, [data-testid*='name']",
+                "exists": true
+              },
+              {
+                "selector": "button",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConferenceFlow",
+        "subcategory": "PrejoinScreen",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONF_JOIN_AND_TOOLBAR",
+      "description": "Multi-step causal chain: navigate -> prejoin -> click join -> verify toolbar appears",
+      "prereqs": [
+        "CONF_PREJOIN_SCREEN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/evalroom2"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join'), button[class*='join']"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='toolbox'], [class*='toolbar'], .new-toolbox",
+                "exists": true
+              },
+              {
+                "selector": "[aria-label*='microphone' i], [aria-label*='Mute' i], button[class*='audio']",
+                "exists": true
+              },
+              {
+                "selector": "[aria-label*='camera' i], [aria-label*='video' i], button[class*='video']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConferenceFlow",
+        "subcategory": "JoinAndToolbar",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "CONF_HANGUP_FLOW",
+      "description": "Multi-step: join meeting -> click hangup -> verify leave (readyToClose or URL change)",
+      "prereqs": [
+        "CONF_ROOM_HTML"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/testroom",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "hangup"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConferenceFlow",
+        "subcategory": "HangupFlow",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "CHAT_OPEN_SEND_VERIFY",
+      "description": "Multi-step causal chain: join -> open chat -> type message -> send -> verify message appears",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/chatroom1"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='chat' i], button[class*='chat']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              },
+              {
+                "action": "type",
+                "selector": "#chat-input, textarea[class*='chat'], [data-testid*='chat-input']",
+                "text": "Hello eval test"
+              },
+              {
+                "action": "press",
+                "key": "Enter"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": ":has-text('Hello eval test'), [class*='message']:has-text('Hello')",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ChatSystem",
+        "subcategory": "SendAndVerify",
+        "method": "binary",
+        "maxScore": 8
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "CHAT_PANEL_TABS",
+      "description": "Chat panel contains both Messages and Polls tabs",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/chatroom2"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='chat' i], button[class*='chat']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[role='tab'], [data-testid*='polls'], [class*='tab']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ChatSystem",
+        "subcategory": "ChatTabs",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "POLLS_CREATE_VOTE_VERIFY",
+      "description": "Multi-step causal chain: open polls tab -> create poll -> vote -> verify result shows '1 (100%)'",
+      "prereqs": [
+        "CHAT_PANEL_TABS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/pollroom1"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='chat' i]"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid*='polls-tab'], [class*='polls']"
+              },
+              {
+                "action": "wait",
+                "timeout": 2000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid*='polls-create'], button:has-text('Create')"
+              },
+              {
+                "action": "wait",
+                "timeout": 2000
+              },
+              {
+                "action": "type",
+                "selector": "#polls-create-input, [data-testid*='poll-question'], input[class*='poll']",
+                "text": "Eval test poll?"
+              },
+              {
+                "action": "type",
+                "selector": "[data-testid*='poll-option-0'], input[class*='option']:nth-of-type(1)",
+                "text": "Option A"
+              },
+              {
+                "action": "type",
+                "selector": "[data-testid*='poll-option-1'], input[class*='option']:nth-of-type(2)",
+                "text": "Option B"
+              },
+              {
+                "action": "click",
+                "selector": "button:has-text('Send'), button:has-text('Create poll')"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid*='poll-answer-0'], label:first-of-type, input[type='checkbox']:first-of-type"
+              },
+              {
+                "action": "click",
+                "selector": "button:has-text('Submit'), button:has-text('Vote')"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": ":has-text('100%'), :has-text('1 (100')",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "PollsSystem",
+        "subcategory": "CreateVoteVerify",
+        "method": "binary",
+        "maxScore": 10
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "RBAC_MOD_CAN_KICK",
+      "description": "RBAC allow: moderator can kick a participant",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "moderator",
+            "action": "kickParticipant",
+            "expected_result": "allowed",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "KickAllow",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PARTICIPANT_CANNOT_KICK",
+      "description": "RBAC deny: participant cannot kick another participant",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "participant",
+            "action": "kickParticipant",
+            "expected_result": "denied",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "KickDeny",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_MOD_CAN_MUTE_REMOTE",
+      "description": "RBAC allow: moderator can remote-mute a participant",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "moderator",
+            "action": "muteRemoteParticipant",
+            "expected_result": "allowed",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "MuteRemoteAllow",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PARTICIPANT_CANNOT_MUTE_REMOTE",
+      "description": "RBAC deny: participant cannot remote-mute another participant",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "participant",
+            "action": "muteRemoteParticipant",
+            "expected_result": "denied",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "MuteRemoteDeny",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_MOD_CAN_SET_PASSWORD",
+      "description": "RBAC allow: moderator can set a room password",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "moderator",
+            "action": "setRoomPassword",
+            "expected_result": "allowed",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "PasswordAllow",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PARTICIPANT_CANNOT_SET_PASSWORD",
+      "description": "RBAC deny: participant cannot set a room password",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "participant",
+            "action": "setRoomPassword",
+            "expected_result": "denied",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "PasswordDeny",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_MOD_CAN_RECORD",
+      "description": "RBAC allow: moderator can start recording",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "moderator",
+            "action": "startRecording",
+            "expected_result": "allowed",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "RecordingAllow",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PARTICIPANT_CANNOT_RECORD",
+      "description": "RBAC deny: participant cannot start recording",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "participant",
+            "action": "startRecording",
+            "expected_result": "denied",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "RecordingDeny",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VISITOR_LIMITED_TOOLBAR",
+      "description": "RBAC deny: visitor mode shows only a restricted toolbar without full controls",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "visitor",
+            "action": "fullToolbarAccess",
+            "expected_result": "denied",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "VisitorRestrictions",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "LOBBY_ENABLE_VERIFY",
+      "description": "Multi-step causal chain: moderator enables lobby -> verify lobbyEnabled state -> new user joins -> verify approval required",
+      "prereqs": [
+        "XMPP_MUC_JOIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "react/features/lobby/",
+            "match_type": "contains",
+            "pattern": "lobbyEnabled"
+          }
+        },
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "steps": [
+              {
+                "send": "<open xmlns=\"urn:ietf:params:xml:ns:xmpp-framing\" to=\"conference.local\" version=\"1.0\"/>",
+                "expect": "<open"
+              },
+              {
+                "expect": "ANONYMOUS"
+              },
+              {
+                "send": "<auth xmlns=\"urn:ietf:params:xml:ns:xmpp-sasl\" mechanism=\"ANONYMOUS\"/>",
+                "expect": "<success"
+              }
+            ],
+            "timeout_ms": 15000
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ModerationControl",
+        "subcategory": "LobbyEnable",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "LOBBY_DISPLAY_NAME_REQUIRED",
+      "description": "Lobby scenario: with lobby enabled, joining without a display name returns a 406 displayname-required (server-enforced; an XMPP stream:error or unsupported-stanza-type is also accepted as proof of enforcement)",
+      "prereqs": [
+        "LOBBY_ENABLE_VERIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P21",
+          "inputs": {
+            "url": "ws://localhost:8026/xmpp-websocket",
+            "subprotocol": "xmpp",
+            "steps": [
+              {
+                "send": "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='conference.local' version='1.0'/>",
+                "expect": "<open"
+              },
+              {
+                "expect": "ANONYMOUS"
+              },
+              {
+                "send": "<auth xmlns='urn:ietf:params:xml:ns:xmpp-sasl' mechanism='ANONYMOUS'/>",
+                "expect": "<success"
+              },
+              {
+                "send": "<open xmlns='urn:ietf:params:xml:ns:xmpp-framing' to='conference.local' version='1.0'/>",
+                "expect": "bind"
+              },
+              {
+                "send": "<iq type='set' id='bind_2'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/></iq>",
+                "expect_any": [
+                  "jid",
+                  "<bind",
+                  "</iq>",
+                  "result",
+                  "unsupported-stanza-type",
+                  "stream:error",
+                  "policy-violation",
+                  "not-authorized",
+                  "<failure"
+                ]
+              }
+            ],
+            "timeout_ms": 15000
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": []
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ModerationControl",
+        "subcategory": "LobbyDisplayName",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "AV_MOD_ENABLE_VERIFY",
+      "description": "Multi-step: moderator enables AV moderation -> verify participants receive a moderation notice",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/avmodroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='toolbox']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ModerationControl",
+        "subcategory": "AVModEnable",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "MOD_SECURITY_DIALOG",
+      "description": "Security dialog contains password, E2EE and Lobby controls",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/securityroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Security' i], [aria-label*='security' i], button[class*='security']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='security-dialog'], [data-testid*='security'], [role='dialog']",
+                "exists": true
+              },
+              {
+                "selector": "input[type='password'], [data-testid*='password'], #info-password-input",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ModerationControl",
+        "subcategory": "SecurityDialog",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "RECORDING_UI",
+      "description": "Recording button is reachable and opens the recording dialog (cloud/local/livestream options)",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/recroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Recording' i], [aria-label*='record' i], button[class*='recording']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[role='dialog'], [class*='dialog']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Recording",
+        "subcategory": "RecordingUI",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SHARED_VIDEO_UI",
+      "description": "Shared video: opens a shared-video dialog with a URL input from the toolbar",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/sharedvidroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='video' i][aria-label*='share' i], [class*='sharedvideo'], [data-testid*='sharedvideo']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "input[type='text'], input[placeholder*='URL' i], [data-testid*='shared-video-url']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SharedVideo",
+        "subcategory": "SharedVideoUI",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WHITEBOARD_TOGGLE",
+      "description": "Whiteboard feature: clicking the whiteboard button opens the whiteboard (when config.whiteboard.enabled=true)",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/wbroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='toolbox']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Whiteboard",
+        "subcategory": "Toggle",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SUBTITLES_UI",
+      "description": "Subtitles / closed captions button is reachable",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/testroom",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "closedcaptions"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Subtitles",
+        "subcategory": "CCButton",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "E2EE_TOGGLE",
+      "description": "E2EE can be toggled in the security dialog",
+      "prereqs": [
+        "MOD_SECURITY_DIALOG"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "react/features/e2ee/",
+            "match_type": "contains",
+            "pattern": "e2ee"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "E2EE",
+        "subcategory": "Toggle",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "REACTIONS_BUTTON",
+      "description": "Reactions button is present in the toolbar",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/testroom",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "body_contains",
+                "expected": "reaction"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Reactions",
+        "subcategory": "Button",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "HAND_RAISE_TOGGLE",
+      "description": "Multi-step: click raise-hand button -> verify hand icon appears",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/handroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Raise' i], [aria-label*='hand' i], [data-testid*='raisehand']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='raised-hand'], [data-testid*='raised-hand'], [class*='hand-raised']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HandRaise",
+        "subcategory": "Toggle",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BREAKOUT_ROOMS_UI",
+      "description": "Breakout rooms: management UI is reachable from toolbar / participants pane",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/breakroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='participant' i], button[class*='participants']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='breakout'], button:has-text('breakout'), [data-testid*='breakout']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BreakoutRooms",
+        "subcategory": "UI",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "FOLLOW_ME_SETTING",
+      "description": "Follow-me option is present in the settings panel (moderator tab)",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/fmroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Settings' i], [aria-label*='setting' i], button[class*='settings']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[data-testid*='follow-me'], [class*='follow-me'], label:has-text('Follow'), input[name*='follow']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FollowMe",
+        "subcategory": "Setting",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VIRTUAL_BG_DIALOG",
+      "description": "Virtual background dialog: contains blur option and custom-image upload",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/vbgroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='background' i], [aria-label*='Background' i], button[class*='background']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='virtual-background'], [data-testid*='virtual-background'], [role='dialog']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VirtualBackground",
+        "subcategory": "Dialog",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SPEAKER_STATS_PANEL",
+      "description": "Speaker stats: opens the stats panel showing each participant's speaking time",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "react/features/speaker-stats/",
+            "match_type": "contains",
+            "pattern": "SpeakerStats"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SpeakerStats",
+        "subcategory": "Panel",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SETTINGS_DIALOG",
+      "description": "Settings dialog: contains Profile, Devices, More tabs",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/settingsroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Settings' i], button[class*='settings']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[role='dialog'], [class*='settings'], [data-testid*='settings']",
+                "exists": true
+              },
+              {
+                "selector": "[role='tab'], [class*='tab']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Settings",
+        "subcategory": "Dialog",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "INVITE_DIALOG",
+      "description": "Invite dialog: contains the meeting URL and a copy button",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/inviteroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Invite' i], [aria-label*='invite' i], button[class*='invite']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "input[readonly], [class*='invite-url'], [data-testid*='invite']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Invite",
+        "subcategory": "Dialog",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "PARTICIPANTS_PANE",
+      "description": "Participants pane: opens and shows the participant list",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/ppaneroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='participant' i], button[class*='participants']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='participants-pane'], [data-testid*='participants']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ParticipantsPane",
+        "subcategory": "Open",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "TILE_VIEW_TOGGLE",
+      "description": "Multi-step: click tile-view button -> verify layout switch",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/tileroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='tile' i], [aria-label*='Tile' i], [data-testid*='tileview']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='tile-view'], .tile-view, [data-testid*='tile']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VideoLayout",
+        "subcategory": "TileView",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EMBED_MEETING_DIALOG",
+      "description": "Embed meeting: dialog shows the iframe embed code (including allow='camera; microphone')",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/embedroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "click",
+                "selector": "[aria-label*='Embed' i], [data-testid*='embedmeeting']"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "textarea, [class*='embed'], input[readonly]",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EmbedMeeting",
+        "subcategory": "Dialog",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONNECTION_INDICATOR",
+      "description": "Connection-quality indicator is present on participant videos",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "react/features/connection-indicator/",
+            "match_type": "contains",
+            "pattern": "connectionQuality"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConnectionStats",
+        "subcategory": "Indicator",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "UI_CONFERENCE_QUALITY",
+      "description": "Overall conference page UI quality: layout, toolbar, video area",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "screenshot",
+                "name": "conference_full"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SCREENSHOT",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 9000,
+            "timeout_ms": 35000,
+            "full_page": true,
+            "url": "{{base_url}}/SaasBenchConfRoom#config.prejoinConfig.enabled=false&config.prejoinPageEnabled=false&config.requireDisplayName=false&userInfo.displayName=%22EvalUser%22",
+            "name": "UI_CONFERENCE_QUALITY",
+            "actions": [
+              {
+                "action": "mousemove"
+              },
+              {
+                "action": "wait",
+                "timeout": 700
+              }
+            ]
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "screenshot",
+            "rubric_prompt": "GOAL: Judge the visual / UX quality of the in-conference page (large video stage + toolbar + filmstrip).\n\nEVIDENCE: Full-page screenshot of the conference page after a participant has joined and a remote video track is visible.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. A large central video stage (or active-speaker tile) occupies the dominant portion of the viewport.\n2. A bottom toolbar exposes at minimum: mute, camera, screen share, chat, hang up — clearly iconified.\n3. A filmstrip (or tile view) shows other participants.\n4. UI uses consistent spacing, colour, and typography (no raw-default browser controls).\n5. Hover / focus affordances are visible on toolbar controls.\n6. Critical state (muted indicator, active-speaker highlight) is visually clear.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or shows raw HTML video controls.\n- 2 (weak): Video shown but no toolbar or filmstrip.\n- 5 (good): Stage + toolbar + filmstrip; visual polish uneven.\n- 8 (excellent): All six criteria satisfied with a polished conference UI.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification citing visible markers>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "UIQuality",
+        "subcategory": "ConferencePage",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "UI_PREJOIN_QUALITY",
+      "description": "Prejoin page UI quality: device preview, name input, join button",
+      "prereqs": [
+        "CONF_PREJOIN_SCREEN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "screenshot",
+                "name": "prejoin"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SCREENSHOT",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 7000,
+            "timeout_ms": 30000,
+            "full_page": true,
+            "url": "{{base_url}}/SaasBenchPrejoinRoom",
+            "name": "UI_PREJOIN_QUALITY"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "screenshot",
+            "rubric_prompt": "GOAL: Judge the visual / UX quality of the pre-join screen (camera preview + name + join + device selectors).\n\nEVIDENCE: Full-page screenshot of the pre-join screen before joining a conference.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. A live camera preview (or placeholder when off) is visible above-the-fold.\n2. A display-name input is present with a clear label and accepts free-text.\n3. A primary 'Join' button is prominent and visually distinct from secondary actions.\n4. Device selectors (camera / microphone / speaker) are present with current device labelled.\n5. Mic / camera enable-toggles are accessible directly from the screen.\n6. The page has a friendly, branded layout (not raw form fields).\n\nSCORING ANCHORS:\n- 0 (none): No pre-join screen or only raw form.\n- 2 (weak): Form fields present but no preview or device selectors.\n- 4 (good): Preview + name + join; device selectors thin.\n- 6 (excellent): All six criteria satisfied with a polished pre-join experience.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "UIQuality",
+        "subcategory": "PrejoinPage",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_REDUX_PATTERNS",
+      "description": "Architecture quality: registry-style Redux composition + feature modularity",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/redux/",
+              "react/features/chat/",
+              "react/features/polls/",
+              "react/features/recording/",
+              "react/features/lobby/",
+              "react/features/av-moderation/"
+            ],
+            "rubric_prompt": "GOAL: Judge whether the Redux store is composed via a registry-style pattern (lazy registration of reducers / middleware / listeners) and whether features are self-contained per-directory modules.\n\nEVIDENCE: a `base/redux` (or equivalently named) folder exposing registry utilities, plus per-feature folders that wire themselves up on import. Concrete class names are NOT prescribed — accept any naming as long as the three responsibilities (reducer registration, middleware registration, listener / side-effect registration) are each handled by a dedicated utility.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. There is a utility for registering reducers (one combined reducer for the whole store, but each feature plugs in its own slice).\n2. There is a utility for registering middleware so feature modules add their own middleware without editing the root store.\n3. There is a utility (or convention) for registering side-effect listeners (e.g. subscribe-and-react patterns) outside of reducers.\n4. Each major feature (chat, video, recording, lobby, polls, av-moderation, …) is self-contained: its actions, action types, reducer, middleware, and components live under one directory.\n5. Cross-feature communication happens exclusively via Redux actions / selectors — features do not import each other's internal helpers.\n6. TypeScript (or JS-with-types) definitions exist for the Redux state and the action union.\n7. The root store wires up the registries once at startup; feature modules do not call createStore directly.\n8. Adding a new feature does not require modifying any existing feature's source.\n\nSCORING ANCHORS:\n- 0 (none): Single combineReducers in the entry point; no registry pattern.\n- 3 (weak): One registry-style utility exists; features still cross-import internals.\n- 6 (good): All three registry-style utilities + feature modularity; some cross-imports remain.\n- 8 (excellent): All eight criteria satisfied with idiomatic registry-based modularity.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ReduxAndModularity",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "EDGE_TOOLBAR_AUTOHIDE_RUNTIME",
+      "description": "Toolbar auto-hides after 4 seconds (non alwaysVisible mode)",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/autohideroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "mouse_move",
+                "x": 100,
+                "y": 100
+              },
+              {
+                "action": "wait",
+                "timeout": 6000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "[class*='toolbox'][class*='visible'], [class*='toolbar']:not([class*='hidden'])",
+                "check": "visibility_or_opacity",
+                "expected": "hidden_or_reduced"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "ToolbarAutoHide",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_KEYBOARD_SHORTCUTS",
+      "description": "Keyboard shortcuts: pressing M toggles mute, pressing C toggles chat",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "navigate",
+                "url": "http://localhost:8026/kbroom"
+              },
+              {
+                "action": "wait",
+                "timeout": 12000
+              },
+              {
+                "action": "click",
+                "selector": "[data-testid='prejoin.joinMeeting'], button:has-text('Join')"
+              },
+              {
+                "action": "wait",
+                "timeout": 15000
+              },
+              {
+                "action": "press",
+                "key": "c"
+              },
+              {
+                "action": "wait",
+                "timeout": 3000
+              }
+            ]
+          }
+        },
+        {
+          "type": "P19",
+          "inputs": {
+            "assertions": [
+              {
+                "selector": "#sideToolbarContainer, [class*='chat-panel'], [data-testid*='chat']",
+                "exists": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "KeyboardShortcuts",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "RBAC_MOD_FULL_TOOLBAR",
+      "description": "RBAC allow: moderator toolbar contains the full button set (record / kick / mute etc.)",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P14",
+          "inputs": {
+            "role": "moderator",
+            "action": "fullToolbarAccess",
+            "expected_result": "allowed",
+            "context": "conference_muc"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "ModeratorToolbar",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ARCH_XMPP_MESSAGE_HANDLING",
+      "description": "Architecture quality: clear separation between XMPP transport, signalling and business logic (stanza parse / route / action dispatch)",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/connection/",
+              "react/features/base/conference/",
+              "react/features/base/xmpp/"
+            ],
+            "rubric_prompt": "GOAL: Judge the layering of XMPP message handling (connection / signaling / business-logic separation + connection state machine + recovery).\n\nEVIDENCE: react/features/base/connection/* and react/features/base/conference/*, XMPP stanza handlers, connection-state action types.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. There is an explicit connection layer responsible for transport (BOSH / WebSocket) and an upper signaling layer.\n2. XMPP stanza parsing is decoupled from Redux action dispatch — handlers translate stanzas into typed actions before dispatching.\n3. Connection state transitions are explicit (connecting -> connected -> disconnected) and represented in Redux state.\n4. Reconnection / error-recovery paths exist (exponential backoff, lobby fallback, transport switch).\n5. Business-logic features (chat, recording, polls) consume signaling events through Redux, not directly from XMPP.\n6. Stanza handler registration is centralised so adding a new handler does not modify connection code.\n\nSCORING ANCHORS:\n- 0 (none): XMPP handlers dispatch business logic directly inline.\n- 2 (weak): Some separation but connection state implicit; no recovery.\n- 4 (good): Layered + state machine + Redux dispatch; recovery path thin.\n- 6 (excellent): All six criteria satisfied with a clean XMPP architecture.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "XMPPMessageHandling",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "ARCH_ERROR_HANDLING_QUALITY",
+      "description": "Architecture quality: completeness of error handling and user feedback",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/connection/",
+              "react/features/notifications/",
+              "react/features/overlay/"
+            ],
+            "rubric_prompt": "GOAL: Judge the error-handling and user-feedback design.\n\nEVIDENCE: Notification system code, overlay / fallback components (PageReloadOverlay, etc.), i18n strings for errors.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. Network or XMPP errors trigger a user-visible notification (no white screen).\n2. Errors are categorised at least into fatal / recoverable / info with consistent UI treatment.\n3. Mid-conference disconnects show a reconnect / retry overlay (e.g. PageReloadOverlay, ReloadTimer).\n4. Error messages go through the i18n layer (no hard-coded English strings).\n5. Critical degradations (microphone permission denied, camera busy) include a remedy hint, not just an error code.\n\nSCORING ANCHORS:\n- 0 (none): Errors silently logged or cause a blank page.\n- 1 (very weak): Notifications exist for some errors only.\n- 3 (acceptable): Categorisation + reload overlay; i18n thin.\n- 5 (excellent): All five criteria satisfied with comprehensive error UX.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ErrorHandling",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_STATE_MANAGEMENT_QUALITY",
+      "description": "Architecture quality: regularity and consistency of Redux state management",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/redux/",
+              "react/features/base/settings/",
+              "react/features/chat/",
+              "react/features/polls/"
+            ],
+            "rubric_prompt": "GOAL: Judge the regularity and consistency of Redux state management.\n\nEVIDENCE: Per-feature actionTypes / actions / reducer files; persisted-subset configuration; subscribe-and-react side-effect handling; async action creators.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Each feature has a clean three-file split (actionTypes / actions / reducer) — file extension can be .ts or .js.\n2. A curated subset of state is persisted (e.g. user settings) — not the whole store. The mechanism (registry helper, redux-persist whitelist, custom middleware …) is up to the candidate.\n3. Side effects (subscriptions, transports, browser APIs) live in dedicated subscribe-and-react helpers, not inside reducers.\n4. Async actions use thunks (or equivalent middleware) so reducers stay pure.\n5. State shape is normalised — no arbitrarily deep nesting; collections keyed by id.\n6. Selectors are colocated with their feature and accept the root state for testability.\n\nSCORING ANCHORS:\n- 0 (none): Reducers contain side effects; no actionTypes file; no thunks.\n- 2 (weak): Some features use the three-file split; persistence ad hoc.\n- 4 (good): Three-file + thunks + listener-based side effects; normalisation thin.\n- 6 (excellent): All six criteria satisfied with idiomatic Redux usage.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "StateManagement",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_WEBRTC_MEDIA_DESIGN",
+      "description": "Architecture quality: WebRTC media-pipeline design (track lifecycle, P2P/SFU switch, codec negotiation)",
+      "prereqs": [
+        "DEPLOY_BUILD_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/tracks/",
+              "react/features/base/media/",
+              "react/features/video-quality/",
+              "react/features/screen-share/"
+            ],
+            "rubric_prompt": "GOAL: Judge the WebRTC media-pipeline design (track lifecycle, P2P/SFU switch, codec preference, screen share, processors).\n\nEVIDENCE: react/features/base/tracks/* (or equivalent), conference media setup, codec preference config, MediaProcessor / streamEffects code.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Track creation / disposal is managed via Redux actions (TRACK_ADDED / TRACK_REMOVED) — components don't handle MediaStreamTracks directly.\n2. P2P -> SFU (and back) mode switch is implemented when participant count crosses a threshold.\n3. Codec preference (e.g. AV1 > VP9 > VP8 > H264) is configurable through config.js.\n4. Screen share is modelled as its own track type, distinct from camera.\n5. Virtual background / noise suppression are implemented as MediaProcessor pipeline steps that can be chained.\n6. Track muting / unmuting yields events consumed by other features (UI, recording, statistics).\n\nSCORING ANCHORS:\n- 0 (none): Tracks are managed inline in components; no pipeline.\n- 2 (weak): Redux track lifecycle but no P2P/SFU switch and no processors.\n- 4 (good): Lifecycle + screen share + codec preference; processors thin.\n- 6 (excellent): All six criteria satisfied with a complete media pipeline.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "WebRTCMediaPipeline",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "high_concurrency"
+    },
+    {
+      "id": "UI_CHAT_EXPERIENCE",
+      "description": "UI quality: chat panel UX - message bubbles, send feedback, private chat, reactions",
+      "prereqs": [
+        "CHAT_OPEN_SEND_VERIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P18",
+          "inputs": {
+            "steps": [
+              {
+                "action": "screenshot",
+                "name": "chat_panel"
+              }
+            ]
+          }
+        },
+        {
+          "type": "SCREENSHOT",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 9000,
+            "timeout_ms": 35000,
+            "full_page": true,
+            "url": "{{base_url}}/SaasBenchChatRoom#config.prejoinConfig.enabled=false&config.prejoinPageEnabled=false&config.requireDisplayName=false&userInfo.displayName=%22EvalUser%22",
+            "name": "UI_CHAT_EXPERIENCE",
+            "actions": [
+              {
+                "action": "wait",
+                "timeout": 3000
+              },
+              {
+                "action": "press",
+                "key": "c"
+              },
+              {
+                "action": "wait",
+                "timeout": 2500
+              }
+            ]
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "screenshot",
+            "rubric_prompt": "GOAL: Judge the visual / UX quality of the chat panel.\n\nEVIDENCE: Full-page screenshot with the chat panel open, including at least 3 messages from different senders.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Each message uses a card / bubble layout containing sender name, timestamp, and content.\n2. Self-sent messages are visually distinguished from others (alignment or colour).\n3. Tabs separate Messages and Polls (or equivalent secondary chat surface).\n4. Input area has a send button and supports Enter to send (Shift+Enter newline).\n5. Layout is clean and modern (consistent spacing, no overflow, no raw scrollbars).\n6. Long messages wrap and emoji / links render correctly.\n\nSCORING ANCHORS:\n- 0 (none): No chat panel or raw textarea only.\n- 2 (weak): Messages list with no bubble styling and no self/other distinction.\n- 4 (good): Bubbles + send button + tabs; minor polish issues.\n- 6 (excellent): All six criteria satisfied with a polished chat UX.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "UIQuality",
+        "subcategory": "ChatExperience",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "UI_ACCESSIBILITY",
+      "description": "UI quality: accessibility - ARIA labels, keyboard navigation, focus management",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/base/ui/components/web/",
+              "react/features/keyboard-shortcuts/",
+              "react/features/base/toolbox/components/",
+              "react/features/toolbox/components/web/",
+              "react/features/base/dialog/",
+              "react/features/chat/components/web/",
+              "react/features/participants-pane/components/web/"
+            ],
+            "rubric_prompt": "GOAL: Judge accessibility (ARIA labels, keyboard navigation, focus management, shortcuts, contrast).\n\nEVIDENCE: Toolbar / dialog component code, keyboard-handler utilities, theme / colour tokens.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. Toolbar buttons carry aria-label attributes describing their action.\n2. Dialogs use role='dialog' with aria-modal='true' and aria-labelledby pointing to a title node.\n3. Focus is trapped inside open dialogs and restored on close.\n4. Keyboard shortcuts (e.g. M = mute, C = chat, R = raise hand) are implemented and discoverable.\n5. Colour contrast for text and focus rings meets WCAG AA (>= 4.5:1 for body text).\n\nSCORING ANCHORS:\n- 0 (none): No ARIA labels and no keyboard shortcuts.\n- 1 (very weak): Sparse aria-label on a few buttons.\n- 3 (acceptable): ARIA + dialogs + focus trap; shortcuts and contrast thin.\n- 5 (excellent): All five criteria satisfied with strong accessibility.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "UIQuality",
+        "subcategory": "Accessibility",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "UI_RESPONSIVE_LAYOUT",
+      "description": "UI quality: responsive layout - adaptive behaviour across screen sizes",
+      "prereqs": [
+        "CONF_JOIN_AND_TOOLBAR"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "react/features/filmstrip/",
+              "react/features/toolbox/",
+              "react/features/large-video/",
+              "react/features/base/responsive-ui/"
+            ],
+            "rubric_prompt": "GOAL: Judge the responsive-layout design (window-resize handling, filmstrip orientation, tile auto-grid, toolbar overflow).\n\nEVIDENCE: react/features/base/responsive-ui/*, filmstrip and tile-view components, toolbar overflow component, CSS / SCSS breakpoints.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. A responsive-ui feature listens for window resize and updates layout dimensions in Redux.\n2. Filmstrip switches between horizontal / vertical orientations based on aspect ratio or width.\n3. Tile View computes rows/cols dynamically from participant count to maximise tile size.\n4. The toolbar collapses surplus actions into an overflow menu at narrow widths.\n5. CSS media queries (or JS breakpoints) implement at least three responsive breakpoints (mobile / tablet / desktop).\n6. Screen resizing during a call does not cause layout flicker or stale tile counts.\n\nSCORING ANCHORS:\n- 0 (none): Fixed-width layout; resizing breaks the page.\n- 2 (weak): Some media queries but filmstrip / tile not adaptive.\n- 4 (good): Filmstrip + tile auto-grid + breakpoints; toolbar overflow thin.\n- 6 (excellent): All six criteria satisfied with full responsive coverage.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "UIQuality",
+        "subcategory": "ResponsiveLayout",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    }
+  ]
+}

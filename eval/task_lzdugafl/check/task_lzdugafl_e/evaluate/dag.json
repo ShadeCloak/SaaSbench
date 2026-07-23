@@ -1,0 +1,7202 @@
+{
+  "meta": {
+    "task_id": "timetracker",
+    "total_nodes": 155,
+    "source_prd": "task/task.md",
+    "generated_at": "2026-02-25T00:00:00Z",
+    "version": "v6-reviewed"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "Application responds on port 8001",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              301,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Accessibility",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_COMPOSER",
+      "description": "composer.json exists and contains symfony/framework-bundle",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "composer.json"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "composer.json",
+            "match_type": "contains",
+            "pattern": "symfony/framework-bundle"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Dependencies",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_DOCTRINE",
+      "description": "composer.json contains doctrine/orm",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "composer.json",
+            "match_type": "contains",
+            "pattern": "doctrine/orm"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Dependencies",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_FOSREST",
+      "description": "composer.json contains friendsofsymfony/rest-bundle",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "composer.json",
+            "match_type": "contains",
+            "pattern": "rest-bundle"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Dependencies",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_FRONTEND",
+      "description": "package.json exists with webpack encore",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "package.json"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "package.json",
+            "match_type": "contains",
+            "pattern": "encore"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Frontend",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PUBLIC_INDEX",
+      "description": "public/index.php exists as Symfony front controller",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "public/index.php"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "public/index.php",
+            "match_type": "contains",
+            "pattern": "Kernel"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Structure",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_ENV",
+      "description": ".env file exists with DATABASE_URL",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": ".env"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": ".env",
+            "match_type": "contains",
+            "pattern": "DATABASE_URL"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Configuration",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_API_PING",
+      "description": "GET /api/ping returns {message: pong}",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ping"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "APIHealth",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_API_VERSION",
+      "description": "GET /api/version returns version info",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/version"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "VersionEndpoint",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_USERS",
+      "description": "kimai2_users table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_users"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_users",
+            "expected_columns": [
+              "id",
+              "username",
+              "email",
+              "password",
+              "alias",
+              "title",
+              "enabled",
+              "roles",
+              "auth",
+              "totp_secret",
+              "totp_enabled",
+              "system_account",
+              "color",
+              "account",
+              "avatar",
+              "last_login",
+              "registration_date",
+              "confirmation_token"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_users'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UserEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_PREFERENCES",
+      "description": "kimai2_user_preferences table",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_user_preferences"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_user_preferences",
+            "expected_columns": [
+              "id",
+              "user_id",
+              "name",
+              "value"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_user_preferences'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UserPreference",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_CUSTOMERS",
+      "description": "kimai2_customers table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_customers"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_customers",
+            "expected_columns": [
+              "id",
+              "name",
+              "number",
+              "visible",
+              "billable",
+              "company",
+              "vat_id",
+              "contact",
+              "country",
+              "currency",
+              "timezone",
+              "budget",
+              "time_budget",
+              "budget_type",
+              "color",
+              "email",
+              "phone",
+              "fax",
+              "mobile",
+              "homepage",
+              "address",
+              "address_line1",
+              "address_line2",
+              "address_line3",
+              "postcode",
+              "city",
+              "buyer_reference",
+              "invoice_text",
+              "created_at"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_customers'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "CustomerEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_PROJECTS",
+      "description": "kimai2_projects table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_projects"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_projects",
+            "expected_columns": [
+              "id",
+              "name",
+              "number",
+              "visible",
+              "billable",
+              "budget",
+              "time_budget",
+              "budget_type",
+              "color",
+              "global_activities",
+              "order_number",
+              "order_date",
+              "start",
+              "end",
+              "timezone",
+              "comment",
+              "invoice_text",
+              "created_at"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_projects'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "ProjectEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_ACTIVITIES",
+      "description": "kimai2_activities table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_activities"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_activities",
+            "expected_columns": [
+              "id",
+              "name",
+              "number",
+              "visible",
+              "billable",
+              "budget",
+              "time_budget",
+              "budget_type",
+              "color",
+              "comment",
+              "invoice_text",
+              "created_at"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_activities'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "ActivityEntity",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_TIMESHEETS",
+      "description": "kimai2_timesheet table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_timesheet"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_timesheet",
+            "expected_columns": [
+              "id",
+              "start_time",
+              "end_time",
+              "duration",
+              "rate",
+              "internal_rate",
+              "fixed_rate",
+              "hourly_rate",
+              "exported",
+              "billable",
+              "description",
+              "timezone",
+              "date_tz",
+              "category",
+              "break"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_timesheet'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TimesheetEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_INVOICES",
+      "description": "kimai2_invoices table with all columns",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_invoices"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_invoices",
+            "expected_columns": [
+              "id",
+              "invoice_number",
+              "total",
+              "tax",
+              "currency",
+              "due_days",
+              "vat",
+              "status",
+              "invoice_filename",
+              "payment_date",
+              "comment",
+              "created_at",
+              "timezone"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_invoices'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "InvoiceEntity",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_INVOICE_TEMPLATES",
+      "description": "kimai2_invoice_templates table",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_invoice_templates"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_invoice_templates",
+            "expected_columns": [
+              "id",
+              "name",
+              "title",
+              "due_days",
+              "vat",
+              "calculator",
+              "number_generator",
+              "renderer",
+              "language"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_invoice_templates'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "InvoiceTemplate",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_TEAMS",
+      "description": "kimai2_teams and kimai2_users_teams tables",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_teams",
+              "kimai2_users_teams"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_teams",
+            "expected_columns": [
+              "id",
+              "name",
+              "color"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_users_teams",
+            "expected_columns": [
+              "id",
+              "teamlead"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_users_teams'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TeamEntity",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_TAGS",
+      "description": "kimai2_tags table",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_tags"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_tags",
+            "expected_columns": [
+              "id",
+              "name",
+              "visible",
+              "color"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_tags'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TagEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_RATES",
+      "description": "Rate tables for customer/project/activity",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_customers_rates",
+              "kimai2_projects_rates",
+              "kimai2_activities_rates"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_customers_rates",
+            "expected_columns": [
+              "id",
+              "rate",
+              "internal_rate",
+              "fixed"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_customers_rates'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "RateEntities",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_ACCESSTOKEN",
+      "description": "kimai2_access_token table",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_access_token"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_access_token",
+            "expected_columns": [
+              "id",
+              "token",
+              "name",
+              "last_usage",
+              "expires_at"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_access_token'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "AccessToken",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_CONFIG",
+      "description": "kimai2_configuration table",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_configuration"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_configuration",
+            "expected_columns": [
+              "id",
+              "name",
+              "value"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_configuration'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "Configuration",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_MISC",
+      "description": "Misc tables: export_templates, bookmarks, working_times, roles, taxes, comments, join tables",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_export_templates",
+              "kimai2_bookmarks",
+              "kimai2_working_times",
+              "kimai2_roles",
+              "kimai2_roles_permissions",
+              "kimai2_customers_comments",
+              "kimai2_projects_comments",
+              "kimai2_customers_teams",
+              "kimai2_projects_teams",
+              "kimai2_activities_teams",
+              "kimai2_timesheet_tags"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_export_templates'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "MiscEntities",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_ENTITY_FILES",
+      "description": "Entity PHP files ≥15 under src/Entity/",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "*.php",
+            "base_dir": "src/Entity",
+            "min_expected": 15
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "EntityFiles",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TIMESHEET_INDEXES",
+      "description": "Timesheet table has performance indexes",
+      "prereqs": [
+        "DB_TABLE_TIMESHEETS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P11",
+          "inputs": {
+            "table": "kimai2_timesheet",
+            "expected_indexes": [
+              {
+                "columns": [
+                  "start_time"
+                ]
+              },
+              {
+                "columns": [
+                  "start_time",
+                  "end_time"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TimesheetIndexes",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_CREATE_USER",
+      "description": "Create admin user via CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "DB_TABLE_USERS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:create authprobe_admin authprobe_admin@test.com ROLE_SUPER_ADMIN {{admin_password}}",
+            "expect_success": true
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_users WHERE enabled=1",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "UserCreation",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN_API",
+      "description": "Authenticate via API and obtain bearer token",
+      "prereqs": [
+        "AUTH_CREATE_USER",
+        "DB_TABLE_ACCESSTOKEN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_token",
+            "role": "admin"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "APILogin",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_ME_ENDPOINT",
+      "description": "GET /api/users/me returns current user with required fields",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users/me"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "username",
+              "email",
+              "enabled",
+              "language",
+              "timezone",
+              "locale",
+              "initials"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "username",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "MeEndpoint",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_UNAUTHENTICATED_401",
+      "description": "API returns 401 for unauthenticated requests",
+      "prereqs": [
+        "DEPLOY_API_PING"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets",
+            "headers": {},
+            "skip_auth": true
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 401
+              },
+              {
+                "path": "message",
+                "expected": "Unauthorized"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Unauthenticated",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_2FA_TOTP_ENTITY",
+      "description": "User entity supports TOTP 2FA fields (totp_secret, totp_enabled)",
+      "prereqs": [
+        "DB_TABLE_USERS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_users",
+            "expected_columns": [
+              "totp_secret",
+              "totp_enabled"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_users'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "2FASupport",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_CUSTOMERS_CREATE",
+      "description": "POST /api/customers creates customer with min required fields",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_CUSTOMERS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "Test Customer",
+              "country": "DE",
+              "currency": "EUR",
+              "timezone": "Europe/Berlin",
+              "visible": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "name",
+              "country",
+              "currency",
+              "timezone",
+              "visible",
+              "billable"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "CustomerCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CUSTOMERS_FULL",
+      "description": "POST /api/customers with all fields returns correct values including budget conversion",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "Full Customer",
+              "country": "DE",
+              "currency": "EUR",
+              "timezone": "Europe/Berlin",
+              "company": "Acme Inc",
+              "vatId": "DE123456",
+              "phone": "123",
+              "budget": 999,
+              "timeBudget": 36900,
+              "budgetType": "month",
+              "color": "#ff0000",
+              "number": "C-001",
+              "addressLine1": "Street 1",
+              "postCode": "12345",
+              "city": "Berlin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.budget",
+                "expected": 999
+              },
+              {
+                "path": "$.timeBudget",
+                "expected": 132840000
+              },
+              {
+                "path": "$.budgetType",
+                "expected": "month"
+              },
+              {
+                "path": "$.color",
+                "expected": "#ff0000"
+              },
+              {
+                "path": "$.number",
+                "expected": "C-001"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "CustomerFullFields",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CUSTOMERS_CRUD",
+      "description": "Full CRUD cycle for customers (create→read→update→delete)",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/customers",
+            "create_body": {
+              "name": "CRUD Customer",
+              "country": "DE",
+              "currency": "EUR",
+              "timezone": "Europe/Berlin",
+              "visible": true
+            },
+            "update_body": {
+              "name": "Updated Customer"
+            },
+            "expected_create_status": 200,
+            "expected_read_fields": [
+              "id",
+              "name",
+              "country",
+              "currency"
+            ],
+            "expected_delete_status": 204
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_customers",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "CustomerCRUD",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CUSTOMERS_LIST",
+      "description": "GET /api/customers returns list with correct structure",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers?visible=3"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "CustomerList",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CUSTOMER_RATES",
+      "description": "Customer rate sub-resource CRUD (POST + GET + DELETE)",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers/{{cid}}/rates",
+            "body": {
+              "rate": 17.45,
+              "isFixed": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers/{{cid}}/rates"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "$[0].rate",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "CustomerRates",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PROJECTS_CREATE",
+      "description": "POST /api/projects creates project linked to customer",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_PROJECTS",
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/projects",
+            "body": {
+              "name": "Test Project",
+              "customer": "{{cid}}",
+              "visible": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "name",
+              "customer",
+              "visible",
+              "billable"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ProjectCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PROJECTS_CRUD",
+      "description": "Full CRUD cycle for projects",
+      "prereqs": [
+        "API_PROJECTS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/projects",
+            "create_body": {
+              "name": "CRUD Project",
+              "customer": "{{cid}}",
+              "visible": true
+            },
+            "update_body": {
+              "name": "Updated Project"
+            },
+            "expected_delete_status": 204
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_projects",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ProjectCRUD",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PROJECT_RATES",
+      "description": "Project rate sub-resource CRUD",
+      "prereqs": [
+        "API_PROJECTS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/projects/{{pid}}/rates",
+            "body": {
+              "rate": 99,
+              "isFixed": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/projects/{{pid}}/rates"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "$[0].rate",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ProjectRates",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ACTIVITIES_CREATE",
+      "description": "POST /api/activities creates project-specific activity",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_ACTIVITIES",
+        "API_PROJECTS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/activities",
+            "body": {
+              "name": "Test Activity",
+              "project": "{{pid}}",
+              "visible": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "name",
+              "visible",
+              "billable"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActivityCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ACTIVITIES_GLOBAL",
+      "description": "Activity with project=null is global",
+      "prereqs": [
+        "API_ACTIVITIES_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/activities",
+            "body": {
+              "name": "Global Activity"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.project",
+                "expected": null
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "GlobalActivity",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ACTIVITIES_CRUD",
+      "description": "Full CRUD cycle for activities",
+      "prereqs": [
+        "API_ACTIVITIES_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/activities",
+            "create_body": {
+              "name": "CRUD Activity",
+              "visible": true
+            },
+            "update_body": {
+              "name": "Updated Activity"
+            },
+            "expected_delete_status": 204
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_activities",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActivityCRUD",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ACTIVITY_RATES",
+      "description": "Activity rate sub-resource CRUD",
+      "prereqs": [
+        "API_ACTIVITIES_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/activities/{{aid}}/rates",
+            "body": {
+              "rate": 50,
+              "isFixed": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "rate",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActivityRates",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TIMESHEETS_CREATE",
+      "description": "POST /api/timesheets creates timesheet entry",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_TIMESHEETS",
+        "API_PROJECTS_CREATE",
+        "API_ACTIVITIES_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "begin": "2025-04-01T09:00:00",
+              "end": "2025-04-01T17:00:00"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "begin",
+              "end",
+              "duration",
+              "rate",
+              "billable",
+              "exported"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "duration",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TimesheetCreate",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TIMESHEETS_CRUD",
+      "description": "Full CRUD cycle for timesheets",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/timesheets",
+            "create_body": {
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "begin": "2025-04-02T09:00:00",
+              "end": "2025-04-02T10:00:00"
+            },
+            "update_body": {
+              "description": "Updated"
+            },
+            "expected_delete_status": 204
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_timesheet",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TimesheetCRUD",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TIMESHEETS_RUNNING",
+      "description": "Create without end → running timer; stop endpoint works",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "begin": "2025-04-03T09:00:00"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.end",
+                "expected": null
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}/stop"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "RunningTimer",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_TIMESHEETS_ACTIVE",
+      "description": "GET /api/timesheets/active returns running timesheets",
+      "prereqs": [
+        "API_TIMESHEETS_RUNNING"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets/active"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActiveTimesheets",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_TIMESHEETS_RECENT",
+      "description": "GET /api/timesheets/recent returns recent activities",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets/recent"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "RecentTimesheets",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TIMESHEETS_DUPLICATE",
+      "description": "PATCH duplicate creates copy with exported=false",
+      "prereqs": [
+        "API_TIMESHEETS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}/duplicate"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.exported",
+                "expected": false
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TimesheetDuplicate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_TIMESHEETS_EXPORT_TOGGLE",
+      "description": "PATCH export toggles exported flag",
+      "prereqs": [
+        "API_TIMESHEETS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}/export"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.exported",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ExportToggle",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_TIMESHEETS_RESTART",
+      "description": "PATCH restart creates new entry from existing",
+      "prereqs": [
+        "API_TIMESHEETS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}/restart"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "begin"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TimesheetRestart",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_USERS_CREATE",
+      "description": "POST /api/users creates user with roles",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_USERS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users",
+            "body": {
+              "username": "apieval_user",
+              "email": "apieval@example.com",
+              "plainPassword": "TestPass123!",
+              "enabled": true,
+              "language": "en",
+              "timezone": "Europe/Berlin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "username",
+                "expected": "apieval_user"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "UserCreate",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_USERS_LIST",
+      "description": "GET /api/users returns user list",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "UserList",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_USERS_PREFERENCES",
+      "description": "PATCH /api/users/{id}/preferences updates preferences",
+      "prereqs": [
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/users/1/preferences",
+            "body": [
+              {
+                "name": "timezone",
+                "value": "Europe/Paris"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.preferences",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "UserPreferences",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAMS_CREATE",
+      "description": "POST /api/teams creates team with members",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_TEAMS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams",
+            "body": {
+              "name": "Test Team",
+              "members": [
+                {
+                  "user": 1,
+                  "teamlead": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              400
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "id",
+              "name"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "name",
+                "expected": "Test Team"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TeamCreate",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAMS_CRUD",
+      "description": "Full CRUD cycle for teams",
+      "prereqs": [
+        "API_TEAMS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/teams",
+            "create_body": {
+              "name": "CRUD Team",
+              "members": [
+                {
+                  "user": 1,
+                  "teamlead": true
+                }
+              ]
+            },
+            "update_body": {
+              "name": "Updated Team"
+            },
+            "expected_delete_status": 204
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_teams",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TeamCRUD",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAMS_MEMBERS",
+      "description": "Add/remove team members and grant resource access",
+      "prereqs": [
+        "API_TEAMS_CREATE",
+        "API_USERS_CREATE",
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams/{{tid}}/members/2"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams/{{tid}}/customers/{{cid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams/{{tid}}/projects/{{pid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams/{{tid}}/activities/{{aid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TeamMembers",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_TAGS_CRUD",
+      "description": "Tag CRUD: create, find, list, delete",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_TAGS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/tags",
+            "body": {
+              "name": "test-tag",
+              "color": "#ff0000",
+              "visible": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/tags"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/tags/find?name=test-tag"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "$[0].name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TagCRUD",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_INVOICES_LIST",
+      "description": "GET /api/invoices returns invoice list",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "DB_TABLE_INVOICES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/invoices"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              403
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "InvoiceList",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CONFIG_TIMESHEET",
+      "description": "GET /api/config/timesheet returns config",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/config/timesheet"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "trackingMode",
+                "expected_type": "string"
+              },
+              {
+                "path": "activeEntriesHardLimit",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ConfigEndpoint",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CONFIG_COLORS",
+      "description": "GET /api/config/colors returns color list",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/config/colors"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "Silver",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ConfigColors",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_EXPORT_DELETE",
+      "description": "DELETE /api/export/{id} works",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/export/99999"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ExportDelete",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ACTIONS_TIMESHEET",
+      "description": "GET /api/actions/timesheet/{id}/{view}/{locale} works",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/actions/timesheet/{{ts_id}}/listing/en"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              403,
+              404
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "string"
+              },
+              {
+                "path": "$[0].url",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActionsEndpoint",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ACTIONS_CUSTOMER",
+      "description": "GET /api/actions/customer/{id}/{view}/{locale} works",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/actions/customer/{{cid}}/listing/en"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ActionsCustomer",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_META_CUSTOMER",
+      "description": "PATCH /api/customers/{id}/meta updates meta fields",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/customers/{{cid}}/meta",
+            "body": {
+              "name": "test_meta",
+              "value": "test_value"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "MetaFields",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_TIMESHEETS_META",
+      "description": "PATCH /api/timesheets/{id}/meta works",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}/meta",
+            "body": {
+              "name": "test_meta",
+              "value": "val"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TimesheetMeta",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_PAGINATION_DETAIL",
+      "description": "Pagination returns correct counts: 22 records, page=2, size=4 → 4 results, 6 pages",
+      "prereqs": [
+        "API_TIMESHEETS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?page=1&size=5"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "PaginationDetail",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FILTER_VISIBLE",
+      "description": "visible filter: 1=visible, 2=hidden, 3=both",
+      "prereqs": [
+        "API_CUSTOMERS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers?visible=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers?visible=3"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "VisibleFilter",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FILTER_EXPORTED_DETAIL",
+      "description": "exported filter: exported=1→exported only, exported=0→non-exported, none→all",
+      "prereqs": [
+        "API_TIMESHEETS_EXPORT_TOGGLE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?exported=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?exported=0"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ExportedFilter",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_VALIDATION_CUSTOMER",
+      "description": "POST /api/customers with invalid country/currency/timezone → 400",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "x",
+              "country": "XYZ",
+              "currency": "---",
+              "timezone": "invalid/tz"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "ValidationErrors",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_VALIDATION_TEAM",
+      "description": "POST /api/teams with empty name and invalid user → 400",
+      "prereqs": [
+        "API_TEAMS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams",
+            "body": {
+              "name": "",
+              "members": [
+                {
+                  "user": 99999,
+                  "teamlead": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API",
+        "subcategory": "TeamValidation",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_RATE_1800s_100h",
+      "description": "Rate: 1800s × 100/h = 50.00",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T09:00:00",
+              "end": "2025-04-10T09:30:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "hourlyRate": 100
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 50.0,
+                "tolerance": 0.02
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateCalculation",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_3600s_100h",
+      "description": "Rate: 3600s × 100/h = 100.00",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T10:00:00",
+              "end": "2025-04-10T11:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "hourlyRate": 100
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 100.0,
+                "tolerance": 0.02
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateCalculation",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_DECIMAL_60s",
+      "description": "Decimal rate: 123.4567/h × 60s = 2.47",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T12:00:00",
+              "end": "2025-04-10T12:01:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "hourlyRate": 123.4567
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 2.47,
+                "tolerance": 1.0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateDecimal",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_DECIMAL_736",
+      "description": "Decimal rate: 736/h × 123s = 22.08",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T13:00:00",
+              "end": "2025-04-10T13:02:03",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "hourlyRate": 736
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 22.08,
+                "tolerance": 20.0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateDecimal",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_FIXED_2016",
+      "description": "Fixed rate: fixedRate=2016 overrides hourly",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T09:00:00",
+              "end": "2025-04-10T17:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "fixedRate": 2016,
+              "hourlyRate": 127
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 2016.0,
+                "tolerance": 0.01
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "FixedRate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_ZERO_ALL_NULL",
+      "description": "When no rates set at any level, rate = 0.00",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-10T14:00:00",
+              "end": "2025-04-10T15:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rate",
+                "expected": 0.0,
+                "tolerance": 100.0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateZero",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_RATE_ENTITY_VERIFIED",
+      "description": "Timesheet GET returns hourlyRate, rate, internalRate, duration: h=137.21, d=46500, r=1772.2958",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-11T00:00:00",
+              "end": "2025-04-11T12:55:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "hourlyRate": 137.21
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.hourlyRate",
+                "expected": 137.21,
+                "tolerance": 0.01
+              },
+              {
+                "path": "$.duration",
+                "expected": 46500,
+                "tolerance": 60
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateEntityValues",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_DURATION_CALC",
+      "description": "Duration = end - begin in seconds",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-12T09:00:00",
+              "end": "2025-04-12T09:30:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.duration",
+                "expected": 1800,
+                "tolerance": 60
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "DurationCalc",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_BILLABLE_DEFAULT_TRUE",
+      "description": "Default billable=true",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-13T09:00:00",
+              "end": "2025-04-13T10:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "billable": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.billable",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "BillableDefault",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_BILLABLE_FALSE",
+      "description": "billable=false override",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-14T09:00:00",
+              "end": "2025-04-14T10:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}",
+              "billable": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.billable",
+                "expected": false
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "BillableOverride",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_BUDGET_FIELDS",
+      "description": "Budget, time_budget, budget_type fields on C/P/A",
+      "prereqs": [
+        "DB_TABLE_CUSTOMERS",
+        "DB_TABLE_PROJECTS",
+        "DB_TABLE_ACTIVITIES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_customers",
+            "expected_columns": [
+              "budget",
+              "time_budget",
+              "budget_type"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_projects",
+            "expected_columns": [
+              "budget",
+              "time_budget",
+              "budget_type"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_activities",
+            "expected_columns": [
+              "budget",
+              "time_budget",
+              "budget_type"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_activities'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "BudgetFields",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_INVOICE_STATUS_FIELD",
+      "description": "Invoice status column supports new/pending/paid/canceled",
+      "prereqs": [
+        "DB_TABLE_INVOICES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_invoices",
+            "expected_columns": [
+              "status",
+              "payment_date"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_invoices'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceStatus",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_INVOICE_NUMBER_FORMAT",
+      "description": "Invoice number generator supports {Y}/{cy,3} format",
+      "prereqs": [
+        "DB_TABLE_INVOICE_TEMPLATES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_invoice_templates",
+            "expected_columns": [
+              "number_generator"
+            ]
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "NumberGenerator|InvoiceNumber|getInvoiceNumber"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_invoice_templates'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceNumberFormat",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_INVOICE_NUMBER_PLACEHOLDERS",
+      "description": "Invoice number format placeholders: {Y}, {cy}, {c}, {cname}, {cnumber}, {uid} etc",
+      "prereqs": [
+        "BIZ_INVOICE_NUMBER_FORMAT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "\\{Y\\}|\\{cy|\\{c\\}|\\{cname\\}|\\{cnumber\\}|\\{uid\\}"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceNumberPlaceholders",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_INVOICE_NUMBER_PADDING",
+      "description": "Invoice number supports zero-padding: {cy,3} → '001'",
+      "prereqs": [
+        "BIZ_INVOICE_NUMBER_FORMAT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "str_pad|sprintf.*0|zero.*pad|,\\d+\\}"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceNumberPadding",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_INVOICE_NUMBER_INCREMENT",
+      "description": "Invoice number auto-increments to avoid duplicates",
+      "prereqs": [
+        "BIZ_INVOICE_NUMBER_FORMAT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "hasInvoice|increaseBy|retry|loop"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceNumberAutoIncrement",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_INVOICE_CALC_DEFAULT",
+      "description": "Invoice calculator code exists (default/price/date/project)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "InvoiceCalculator|CalculatorInterface|getTotal|getTax"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceCalculator",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_ROUNDING_CODE_EXISTS",
+      "description": "Rounding service code exists with multiple modes",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "RoundingService|RoundingMode|CeilRounding|FloorRounding|ClosestRounding"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoundingService",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_ROUNDING_DEFAULT_15",
+      "description": "Default rounding: begin DOWN, end UP with 15-min → begin 12:17→12:15, end 13:32→13:45, dur=5400",
+      "prereqs": [
+        "BIZ_ROUNDING_CODE_EXISTS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "floor|ceil|round.*begin|round.*end"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoundingDefault",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_ROUNDING_CEIL_MODE",
+      "description": "Ceil rounding mode: both begin and end round UP",
+      "prereqs": [
+        "BIZ_ROUNDING_CODE_EXISTS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "ceil|CeilRounding"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoundingCeil",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_ROUNDING_FLOOR_MODE",
+      "description": "Floor rounding mode: both begin and end round DOWN",
+      "prereqs": [
+        "BIZ_ROUNDING_CODE_EXISTS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "floor|FloorRounding"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoundingFloor",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_ROUNDING_CLOSEST_MODE",
+      "description": "Closest rounding mode: round to nearest",
+      "prereqs": [
+        "BIZ_ROUNDING_CODE_EXISTS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src",
+            "match_type": "regex",
+            "pattern": "closest|ClosestRounding|round\\("
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoundingClosest",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_WORKING_TIME_TABLE",
+      "description": "WorkingTime entity and table exist",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_working_times"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_working_times",
+            "expected_columns": [
+              "id",
+              "date",
+              "approved_by"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_working_times'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "WorkingTime",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_EXPORT_TEMPLATE_TABLE",
+      "description": "Export template entity with renderer/columns/options",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "kimai2_export_templates"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "kimai2_export_templates",
+            "expected_columns": [
+              "id",
+              "title",
+              "renderer",
+              "columns",
+              "options"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as col_count FROM information_schema.columns WHERE table_schema=DATABASE() AND table_name='kimai2_export_templates'",
+            "expected_result": {
+              "col_count_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "ExportTemplate",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "RBAC_USER_CANNOT_LIST_USERS",
+      "description": "ROLE_USER cannot GET /api/users → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/users",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UserPermissions",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_CANNOT_CREATE_CUSTOMER",
+      "description": "ROLE_USER cannot POST /api/customers → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/customers",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "CustomerPermissions",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_CANNOT_DELETE_CUSTOMER",
+      "description": "ROLE_USER cannot DELETE /api/customers/{id} → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "DELETE /api/customers/{{cid}}",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "CustomerDelete",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_CANNOT_VIEW_TEAMS",
+      "description": "ROLE_USER cannot GET /api/teams → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/teams",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "TeamPermissions",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_TEAMLEAD_CANNOT_CREATE_TEAM",
+      "description": "ROLE_TEAMLEAD cannot POST /api/teams → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "teamlead"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/teams",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "TeamleadLimit",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_TEAMLEAD_CANNOT_LIST_USERS",
+      "description": "ROLE_TEAMLEAD cannot GET /api/users → 403",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "teamlead"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/users",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "TeamleadUserLimit",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_LIST_USERS",
+      "description": "ROLE_SUPER_ADMIN CAN list users via GET /api/users (view_user permission).",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminUserLimit",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_CREATE_CUSTOMER",
+      "description": "ROLE_ADMIN can POST /api/customers → 200",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "Admin Customer",
+              "country": "DE",
+              "currency": "EUR",
+              "timezone": "Europe/Berlin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminPermissions",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_VIEW_TEAMS",
+      "description": "ROLE_ADMIN can GET /api/teams → 200",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE",
+        "API_TEAMS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/teams"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].id",
+                "expected_type": "integer"
+              },
+              {
+                "path": "$[0].name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminTeams",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_OWN_TIMESHEET",
+      "description": "ROLE_USER can only view own timesheets",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_TIMESHEETS_CREATE",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "DataIsolation",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_OWN_PROFILE_ONLY",
+      "description": "ROLE_USER can view own profile, denied other profiles",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users/me"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "id",
+                "expected_type": "integer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "ProfileAccess",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_EXPORTED_TEAMLEAD_DENIED",
+      "description": "ROLE_TEAMLEAD cannot edit exported timesheet → 403",
+      "prereqs": [
+        "API_TIMESHEETS_EXPORT_TOGGLE",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "teamlead"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/timesheets/{{ts_id}}",
+            "body": {
+              "description": "should fail"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              403
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "ExportedRestriction",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ROLE_HIERARCHY",
+      "description": "ROLE_SUPER_ADMIN inherits all lower role permissions",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/teams"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/invoices"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "RoleHierarchy",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_TIMESHEET_USER_ALL_ADMIN",
+      "description": "ROLE_ADMIN with user=all sees all timesheets",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_TIMESHEETS_CREATE",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?user=all"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UserAllAdmin",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_TIMESHEET_USER_ALL_USER",
+      "description": "ROLE_USER with user=all sees only own timesheets",
+      "prereqs": [
+        "AUTH_LOGIN_API",
+        "API_TIMESHEETS_CREATE",
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?user=all"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UserAllUser",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "EDGE_ZERO_DURATION",
+      "description": "begin==end (zero duration) → 400",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-20T09:00:00",
+              "end": "2025-04-20T09:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "duration",
+                "expected": 0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "ZeroDuration",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_INVISIBLE_PROJECT",
+      "description": "Cannot create timesheet for invisible customer/project",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE",
+        "API_CUSTOMERS_CRUD",
+        "EDGE_NONEXISTENT_ACTIVITY",
+        "EDGE_NONEXISTENT_PROJECT",
+        "EDGE_ZERO_DURATION",
+        "RBAC_EXPORTED_TEAMLEAD_DENIED",
+        "RBAC_USER_CANNOT_DELETE_CUSTOMER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/customers/{{cid}}",
+            "body": {
+              "visible": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-20T09:00:00",
+              "end": "2025-04-20T10:00:00",
+              "project": "{{pid}}",
+              "activity": "{{aid}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "InvisibleEntity",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "EDGE_CASCADE_DELETE",
+      "description": "DELETE customer cascades to projects and timesheets",
+      "prereqs": [
+        "API_CUSTOMERS_CRUD",
+        "API_TIMESHEETS_CRUD",
+        "EDGE_INVISIBLE_PROJECT",
+        "EDGE_NONEXISTENT_ACTIVITY",
+        "EDGE_NONEXISTENT_PROJECT",
+        "EDGE_ZERO_DURATION",
+        "RBAC_EXPORTED_TEAMLEAD_DENIED",
+        "RBAC_USER_CANNOT_DELETE_CUSTOMER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/customers/{{cid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers/{{cid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 404
+              },
+              {
+                "path": "message",
+                "expected": "Not Found"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "CascadeDelete",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_INVALID_COUNTRY",
+      "description": "Invalid country code → 400",
+      "prereqs": [
+        "API_CUSTOMERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "Bad",
+              "country": "XYZ",
+              "currency": "EUR",
+              "timezone": "Europe/Berlin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "ValidationCountry",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_NOT_FOUND_404",
+      "description": "GET /api/customers/99999 → 404",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/customers/99999"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 404
+              },
+              {
+                "path": "message",
+                "expected": "Not Found"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "NotFound",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_TAG_COMMA",
+      "description": "Tag with comma → 400",
+      "prereqs": [
+        "API_TAGS_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/tags",
+            "body": {
+              "name": "bad,tag"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "TagValidation",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_TEAM_EMPTY",
+      "description": "Team with 0 members → 400",
+      "prereqs": [
+        "API_TEAMS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams",
+            "body": {
+              "name": "Empty Team",
+              "members": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "TeamValidation",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_DUPLICATE_USERNAME",
+      "description": "Duplicate username → 400",
+      "prereqs": [
+        "API_USERS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users",
+            "body": {
+              "username": "{{admin_username}}",
+              "email": "duplicate@test.com",
+              "plainPassword": "Pass123!",
+              "enabled": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "UniqueConstraint",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_PAGE_OUT_OF_RANGE",
+      "description": "page=999 → 404",
+      "prereqs": [
+        "API_PAGINATION_DETAIL"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/timesheets?page=999&size=50"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 404
+              },
+              {
+                "path": "message",
+                "expected": "Not Found"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "PaginationBounds",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_NONEXISTENT_PROJECT",
+      "description": "Timesheet with project=99 → 400 validation",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-20T09:00:00",
+              "end": "2025-04-20T10:00:00",
+              "project": 99999,
+              "activity": "{{aid}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "NonexistentProject",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_NONEXISTENT_ACTIVITY",
+      "description": "Timesheet with activity=99 → 400 validation",
+      "prereqs": [
+        "API_TIMESHEETS_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/timesheets",
+            "body": {
+              "begin": "2025-04-20T09:00:00",
+              "end": "2025-04-20T10:00:00",
+              "project": "{{pid}}",
+              "activity": 99999
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 400
+              },
+              {
+                "path": "message",
+                "expected": "Validation Failed"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "NonexistentActivity",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "EDGE_DELETE_NOT_FOUND",
+      "description": "DELETE /api/customers/99999 → 404",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/customers/99999"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "code",
+                "expected": 404
+              },
+              {
+                "path": "message",
+                "expected": "Not Found"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "DeleteNotFound",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_DASHBOARD",
+      "description": "Dashboard page with navigation and widgets",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the dashboard page (sidebar nav + main content + dashboard widgets / statistics + timer display).\n\nEVIDENCE: Rendered HTML of /dashboard (or equivalent) for an authenticated session.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. A persistent left sidebar lists primary modules (Projects, Time Entries, Reports, Settings).\n2. A main content area renders the dashboard widgets (counters, recent entries).\n3. A live timer display is visible (start / stop control plus elapsed time).\n4. Widget headers, values, and trends are clearly differentiated by typography.\n5. Header includes user menu and a primary 'Start timer' or 'Add entry' CTA.\n6. The page renders without obvious layout breakage at desktop width.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or is blank.\n- 2 (weak): Some content but no sidebar or timer.\n- 4 (good): Sidebar + widgets + timer; visual polish thin.\n- 5 (excellent): All six criteria satisfied with a polished dashboard.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "Dashboard",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_LOGIN",
+      "description": "Login page with form, CSRF",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/login"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "no_auth": true,
+            "url": "{{base_url}}/en/login"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the login page (form + CSRF + validation + reset link).\n\nEVIDENCE: Rendered HTML of /login.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. The form contains both username/email and password fields with associated labels.\n2. A CSRF hidden input or meta tag is present.\n3. The submit button is clearly labelled and not disabled by default.\n4. A 'Forgot password?' link routes to a reset flow.\n5. Inline validation (HTML5 required / type=email) is present on the inputs.\n6. The page styles match the rest of the application (no raw browser defaults).\n\nSCORING ANCHORS:\n- 0 (none): Page does not render.\n- 2 (weak): Fields present but no CSRF and no reset link.\n- 4 (good): Form + CSRF + reset link; styling thin.\n- 5 (excellent): All six criteria satisfied with a polished login page.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "LoginPage",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_CALENDAR",
+      "description": "Calendar page exists with FullCalendar integration",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/calendar/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "CalendarPage",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_REPORTING",
+      "description": "Reporting page exists",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/reporting/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "ReportingPage",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_I18N",
+      "description": "Translation files exist for EN and DE",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "translations",
+            "type": "directory"
+          }
+        },
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "*.xlf",
+            "base_dir": "translations",
+            "min_expected": 2
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "I18n",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_TWIG_TEMPLATES",
+      "description": "Twig template files ≥10",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "**/*.html.twig",
+            "base_dir": "templates",
+            "min_expected": 10
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "Templates",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_SYSTEM_CONFIG",
+      "description": "System configuration page exists",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/admin/system-config/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "SystemConfig",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CODE_STRUCTURE",
+      "description": "Symfony conventions: src/Entity, src/Controller, src/Repository dirs",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "src/Entity",
+            "type": "directory"
+          }
+        },
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "src/Controller",
+            "type": "directory"
+          }
+        },
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "src/Repository",
+            "type": "directory"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Structure",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_RATE_SERVICE",
+      "description": "Rate calculation uses service/calculator pattern",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/Timesheet/RateService.php",
+              "src/Timesheet/RateServiceInterface.php",
+              "src/Timesheet/Calculator/RateCalculator.php",
+              "src/Timesheet/Calculator/RateResetCalculator.php",
+              "src/Repository/ProjectRateRepository.php",
+              "src/Repository/CustomerRateRepository.php"
+            ],
+            "rubric_prompt": "GOAL: Judge the rate-calculation design (RateService / RateCalculator + interface + multi-level hierarchy + entity separation).\n\nEVIDENCE: Source of the rate calculation classes and their consumers.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. A dedicated RateCalculator (or RateService) class handles rate selection.\n2. The class implements an explicit interface so alternative strategies can be substituted.\n3. The multi-level hierarchy (user > project > task > customer > tenant default) is encoded as ordered fallback steps in the calculator, not scattered if-statements in entities.\n4. Calculation logic is decoupled from entities (entities expose data, calculator computes results).\n5. The selected rate's source (which level resolved the value) is returned alongside the value for auditability.\n6. The calculator is unit-tested with cases for each fallback level.\n\nSCORING ANCHORS:\n- 0 (none): Rate computed inline in entities or controllers.\n- 2 (weak): A RateCalculator exists but reaches into entities.\n- 4 (good): Calculator + interface + hierarchy; auditability or tests thin.\n- 5 (excellent): All six criteria satisfied with a clean rate domain.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "RateService",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_PERMISSION_SYSTEM",
+      "description": "RBAC uses Symfony Voters or structured permission system",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/Security/",
+              "src/Voter/"
+            ],
+            "rubric_prompt": "GOAL: Judge the RBAC implementation (Symfony Voters or structured permission system + per-entity/action + role hierarchy + team isolation).\n\nEVIDENCE: Voter / permission classes, security.yaml, controller @IsGranted usages, role hierarchy config.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. Authorization uses Symfony Voters (or an equivalent policy class) rather than inline role checks scattered in controllers.\n2. Voters cover the major entities (Project, TimeEntry, Customer, Invoice, Report) and at least 3 actions per entity (view, edit, delete).\n3. The role hierarchy is configured in security.yaml (ROLE_ADMIN -> ROLE_TEAMLEAD -> ROLE_USER).\n4. Team-based data isolation is enforced inside Voters (or repository scopes), not in controllers.\n5. Controllers use @IsGranted annotations or denyAccessUnlessGranted to delegate to Voters.\n6. There are tests covering the deny path for at least each Voter category.\n\nSCORING ANCHORS:\n- 0 (none): Inline role checks per controller.\n- 2 (weak): Some Voters exist but team isolation in controllers.\n- 4 (good): Voters + role hierarchy + team scope; coverage gaps remain.\n- 5 (excellent): All six criteria satisfied with a complete RBAC.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Permissions",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ARCH_API_DESIGN",
+      "description": "API follows RESTful conventions with consistent serialization",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/API/",
+              "src/Controller/"
+            ],
+            "rubric_prompt": "GOAL: Judge the REST API design (base controller + serialization groups + HTTP methods + status codes + Symfony Forms validation + consistent errors).\n\nEVIDENCE: API controllers, base controller class, serializer groups annotations, error handler.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. API controllers extend a shared base controller that handles auth, content negotiation, and error envelope.\n2. Serialization uses groups (or equivalent) so list / detail / write payloads are explicit and testable.\n3. Endpoints use the correct HTTP verb per action and return correct status codes (200 / 201 / 204 / 400 / 401 / 403 / 404).\n4. Write requests are validated through Symfony Forms or symfony/validator; failures return 422 with structured field errors.\n5. Error responses follow a consistent envelope across all endpoints.\n6. OpenAPI metadata (NelmioApiDoc or equivalent) is generated for each endpoint group.\n\nSCORING ANCHORS:\n- 0 (none): No API or HTML responses.\n- 2 (weak): API exists but no base controller and no validator.\n- 4 (good): Base controller + serialization groups + validator; OpenAPI thin.\n- 5 (excellent): All six criteria satisfied with a polished REST API.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "APIDesign",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CONTROLLER_COUNT",
+      "description": "API controller files ≥5",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "*Controller.php",
+            "base_dir": "src/API",
+            "min_expected": 5
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ControllerCount",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_REPOSITORY_COUNT",
+      "description": "Repository files ≥5",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "*Repository.php",
+            "base_dir": "src/Repository",
+            "min_expected": 5
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "RepositoryCount",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_CREATE",
+      "description": "kimai:user:create CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "DB_TABLE_USERS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:create cliuser cliuser@test.com ROLE_USER CliPass123!",
+            "expect_success": true
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_users WHERE enabled=1",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_LIST",
+      "description": "kimai:user:list CLI command",
+      "prereqs": [
+        "CLI_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:list",
+            "expect_success": true,
+            "expect_output_contains": "cliuser"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserList",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_ACTIVATE",
+      "description": "kimai:user:activate CLI command",
+      "prereqs": [
+        "CLI_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:activate cliuser",
+            "expect_success": true
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_users WHERE enabled=1",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserActivate",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_DEACTIVATE",
+      "description": "kimai:user:deactivate CLI command",
+      "prereqs": [
+        "CLI_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:deactivate cliuser",
+            "expect_success": true
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_users WHERE enabled=1",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserDeactivate",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_PROMOTE",
+      "description": "kimai:user:promote CLI command",
+      "prereqs": [
+        "CLI_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:promote cliuser ROLE_ADMIN",
+            "expect_success": true
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM kimai2_users WHERE enabled=1",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserPromote",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_DEMOTE",
+      "description": "kimai:user:demote CLI command",
+      "prereqs": [
+        "CLI_USER_PROMOTE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:demote cliuser ROLE_ADMIN",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserDemote",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_USER_PASSWORD",
+      "description": "kimai:user:password CLI command",
+      "prereqs": [
+        "CLI_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:user:password cliuser NewPass456!",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "UserPassword",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_VERSION",
+      "description": "kimai:version CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:version",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "Version",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_INSTALL",
+      "description": "kimai:install CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:install --help",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "Install",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_RELOAD",
+      "description": "kimai:reload CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:reload --help",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "Reload",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CLI_TIMESHEET_STOPALL",
+      "description": "kimai:timesheet:stop-all CLI command",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "php bin/console kimai:timesheet:stop-all --help",
+            "expect_success": true
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CLI",
+        "subcategory": "StopAll",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "LLM_CODE_ORGANIZATION",
+      "description": "Code follows Symfony best practices: services, controllers, entities in proper directories",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "Evaluate the Symfony project code organization:\n- Are entities in src/Entity/? (2pts)\n- Are controllers in src/Controller/? (2pts)\n- Are services/repositories properly organized? (2pts)\n- Is there a clear separation between API and web controllers? (2pts)\n- Does the code follow PSR-12 naming conventions? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "CodeOrg",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LLM_ERROR_HANDLING",
+      "description": "API error responses follow consistent format with proper status codes",
+      "prereqs": [
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/customers",
+            "body": {
+              "name": "x",
+              "country": "INVALID",
+              "currency": "---",
+              "timezone": "bad/tz"
+            }
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "http_response_body",
+            "rubric_prompt": "Evaluate the API error response quality:\n- Does it return proper HTTP 400 status? (2pts)\n- Does error body contain 'code' field? (2pts)\n- Does error body contain 'message' field? (2pts)\n- Are field-level errors identified (which field failed)? (2pts)\n- Is the error format consistent with REST best practices? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ErrorHandling",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LLM_DB_DESIGN",
+      "description": "Database schema design quality: proper indexes, foreign keys, constraints",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/Entity/",
+              "migrations/"
+            ],
+            "rubric_prompt": "Evaluate the database design quality:\n- Are all entities using proper Doctrine ORM annotations? (2pts)\n- Are foreign key relationships correctly defined with cascade rules? (2pts)\n- Are indexes defined for frequently queried columns? (2pts)\n- Are column types appropriate (varchar lengths, integer vs bigint)? (2pts)\n- Are unique constraints defined where needed? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "DBDesign",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LLM_SECURITY",
+      "description": "Security implementation: CSRF, rate limiting, input sanitization",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/",
+              "config/packages/security.yaml"
+            ],
+            "rubric_prompt": "Evaluate security implementation:\n- Is CSRF protection configured for form login? (2pts)\n- Is password hashing using a secure algorithm (bcrypt/argon2)? (2pts)\n- Are API endpoints protected with proper authentication? (2pts)\n- Is input validation present on all user-facing endpoints? (2pts)\n- Are SQL injection and XSS protections in place (via ORM/templating)? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Security",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LLM_FRONTEND_TIMESHEET",
+      "description": "Timesheet listing page: data table with filters, pagination, sorting",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/timesheet/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/en/timesheet/"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "Evaluate the timesheet listing page HTML:\n- Does it contain a data table for timesheet entries? (2pts)\n- Are there filter controls (date range, customer, project)? (2pts)\n- Is there pagination support? (2pts)\n- Does it show key timesheet fields (date, duration, project, rate)? (2pts)\n- Is the layout clean with proper navigation? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "TimesheetPage",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "LLM_FRONTEND_CUSTOMER",
+      "description": "Customer management page: CRUD forms with proper layout",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/admin/customer/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2500,
+            "timeout_ms": 20000,
+            "strip_classes": true,
+            "wait_for_selector": "table, .datatable, main",
+            "url": "{{base_url}}/en/admin/customer/"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "Evaluate the customer management page:\n- Does it list customers in a table? (2pts)\n- Is there a create/add button? (2pts)\n- Does each row show key info (name, country, visibility)? (2pts)\n- Is the page responsive and well-styled? (2pts)\n- Are action buttons (edit/delete) available? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "CustomerPage",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "LLM_FRONTEND_REPORTING",
+      "description": "Reporting page with date range filters and charts",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_API"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/en/reporting/users/month"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2500,
+            "timeout_ms": 20000,
+            "strip_classes": true,
+            "wait_for_selector": "table, form, .card, main",
+            "url": "{{base_url}}/en/reporting/users/month"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "Evaluate the reporting page:\n- Does it have date range filter controls? (2pts)\n- Is there a report type selector (by customer/project/user)? (2pts)\n- Does it display summary statistics? (2pts)\n- Is the layout organized with clear data presentation? (2pts)\n- Are charts or visual elements present? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "Reporting",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "LLM_I18N",
+      "description": "Internationalization: translation files and multi-language support",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "translations/",
+              "config/"
+            ],
+            "rubric_prompt": "Evaluate internationalization implementation:\n- Are translation files present for at least 2 languages? (2pts)\n- Are all user-facing strings using translation keys (not hardcoded)? (2pts)\n- Is language switching supported via user preference? (2pts)\n- Are date/number formats locale-aware? (2pts)\n- Are form labels and validation messages translated? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "I18N",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "LLM_RATE_SERVICE",
+      "description": "Rate calculation service design: strategy pattern, separation of concerns",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/Timesheet/RateService.php",
+              "src/Timesheet/RateServiceInterface.php",
+              "src/Timesheet/Calculator/RateCalculator.php",
+              "src/Timesheet/Calculator/RateResetCalculator.php",
+              "src/Repository/ProjectRateRepository.php",
+              "src/Repository/CustomerRateRepository.php"
+            ],
+            "rubric_prompt": "Evaluate the rate calculation service architecture:\n- Is there a dedicated RateCalculator/RateService class? (2pts)\n- Does it use strategy/chain pattern for multi-level rate resolution? (2pts)\n- Is the rate hierarchy (fixed > hourly > activity > project > customer > user default) clearly implemented? (2pts)\n- Is internal rate handled as a parallel calculation? (2pts)\n- Are rate calculations unit-testable (not buried in controllers)? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RateService",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LLM_INVOICE_SYSTEM",
+      "description": "Invoice generation system: template engine, number generator, renderers",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/Invoice/ServiceInvoice.php",
+              "src/Invoice/InvoiceModel.php",
+              "src/Invoice/Calculator/DefaultCalculator.php",
+              "src/Invoice/Calculator/AbstractSumInvoiceCalculator.php",
+              "src/Invoice/NumberGenerator/ConfigurableNumberGenerator.php",
+              "src/Invoice/Renderer/AbstractRenderer.php"
+            ],
+            "rubric_prompt": "Evaluate the invoice system architecture:\n- Is there a dedicated Invoice generation service? (2pts)\n- Is the number generator configurable with format placeholders? (2pts)\n- Are invoice templates supported (different formats/layouts)? (2pts)\n- Is there proper separation between invoice model, generator, and renderer? (2pts)\n- Does the system handle tax calculation and totals correctly? (2pts)\nScore 0-10.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "InvoiceSystem",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+# task_iyjruvfz evaluation framework dependencies
+# Install: pip install -r evaluate/requirements.txt
+
+# ===== Core runtime =====
+requests>=2.31           # HTTP client (P04/P14/P25/P27)
+psycopg2-binary>=2.9     # PostgreSQL driver (P08/P09/P10/P11/P13 DB fallback)
+
+# ===== Encryption / signing =====
+PyJWT>=2.8               # P25 generic OAuth refresh token JWT issuance
+cryptography>=42         # AES-256-CBC verification (INT_CREDENTIAL_AES_256_CBC)
+
+# ===== LLM judge =====
+openai>=1.30             # P17 calls the LLM for scoring via an OpenAI-compatible API
+
+# ===== Pytest mode =====
+pytest>=8.0              # single-point testing (`pytest tests/test_x.py::test_NODE`)
+pytest-xdist>=3.0        # parallel (`pytest -n auto`), but use with caution — most nodes share the DB/HTTP context
+
+# ===== Config loading =====
+python-dotenv>=1.0       # loads NEXTAUTH_SECRET / APP_ENCRYPTION_KEY etc. from docker/.env
+
+# ===== CLI / report formatting =====
+rich>=13.0               # colored table output (run_all summary)
+
+# ===== Notes =====
+# - Does not add redis-py: this framework only verifies Redis health via `docker exec ... redis-cli ping`,
+#   it does not use a Python redis client directly
+# - Does not add playwright/selenium: the current DAG does not include P18 (browser_interaction),
+#   and P19 (DOM assertions) is implemented by parsing HTML strings

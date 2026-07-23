@@ -1,0 +1,152 @@
+# Docker compose for the LMS task. The application source code is mounted at
+# /usr/src/app inside the web/worker containers. The published image
+#   shadetocloak/task_gavmyneb-app:${IMAGE_TAG}
+# ships pre-built backend dependencies + frontend assets in
+# /var/cache/workspace_deps/ so prepare_workspace.sh can populate
+# /usr/src/app quickly without doing a full re-install.
+#
+# Port conventions (task.md §8):
+#   web   : host:8017 -> container:80 (the source baseline image listens on 80)
+#   db    : host:5442 -> container:5432
+#   redis : host:6381 -> container:6379
+#
+# Two databases are created at PG init time:
+#   - app_dev / app_test  ← used by the source-baseline reference implementation
+#   - app_gavmyneb        ← required by the task.md §8 specification
+
+name: task-gavmyneb
+
+x-common-env: &common-env
+  TZ: UTC
+  LANG: en_US.UTF-8
+  LC_ALL: en_US.UTF-8
+  # Generic env vars (preferred for the model under test)
+  APP_ENV: ${APP_ENV:-${RAILS_ENV:-development}}
+  APP_DATABASE_HOST: db
+  APP_DATABASE_USERNAME: postgres
+  APP_DATABASE_PASSWORD: sekret
+  APP_DATABASE_DEV: app_dev
+  APP_DATABASE_TEST: app_test
+  APP_REDIS_HOST: redis
+  # Internal compatibility aliases for the source-baseline reference
+  # implementation; the model under test should prefer the generic APP_*
+  # variables above. These fall back to the APP_* values so they stay in sync.
+  RAILS_ENV: ${RAILS_ENV:-${APP_ENV:-development}}
+  CANVAS_DATABASE_HOST: ${APP_DATABASE_HOST:-db}
+  CANVAS_DATABASE_USERNAME: ${APP_DATABASE_USERNAME:-postgres}
+  POSTGRES_PASSWORD: ${APP_DATABASE_PASSWORD:-sekret}
+  CANVAS_DATABASE_DEVELOPMENT: ${APP_DATABASE_DEV:-canvas_development}
+  CANVAS_DATABASE_TEST: ${APP_DATABASE_TEST:-canvas_test}
+  CANVAS_REDIS_HOST: ${APP_REDIS_HOST:-redis}
+  ENCRYPTION_KEY: facdd3a131ddd8988b14f6e4e01039c93cfa0160
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE:-please_generate_with_openssl_rand_hex_64}
+  POSTGRES_HOST: db
+  POSTGRES_PORT: 5432
+  POSTGRES_DB: app_gavmyneb
+  POSTGRES_USER_TASK: appgavmyneb
+  POSTGRES_PASSWORD_TASK: app123gavmyneb
+  REDIS_URL: redis://redis:6379/0
+  APP_PORT: 8017
+  APP_DOMAIN: localhost:8017
+
+services:
+  web:
+    image: shadetocloak/task_gavmyneb-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: lms-web
+    # DNS configured to ensure that any git-source dependencies declared by
+    # the application can be fetched even when the host DNS is restrictive.
+    dns:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    ports:
+      - "8017:80"
+    environment:
+      <<: *common-env
+      VIRTUAL_HOST: .lms.docker
+      HTTPS_METHOD: noredirect
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./workspace:/usr/src/app
+    working_dir: /usr/src/app
+    stdin_open: true
+    tty: true
+    # The model under test is responsible for starting the application server
+    # itself (see prompt_for_model.md). prepare_workspace.sh does not pre-start.
+    command: ["bash", "-c", "tail -f /dev/null"]
+    restart: "no"
+  worker:
+    image: shadetocloak/task_gavmyneb-app:${IMAGE_TAG:-baseline}
+    container_name: lms-worker
+    # DNS configured to ensure that any git-source dependencies declared by
+    # the application can be fetched even when the host DNS is restrictive.
+    dns:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    environment:
+      <<: *common-env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./workspace:/usr/src/app
+    working_dir: /usr/src/app
+    command: ["bash", "-lc", "echo 'worker idle; the model under test is responsible for starting the async-task worker (see prompt_for_model.md)'; tail -f /dev/null"]
+    restart: "no"
+  db:
+    image: postgres:16
+    container_name: lms-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: sekret
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5442:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/00_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d canvas_development"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    command: >
+      postgres
+      -c shared_buffers=64MB
+      -c effective_cache_size=128MB
+      -c maintenance_work_mem=32MB
+      -c work_mem=4MB
+      -c max_connections=50
+      -c log_min_duration_statement=100ms
+      -c max_locks_per_transaction=640
+    restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: lms-redis
+    ports:
+      - "6381:6379"
+    volumes:
+      - redisdata:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: "no"
+volumes:
+  pgdata:
+  redisdata:

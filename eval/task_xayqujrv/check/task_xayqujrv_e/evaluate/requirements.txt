@@ -1,0 +1,37 @@
+# Stage 6 evaluator runtime dependencies.
+# Pinned to ranges that match the test matrix used during Stage 7 smoke tests.
+
+# HTTP / API
+requests>=2.31,<3.0
+
+# PostgreSQL driver (binary wheel — avoids needing libpq-dev on host)
+psycopg2-binary>=2.9,<3.0
+
+# Redis client — used by Cache_* nodes when an agent enables a Redis backend
+# (the default LocMemCache path does not need it, but we ship it so cache-
+# invalidation tests can connect when configured).
+redis>=5.0,<6.0
+
+# JSONPath with filter expressions (for P07 jsonpath_ng.ext.parse)
+jsonpath-ng>=1.6,<2.0
+
+# OpenAI client for P17 (--with-llm only; never invoked by default)
+openai>=1.30,<2.0
+
+# Headless browser for P18 / P19 frontend nodes
+# IMPORTANT: after `pip install playwright`, also run
+#     playwright install chromium
+# (or `playwright install --with-deps chromium` on a fresh container)
+playwright>=1.40,<2.0
+
+# Reference algorithm helpers
+# - hashlib is in stdlib (used for MD5 PERCENTAGE_SPLIT — see md5_percentage)
+# - mmh3 is INTENTIONALLY OMITTED. task.md §4.5.2 v2 + KB-021/022/023 mandate
+#   MD5 (NOT mmh3); shipping mmh3 would invite an agent to use it and silently
+#   fail every PERCENTAGE_SPLIT determinism check.
+
+# .env loader — used by config.py if present
+python-dotenv>=1.0,<2.0
+
+# JWT helper — used by Authentication category nodes that probe cookie-mode
+pyjwt>=2.8,<3.0

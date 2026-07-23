@@ -1,0 +1,56 @@
+version: '3.8'
+name: task_gmdnohlg
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shadetocloak/task_gmdnohlg-app:${IMAGE_TAG:-baseline}
+    pull_policy: missing
+    container_name: cloudcollab_app
+    ports:
+      - "${GMD_HOST_PORT:-8033}:8033"
+    volumes:
+      - ./workspace:/app
+    env_file:
+      - .env
+    # Command is parameterized to support both baseline (apache2-foreground)
+    # and model (sleep infinity) modes. In model mode, prepare_workspace.sh sets
+    # APP_CMD="sleep infinity" so the model under test can install its own web server.
+    command: ["bash", "-c", "${APP_CMD:-apache2-foreground}"]
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - cloudcollab
+
+  db:
+    image: postgres:16-alpine
+    container_name: cloudcollab_db
+    ports:
+      - "5454:5432"
+    environment:
+      POSTGRES_DB: app_gmdnohlg
+      POSTGRES_USER: appgmdnohlg
+      POSTGRES_PASSWORD: app123gmdnohlg
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appgmdnohlg -d app_gmdnohlg"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: "no"
+    networks:
+      - cloudcollab
+
+volumes:
+  db_data:
+
+networks:
+  cloudcollab:
+    driver: bridge

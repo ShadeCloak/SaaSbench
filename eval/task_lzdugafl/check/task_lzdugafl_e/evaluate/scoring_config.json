@@ -1,0 +1,162 @@
+{
+  "categories": {
+    "API": {
+      "maxScore": 128,
+      "node_count": 40
+    },
+    "ArchitectureQuality": {
+      "maxScore": 58,
+      "node_count": 10
+    },
+    "Authentication": {
+      "maxScore": 17,
+      "node_count": 5
+    },
+    "BusinessLogic": {
+      "maxScore": 74,
+      "node_count": 26
+    },
+    "CLI": {
+      "maxScore": 20,
+      "node_count": 11
+    },
+    "DataModel": {
+      "maxScore": 53,
+      "node_count": 16
+    },
+    "Deployment": {
+      "maxScore": 14,
+      "node_count": 9
+    },
+    "EdgeCases": {
+      "maxScore": 29,
+      "node_count": 12
+    },
+    "Frontend": {
+      "maxScore": 60,
+      "node_count": 11
+    },
+    "RBAC": {
+      "maxScore": 42,
+      "node_count": 15
+    }
+  },
+  "total_maxScore": 495,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 98,
+      "maxScore": 294
+    },
+    "marketplace_rbac": {
+      "node_count": 18,
+      "maxScore": 56
+    },
+    "workflow_automator": {
+      "node_count": 39,
+      "maxScore": 145
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 92,
+    "weighted": 48,
+    "llm-judge": 15
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core journey: deploy, login, CRUD entities, basic rate calc",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_COMPOSER",
+        "DEPLOY_DOCTRINE",
+        "DEPLOY_FOSREST",
+        "DEPLOY_FRONTEND",
+        "DEPLOY_PUBLIC_INDEX",
+        "DEPLOY_ENV",
+        "DEPLOY_API_PING",
+        "DEPLOY_API_VERSION",
+        "AUTH_CREATE_USER",
+        "AUTH_LOGIN_API",
+        "AUTH_ME_ENDPOINT",
+        "AUTH_UNAUTHENTICATED_401",
+        "AUTH_2FA_TOTP_ENTITY",
+        "API_CUSTOMERS_CREATE",
+        "API_PROJECTS_CREATE",
+        "API_ACTIVITIES_CREATE",
+        "API_TIMESHEETS_CREATE",
+        "API_USERS_CREATE",
+        "API_TEAMS_CREATE",
+        "BIZ_RATE_1800s_100h",
+        "BIZ_DURATION_CALC",
+        "RBAC_USER_CANNOT_CREATE_CUSTOMER",
+        "RBAC_TEAMLEAD_CANNOT_CREATE_TEAM",
+        "RBAC_ADMIN_CAN_CREATE_CUSTOMER",
+        "CLI_USER_CREATE"
+      ],
+      "maxScore": 74
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC matrix, rate precision, invoice, edge cases, architecture",
+      "node_ids": [
+        "DB_TABLE_RATES",
+        "API_CUSTOMER_RATES",
+        "API_PROJECT_RATES",
+        "API_ACTIVITY_RATES",
+        "BIZ_RATE_1800s_100h",
+        "BIZ_RATE_3600s_100h",
+        "BIZ_RATE_DECIMAL_60s",
+        "BIZ_RATE_DECIMAL_736",
+        "BIZ_RATE_FIXED_2016",
+        "BIZ_RATE_ZERO_ALL_NULL",
+        "BIZ_RATE_ENTITY_VERIFIED",
+        "RBAC_USER_CANNOT_LIST_USERS",
+        "RBAC_USER_CANNOT_CREATE_CUSTOMER",
+        "RBAC_USER_CANNOT_DELETE_CUSTOMER",
+        "RBAC_USER_CANNOT_VIEW_TEAMS",
+        "RBAC_TEAMLEAD_CANNOT_CREATE_TEAM",
+        "RBAC_TEAMLEAD_CANNOT_LIST_USERS",
+        "RBAC_ADMIN_CAN_LIST_USERS",
+        "RBAC_ADMIN_CAN_CREATE_CUSTOMER",
+        "RBAC_ADMIN_CAN_VIEW_TEAMS",
+        "RBAC_USER_OWN_TIMESHEET",
+        "RBAC_USER_OWN_PROFILE_ONLY",
+        "RBAC_EXPORTED_TEAMLEAD_DENIED",
+        "RBAC_ROLE_HIERARCHY",
+        "RBAC_TIMESHEET_USER_ALL_ADMIN",
+        "RBAC_TIMESHEET_USER_ALL_USER",
+        "EDGE_ZERO_DURATION",
+        "EDGE_INVISIBLE_PROJECT",
+        "EDGE_CASCADE_DELETE",
+        "EDGE_INVALID_COUNTRY",
+        "EDGE_NOT_FOUND_404",
+        "EDGE_TAG_COMMA",
+        "EDGE_TEAM_EMPTY",
+        "EDGE_DUPLICATE_USERNAME",
+        "EDGE_PAGE_OUT_OF_RANGE",
+        "EDGE_NONEXISTENT_PROJECT",
+        "EDGE_NONEXISTENT_ACTIVITY",
+        "EDGE_DELETE_NOT_FOUND",
+        "ARCH_CODE_STRUCTURE",
+        "ARCH_RATE_SERVICE",
+        "ARCH_PERMISSION_SYSTEM",
+        "ARCH_API_DESIGN",
+        "ARCH_CONTROLLER_COUNT",
+        "ARCH_REPOSITORY_COUNT",
+        "LLM_CODE_ORGANIZATION",
+        "LLM_ERROR_HANDLING",
+        "LLM_DB_DESIGN",
+        "LLM_SECURITY",
+        "LLM_RATE_SERVICE"
+      ],
+      "maxScore": 173
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 155,
+    "has_cycle": false,
+    "root_nodes": 23,
+    "dangling_prereqs": 0,
+    "duplicate_ids": 0,
+    "topological_sort_feasible": true
+  }
+}

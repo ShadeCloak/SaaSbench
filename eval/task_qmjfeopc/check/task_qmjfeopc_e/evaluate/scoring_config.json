@@ -1,0 +1,206 @@
+{
+  "categories": {
+    "ArchitectureQuality": {
+      "maxScore": 110,
+      "node_count": 13
+    },
+    "RBAC": {
+      "maxScore": 62,
+      "node_count": 19
+    },
+    "Commerce": {
+      "maxScore": 37,
+      "node_count": 9
+    },
+    "TaskCRUD": {
+      "maxScore": 32,
+      "node_count": 9
+    },
+    "QuestSystem": {
+      "maxScore": 30,
+      "node_count": 7
+    },
+    "PetMount": {
+      "maxScore": 29,
+      "node_count": 8
+    },
+    "CronSystem": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "Social": {
+      "maxScore": 24,
+      "node_count": 7
+    },
+    "RPGStats": {
+      "maxScore": 20,
+      "node_count": 5
+    },
+    "TaskScoring": {
+      "maxScore": 19,
+      "node_count": 5
+    },
+    "Authentication": {
+      "maxScore": 18,
+      "node_count": 6
+    },
+    "ContentAPI": {
+      "maxScore": 17,
+      "node_count": 8
+    },
+    "ClassSystem": {
+      "maxScore": 16,
+      "node_count": 4
+    },
+    "Subscription": {
+      "maxScore": 16,
+      "node_count": 4
+    },
+    "Lifecycle": {
+      "maxScore": 15,
+      "node_count": 3
+    },
+    "EdgeCases": {
+      "maxScore": 11,
+      "node_count": 4
+    },
+    "Deployment": {
+      "maxScore": 9,
+      "node_count": 5
+    },
+    "Party": {
+      "maxScore": 9,
+      "node_count": 2
+    },
+    "DataModel": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "Challenges": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "Payment": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "Equipment": {
+      "maxScore": 7,
+      "node_count": 2
+    },
+    "Notification": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "Achievement": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "UserAPI": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "Webhooks": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "DataExport": {
+      "maxScore": 3,
+      "node_count": 1
+    }
+  },
+  "total_maxScore": 549,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "maxScore": 105,
+      "node_count": 36
+    },
+    "workflow_automator": {
+      "maxScore": 382,
+      "node_count": 82
+    },
+    "marketplace_rbac": {
+      "maxScore": 62,
+      "node_count": 19
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 57,
+    "weighted": 67,
+    "llm-judge": 13
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy -> register -> auth -> task CRUD -> basic scoring -> purchase -> pet -> content API",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "AUTH_REGISTER_USER",
+        "AUTH_API_KEY_ACCESS",
+        "CRUD_TASK_HABIT",
+        "CRUD_TASK_DAILY",
+        "CRUD_TASK_TODO",
+        "CRUD_TASK_REWARD",
+        "BIZ_SCORE_HABIT_UP",
+        "BIZ_SCORE_TODO_COMPLETE",
+        "BIZ_BUY_HEALTH_POTION",
+        "BIZ_PET_HATCH",
+        "BIZ_CONTENT_API",
+        "BIZ_SHOP_MARKET"
+      ],
+      "maxScore": 53
+    },
+    "advanced_workflows": {
+      "description": "RPG depth: Class/Spell -> pet evolution -> gem system -> stat formulas -> Party -> Quest -> Subscription -> Cron -> Rebirth",
+      "node_ids": [
+        "BIZ_CLASS_CHANGE",
+        "BIZ_SPELL_HEALER_FULL_HP_ERROR",
+        "BIZ_PET_FEED_EVOLVE_MOUNT",
+        "BIZ_PET_FEED_SADDLE",
+        "BIZ_BUY_GEM_GOLD",
+        "BIZ_STAT_MAX_MP_FORMULA",
+        "SOCIAL_CREATE_PARTY",
+        "SOCIAL_PARTY_INVITE_ACCEPT",
+        "BIZ_QUEST_INVITE",
+        "BIZ_QUEST_FORCE_START",
+        "BIZ_QUEST_BOSS_DAMAGE",
+        "BIZ_SUBSCRIPTION_CREATE",
+        "BIZ_SUBSCRIPTION_CONSECUTIVE_BENEFITS",
+        "BIZ_CRON_HP_DAMAGE_MISSED_DAILY",
+        "BIZ_CRON_STREAK_LOSS",
+        "BIZ_CRON_GEMSBOUGHT_RESET",
+        "BIZ_REBIRTH_FREE",
+        "BIZ_ACHIEVEMENT_STREAK_21"
+      ],
+      "maxScore": 83
+    },
+    "security_rbac": {
+      "description": "Permissions and boundaries: RBAC admin -> permission denied -> Rate Limit -> Edge Cases -> Payment verification",
+      "node_ids": [
+        "RBAC_ADMIN_SETUP",
+        "RBAC_ADMIN_CAN_SEARCH_USERS",
+        "RBAC_USER_CANNOT_ADMIN_SEARCH",
+        "RBAC_USER_CANNOT_COUPON_GENERATE",
+        "RBAC_ADMIN_CAN_COUPON_GENERATE",
+        "BIZ_COUPON_VALIDATE",
+        "BIZ_IAP_ANDROID_VERIFY_ERROR",
+        "EDGE_REGISTER_DUPLICATE_USERNAME",
+        "EDGE_DELETE_ACCOUNT_PASSWORD",
+        "EDGE_RATE_LIMIT"
+      ],
+      "maxScore": 35
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 137,
+    "has_cycle": false,
+    "root_nodes": 4,
+    "leaf_nodes": 110,
+    "dangling_prereqs": 0,
+    "topological_sort_feasible": true,
+    "shallow_pct": 2.2,
+    "deep_pct": 77.8,
+    "llm_pct": 20.0,
+    "p13_method_coverage": "85/101 (84.2%)"
+  }
+}

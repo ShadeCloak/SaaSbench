@@ -1,0 +1,302 @@
+{
+  "categories": {
+    "AdminPanel": {
+      "node_count": 12,
+      "maxScore": 28
+    },
+    "ArchitectureQuality": {
+      "node_count": 10,
+      "maxScore": 57
+    },
+    "Authentication": {
+      "node_count": 10,
+      "maxScore": 35
+    },
+    "BadgeSystem": {
+      "node_count": 7,
+      "maxScore": 21
+    },
+    "CategoryTagSystem": {
+      "node_count": 6,
+      "maxScore": 16
+    },
+    "DataModel": {
+      "node_count": 17,
+      "maxScore": 60
+    },
+    "Deployment": {
+      "node_count": 10,
+      "maxScore": 18
+    },
+    "EdgeCases": {
+      "node_count": 15,
+      "maxScore": 38
+    },
+    "Frontend": {
+      "node_count": 12,
+      "maxScore": 56
+    },
+    "ModerationReview": {
+      "node_count": 7,
+      "maxScore": 22
+    },
+    "NotificationRealtime": {
+      "node_count": 8,
+      "maxScore": 23
+    },
+    "PrivateMessaging": {
+      "node_count": 6,
+      "maxScore": 17
+    },
+    "RBAC": {
+      "node_count": 20,
+      "maxScore": 47
+    },
+    "Search": {
+      "node_count": 8,
+      "maxScore": 22
+    },
+    "TopicPostCRUD": {
+      "node_count": 16,
+      "maxScore": 45
+    },
+    "TrustLevel": {
+      "node_count": 10,
+      "maxScore": 38
+    },
+    "UserManagement": {
+      "node_count": 12,
+      "maxScore": 28
+    }
+  },
+  "total_maxScore": 571,
+  "normalization": "0-100",
+  "score_distribution": {
+    "shallow": {
+      "score": 79,
+      "pct": 13.8
+    },
+    "deep": {
+      "score": 379,
+      "pct": 66.1
+    },
+    "llm_judge": {
+      "score": 113,
+      "pct": 19.8
+    }
+  },
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 97,
+      "maxScore": 260
+    },
+    "marketplace_rbac": {
+      "node_count": 11,
+      "maxScore": 36
+    },
+    "workflow_automator": {
+      "node_count": 78,
+      "maxScore": 277
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy, login, CRUD topics/posts, search",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "AUTH_SESSION_LOGIN",
+        "CRUD_TOPIC_CREATE",
+        "CRUD_POST_CREATE",
+        "CRUD_CATEGORY_CREATE",
+        "SEARCH_BASIC"
+      ],
+      "maxScore": 18
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC matrix, trust levels, moderation, badges, architecture, frontend quality",
+      "node_ids": [
+        "DEPLOY_GEMFILE",
+        "DEPLOY_PACKAGE_JSON",
+        "DEPLOY_SCHEMA",
+        "DEPLOY_ROUTES",
+        "DEPLOY_MIGRATION_COUNT",
+        "DEPLOY_REDIS_CONFIG",
+        "DEPLOY_SIDEKIQ_CONFIG",
+        "DEPLOY_PUMA_CONFIG",
+        "DEPLOY_ENV_CONFIG",
+        "DB_TABLES_CORE",
+        "DB_COLS_USERS",
+        "DB_COLS_POSTS",
+        "DB_COLS_TOPICS",
+        "DB_COLS_CATEGORIES",
+        "DB_COLS_NOTIFICATIONS",
+        "DB_COLS_BADGES",
+        "DB_COLS_GROUPS",
+        "DB_COLS_TAGS",
+        "DB_COLS_REVIEWABLES",
+        "DB_IDX_POSTS",
+        "DB_IDX_TOPICS",
+        "DB_IDX_NOTIFICATIONS",
+        "DB_IDX_USERS",
+        "DB_SEED_SYSTEM_USER",
+        "DB_SEED_BADGES",
+        "DB_SEED_TRUST_GROUPS",
+        "AUTH_CSRF_TOKEN",
+        "AUTH_CREATE_ADMIN",
+        "AUTH_SESSION_CURRENT",
+        "AUTH_API_KEY_CREATE",
+        "AUTH_API_KEY_SCOPED",
+        "AUTH_LOGOUT",
+        "AUTH_FAILED_LOGIN",
+        "AUTH_RATE_LIMIT_LOGIN",
+        "AUTH_USER_API_KEY",
+        "TL_DEFAULT_VALUE",
+        "TL_SETTING_OVERRIDE",
+        "TL_PROMOTE_TL0_TL1",
+        "TL_NO_PROMOTE_NEW",
+        "TL_PROMOTE_TL1_TL2",
+        "TL_DEMOTE_TL3",
+        "TL_LOCKED_MANUAL",
+        "TL_LOCKED_GROUP",
+        "TL_SUSPENDED_NO_TL3",
+        "TL_TL3_TIME_PERIOD",
+        "CRUD_TOPIC_READ",
+        "CRUD_TOPIC_UPDATE",
+        "CRUD_TOPIC_DELETE",
+        "CRUD_TOPIC_RECOVER",
+        "CRUD_POST_UPDATE",
+        "CRUD_POST_DELETE",
+        "TOPIC_CLOSE",
+        "TOPIC_ARCHIVE",
+        "TOPIC_PIN",
+        "TOPIC_UNLIST",
+        "POST_LIKE",
+        "POST_COOKED_SYNC",
+        "POST_REVISION",
+        "TOPIC_MOVE_POSTS",
+        "CRUD_CATEGORY_UPDATE",
+        "CATEGORY_SUBCATEGORY",
+        "CRUD_TAG_CREATE",
+        "TAG_TOPIC_ASSIGN",
+        "TAG_SLUG_GENERATION",
+        "SEARCH_TITLE_WEIGHT",
+        "SEARCH_CATEGORY_FILTER",
+        "SEARCH_TAG_FILTER",
+        "SEARCH_STATUS_FILTER",
+        "SEARCH_ORDER_LATEST",
+        "SEARCH_EMPTY_RESULT",
+        "SEARCH_MIN_LENGTH",
+        "NOTIF_ON_REPLY",
+        "NOTIF_ON_MENTION",
+        "NOTIF_ON_LIKE",
+        "NOTIF_ON_PM",
+        "NOTIF_MARK_READ",
+        "NOTIF_LIST",
+        "NOTIF_DATA_FIELDS",
+        "NOTIF_DND",
+        "FLAG_POST_CREATE",
+        "FLAG_CREATES_REVIEWABLE",
+        "REVIEW_APPROVE",
+        "REVIEW_REJECT",
+        "REVIEW_LIST",
+        "USER_SILENCE",
+        "USER_SUSPEND",
+        "BADGE_SEED_EXISTS",
+        "BADGE_TYPES",
+        "BADGE_GRANT_MANUAL",
+        "BADGE_REVOKE",
+        "BADGE_AUTO_GRANT_TL",
+        "BADGE_NICE_POST",
+        "BADGE_LIST",
+        "PM_CREATE",
+        "PM_READ",
+        "PM_REPLY",
+        "PM_LIST",
+        "PM_TL_RESTRICTION",
+        "PM_NOTIFICATION",
+        "RBAC_ANON_CANNOT_CREATE_TOPIC",
+        "RBAC_USER_CAN_CREATE_TOPIC",
+        "RBAC_USER_CANNOT_DELETE_TOPIC",
+        "RBAC_ADMIN_CAN_DELETE_TOPIC",
+        "RBAC_USER_CANNOT_CLOSE_TOPIC",
+        "RBAC_MOD_CAN_CLOSE_TOPIC",
+        "RBAC_USER_CANNOT_CREATE_CATEGORY",
+        "RBAC_ADMIN_CAN_CREATE_CATEGORY",
+        "RBAC_USER_CANNOT_VIEW_ADMIN",
+        "RBAC_ADMIN_CAN_VIEW_ADMIN",
+        "RBAC_TL0_CANNOT_SEND_PM",
+        "RBAC_TL1_CAN_SEND_PM",
+        "RBAC_USER_CANNOT_DELETE_USER",
+        "RBAC_ADMIN_CAN_DELETE_USER",
+        "RBAC_USER_CANNOT_SILENCE",
+        "RBAC_ADMIN_CAN_SILENCE",
+        "RBAC_CATEGORY_PERMISSION",
+        "RBAC_CATEGORY_PERMISSION_ALLOW",
+        "RBAC_TL0_CANNOT_WIKI",
+        "RBAC_TL3_CAN_WIKI",
+        "USER_CREATE_API",
+        "USER_READ_PROFILE",
+        "USER_UPDATE_PROFILE",
+        "USER_AVATAR_UPLOAD",
+        "USER_EMAIL_CHANGE",
+        "USER_PASSWORD_CHANGE",
+        "USER_PREFERENCE",
+        "USER_STATUS_SET",
+        "USER_BOOKMARK",
+        "USER_DRAFT_SAVE",
+        "USER_DRAFT_CONFLICT",
+        "USER_INVITE",
+        "ADMIN_DASHBOARD",
+        "ADMIN_SITE_SETTINGS",
+        "ADMIN_UPDATE_SETTING",
+        "ADMIN_USER_LIST",
+        "ADMIN_THEME_LIST",
+        "ADMIN_BADGE_CREATE",
+        "ADMIN_WEBHOOK_CREATE",
+        "ADMIN_API_KEY_CREATE",
+        "ADMIN_BACKUP_LIST",
+        "ADMIN_EMAIL_LOGS",
+        "ADMIN_STAFF_LOGS",
+        "ADMIN_SCREENED",
+        "EDGE_EMPTY_TITLE",
+        "EDGE_DUPLICATE_USERNAME",
+        "EDGE_RATE_LIMIT_429",
+        "EDGE_RATE_LIMIT_JSON",
+        "EDGE_POST_TOO_SHORT",
+        "EDGE_TOPIC_CLOSED_NO_REPLY",
+        "EDGE_DELETED_TOPIC_404",
+        "EDGE_DELETED_TOPIC_STAFF",
+        "EDGE_EMAIL_UNIQUE",
+        "EDGE_SLOW_MODE",
+        "EDGE_CATEGORY_TOPIC_COUNT",
+        "EDGE_POST_REVISION_HISTORY",
+        "EDGE_CONCURRENT_DRAFT_409",
+        "EDGE_UPLOAD_MAX_SIZE",
+        "EDGE_WEBHOOK_DELIVERY",
+        "FE_HOMEPAGE_LAYOUT",
+        "FE_TOPIC_VIEW",
+        "FE_COMPOSER",
+        "FE_USER_PROFILE",
+        "FE_ADMIN_DASHBOARD",
+        "FE_CATEGORY_PAGE",
+        "FE_SEARCH_UI",
+        "FE_NOTIFICATION_PANEL",
+        "FE_SIDEBAR",
+        "FE_RESPONSIVE",
+        "FE_MARKDOWN_PREVIEW",
+        "FE_BADGE_PAGE",
+        "ARCH_MVC_STRUCTURE",
+        "ARCH_SERVICE_OBJECTS",
+        "ARCH_GUARDIAN_PATTERN",
+        "ARCH_SERIALIZER_LAYER",
+        "ARCH_JOB_PROCESSING",
+        "ARCH_PLUGIN_SYSTEM",
+        "ARCH_TRUST_LEVEL_DESIGN",
+        "ARCH_MESSAGEBUS_DESIGN",
+        "ARCH_SEARCH_DESIGN",
+        "ARCH_CODE_QUALITY"
+      ],
+      "maxScore": 555
+    }
+  }
+}

@@ -1,0 +1,14 @@
+# =============================================================================
+# Dockerfile.model template — generic Node + Python tasks (24/30)
+# =============================================================================
+# Base already covers: ubuntu + Go + Node 20 (yarn4/pnpm) + Python 3.10 +
+#   a general cache (React/Vue/Vite/Webpack/NX/Express/NestJS/Prisma/...).
+# This template suits tasks that don't need an extra language runtime; it only
+# enforces idle + workspace.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

@@ -1,0 +1,227 @@
+{
+  "task_id": "task_pkvwdnhj",
+  "total_nodes": 81,
+  "total_maxScore": 383,
+  "category_distribution": {
+    "Deployment": {
+      "node_count": 1,
+      "maxScore_sum": 3,
+      "nodes": [
+        "DEPLOY_HEALTH"
+      ]
+    },
+    "DataModel": {
+      "node_count": 7,
+      "maxScore_sum": 25,
+      "nodes": [
+        "DEPLOY_DB_TABLES",
+        "DEPLOY_DB_EXTENSION",
+        "DB_COLUMNS_SUBSCRIBERS",
+        "DB_COLUMNS_CAMPAIGNS",
+        "DB_ENUMS_VERIFY",
+        "DB_MATVIEWS",
+        "DB_SETTINGS_DEFAULTS"
+      ]
+    },
+    "Authentication": {
+      "node_count": 5,
+      "maxScore_sum": 24,
+      "nodes": [
+        "AUTH_FIRST_SETUP",
+        "AUTH_LOGIN_SESSION",
+        "AUTH_API_TOKEN_CREATE",
+        "AUTH_BASIC_AUTH",
+        "AUTH_LOGOUT"
+      ]
+    },
+    "SubscriberManagement": {
+      "node_count": 10,
+      "maxScore_sum": 53,
+      "nodes": [
+        "CRUD_SUBSCRIBER",
+        "BIZ_SUBSCRIBER_DUPLICATE_EMAIL",
+        "BIZ_SUBSCRIBER_NAME_DEFAULT",
+        "BIZ_SUBSCRIBER_BLOCKLIST",
+        "BIZ_SUBSCRIBER_PAGINATION",
+        "BIZ_SUBSCRIBER_SEARCH",
+        "BIZ_SUBSCRIBER_EXPORT_CSV",
+        "BIZ_SUBSCRIBER_IMPORT_CSV",
+        "BIZ_SUBSCRIBER_LIST_MANAGEMENT",
+        "LLM_SUBSCRIBER_API_QUALITY"
+      ]
+    },
+    "ListManagement": {
+      "node_count": 3,
+      "maxScore_sum": 14,
+      "nodes": [
+        "CRUD_LIST",
+        "BIZ_LIST_SUBSCRIBER_STATS",
+        "BIZ_LIST_DELETE_CASCADE"
+      ]
+    },
+    "CampaignManagement": {
+      "node_count": 12,
+      "maxScore_sum": 60,
+      "nodes": [
+        "CRUD_CAMPAIGN",
+        "BIZ_CAMPAIGN_STATUS_DRAFT_TO_RUNNING",
+        "BIZ_CAMPAIGN_STATUS_RUNNING_TO_PAUSED",
+        "BIZ_CAMPAIGN_STATUS_PAUSED_TO_CANCELLED",
+        "BIZ_CAMPAIGN_FINISHED_IMMUTABLE",
+        "BIZ_CAMPAIGN_SCHEDULED_NO_DIRECT_RUNNING",
+        "BIZ_CAMPAIGN_EDIT_RESTRICTION",
+        "BIZ_CAMPAIGN_VALIDATION_EMPTY_LISTS",
+        "BIZ_CAMPAIGN_DEFAULT_FROM_EMAIL",
+        "BIZ_CAMPAIGN_OPTIN_SUBSCRIBER_FILTER",
+        "BIZ_CAMPAIGN_RUNNING_TO_CANCELLED",
+        "LLM_CAMPAIGN_WORKFLOW"
+      ]
+    },
+    "TemplateManagement": {
+      "node_count": 5,
+      "maxScore_sum": 24,
+      "nodes": [
+        "CRUD_TEMPLATE",
+        "BIZ_TEMPLATE_DEFAULT_SWAP",
+        "BIZ_TEMPLATE_CONTENT_PLACEHOLDER",
+        "BIZ_TEMPLATE_DELETE_PROTECTION",
+        "LLM_TEMPLATE_SYSTEM"
+      ]
+    },
+    "MediaManagement": {
+      "node_count": 1,
+      "maxScore_sum": 5,
+      "nodes": [
+        "CRUD_MEDIA"
+      ]
+    },
+    "BounceProcessing": {
+      "node_count": 4,
+      "maxScore_sum": 23,
+      "nodes": [
+        "BIZ_BOUNCE_WEBHOOK_RECORD",
+        "BIZ_BOUNCE_HARD_THRESHOLD_BLOCKLIST",
+        "BIZ_BOUNCE_SOFT_NO_ACTION",
+        "LLM_BOUNCE_HANDLING"
+      ]
+    },
+    "Settings": {
+      "node_count": 6,
+      "maxScore_sum": 27,
+      "nodes": [
+        "API_SETTINGS_GET",
+        "API_SETTINGS_UPDATE",
+        "API_CONFIG",
+        "API_ABOUT",
+        "API_LOGS",
+        "LLM_SETTINGS_COMPLETENESS"
+      ]
+    },
+    "Dashboard": {
+      "node_count": 2,
+      "maxScore_sum": 6,
+      "nodes": [
+        "API_DASHBOARD_COUNTS",
+        "API_DASHBOARD_CHARTS"
+      ]
+    },
+    "UserManagement": {
+      "node_count": 3,
+      "maxScore_sum": 15,
+      "nodes": [
+        "CRUD_USER",
+        "BIZ_USER_DELETE_SUPER_ADMIN_PROTECTION",
+        "CRUD_ROLE"
+      ]
+    },
+    "RBAC": {
+      "node_count": 8,
+      "maxScore_sum": 32,
+      "nodes": [
+        "RBAC_SETUP_LIMITED_USER",
+        "RBAC_SUBSCRIBER_MANAGE_DENY",
+        "RBAC_SUBSCRIBER_MANAGE_ALLOW",
+        "RBAC_SETTINGS_DENY",
+        "RBAC_SETTINGS_ALLOW",
+        "RBAC_CAMPAIGN_MANAGE_DENY",
+        "RBAC_CAMPAIGN_MANAGE_ALLOW",
+        "LLM_RBAC_DESIGN"
+      ]
+    },
+    "PublicSubscription": {
+      "node_count": 3,
+      "maxScore_sum": 12,
+      "nodes": [
+        "API_PUBLIC_LISTS",
+        "API_PUBLIC_HEALTH",
+        "LLM_PUBLIC_PAGES"
+      ]
+    },
+    "Maintenance": {
+      "node_count": 2,
+      "maxScore_sum": 8,
+      "nodes": [
+        "BIZ_MAINTENANCE_DELETE_BLOCKLISTED",
+        "BIZ_MAINTENANCE_DELETE_ORPHAN_SUBSCRIBERS"
+      ]
+    },
+    "TransactionalEmail": {
+      "node_count": 1,
+      "maxScore_sum": 5,
+      "nodes": [
+        "BIZ_TX_SEND_DEFAULT"
+      ]
+    },
+    "EdgeCases": {
+      "node_count": 4,
+      "maxScore_sum": 12,
+      "nodes": [
+        "EDGE_LIST_NAME_EMPTY",
+        "EDGE_USER_PASSWORD_TOO_SHORT",
+        "EDGE_CAMPAIGN_SEND_AT_PAST",
+        "EDGE_ROLE_DUPLICATE_NAME"
+      ]
+    },
+    "ArchitectureQuality": {
+      "node_count": 4,
+      "maxScore_sum": 35,
+      "nodes": [
+        "ARCH_CODE_STRUCTURE",
+        "ARCH_FRONTEND_QUALITY",
+        "LLM_ERROR_HANDLING",
+        "LLM_EMAIL_ENGINE"
+      ]
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": {
+      "node_count": 55,
+      "maxScore_sum": 231
+    },
+    "weighted": {
+      "node_count": 15,
+      "maxScore_sum": 65
+    },
+    "llm-judge": {
+      "node_count": 11,
+      "maxScore_sum": 87
+    }
+  },
+  "depth_distribution": {
+    "shallow": {
+      "node_count": 12,
+      "maxScore_sum": 43,
+      "percentage": 11.2
+    },
+    "deep": {
+      "node_count": 58,
+      "maxScore_sum": 253,
+      "percentage": 66.1
+    },
+    "llm_judge": {
+      "node_count": 11,
+      "maxScore_sum": 87,
+      "percentage": 22.7
+    }
+  }
+}

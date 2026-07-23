@@ -1,0 +1,22 @@
+# =============================================================================
+# task_ghmkznee — model image (sanitized dev environment)
+# =============================================================================
+# Purpose: provide a clean development environment for the model under test.
+#
+# Derived from a shared base image (Ubuntu + Go + Node.js + Python + common
+# build/cache tooling). The application stack expected by this task — a Go
+# backend plus a React/TypeScript frontend — is fully covered by the base
+# image, so this Dockerfile adds no extra RUN steps; the container simply
+# idles as PID 1 = `sleep infinity` so the model's `docker exec` calls
+# always find a live shell.
+# =============================================================================
+
+ARG BASE_IMAGE=shadetocloak/saasbench-dev:base
+FROM ${BASE_IMAGE}
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+WORKDIR /app
+
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

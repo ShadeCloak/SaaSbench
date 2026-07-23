@@ -1,0 +1,68 @@
+name: task-aoiwqoiq
+
+services:
+  db:
+    container_name: task_aoiwqoiq-db
+    image: pgvector/pgvector:pg16
+    restart: "no"
+    environment:
+      POSTGRES_USER: appaoiwqoiq
+      POSTGRES_PASSWORD: app123aoiwqoiq
+      POSTGRES_DB: app_aoiwqoiq
+    ports:
+      - "5444:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appaoiwqoiq -d app_aoiwqoiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    container_name: task_aoiwqoiq-redis
+    image: redis:7-alpine
+    restart: "no"
+    ports:
+      - "6383:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  app:
+    container_name: task_aoiwqoiq-app
+    image: shadetocloak/task_aoiwqoiq-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    # Pin to public DNS so that `bundle install` can resolve any git-source
+    # gem declared in the Gemfile (docker's embedded resolver 127.0.0.11 has
+    # been observed to time out on github.com under some base images).
+    dns:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    restart: "no"
+    ports:
+      - "8020:8020"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: ["bash", "-c", "tail -f /dev/null"]
+
+volumes:
+  pgdata:
+  redisdata:

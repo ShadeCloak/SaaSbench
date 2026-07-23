@@ -1,0 +1,26 @@
+# =============================================================================
+# Dockerfile.model — generic PHP model-build environment
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        php-cli php-curl php-mbstring php-xml php-zip php-bcmath \
+        php-mysql php-pgsql php-sqlite3 php-redis \
+        php-intl php-gd php-imap php-soap php-xsl \
+        composer \
+ && rm -rf /var/lib/apt/lists/* \
+ && php --version && composer --version
+
+# Optional Composer mirror (override COMPOSER_MIRROR to use a regional mirror).
+ARG COMPOSER_MIRROR=""
+RUN if [ -n "$COMPOSER_MIRROR" ]; then \
+        composer config -g repo.packagist composer "$COMPOSER_MIRROR"; \
+    fi
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

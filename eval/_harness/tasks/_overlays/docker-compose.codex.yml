@@ -1,0 +1,54 @@
+# =============================================================================
+# Docker Compose overlay — inject portable codex runtime into every task.
+# =============================================================================
+#
+# Usage (set by run_benchmark_codex.py before invoking prepare_workspace.sh):
+#
+#   export COMPOSE_FILE="<task>/docker/docker-compose.yml:tasks/_overlays/docker-compose.codex.yml"
+#   export SAASBENCH_CODEX_RUNTIME_DIR=/home/<user>/.saasbench/codex-runtime
+#   docker compose up -d
+#
+# What this overlay does:
+#   - Bind-mounts the host's portable codex runtime (~/.saasbench/codex-runtime/
+#     by default) into the `app` container at /opt/codex (read-only).
+#   - Prepends /opt/codex/bin to PATH so `codex` and `rg` are picked up before
+#     any task-specific binaries.
+#
+# What this overlay does NOT do:
+#   - Inject OPENAI_API_KEY / OPENAI_BASE_URL / the provider key — those are
+#     passed via `docker exec -e` at run-codex time so secrets never persist in
+#     compose state (visible to `docker compose config`) or in container env.
+#   - Modify `command`, `entrypoint`, `working_dir`, `ports`, `depends_on`,
+#     `healthcheck`, or any other service field. This is a strict additive
+#     overlay.
+#
+# Why no NODE_PATH (unlike the claude overlay):
+#   The codex runtime is a single statically-linked (musl, static-pie) binary,
+#   so it has no external runtime dependencies inside the container.
+#
+# Why all 30 tasks share one file:
+#   Every task's docker-compose.yml defines its main service as `app` (the
+#   container_name varies but the *service* key is consistent). Compose's
+#   multi-`-f` mechanism merges by service key, so this single overlay covers
+#   every task. (For the few tasks whose entry service is not literally `app`,
+#   run_benchmark_codex.py rewrites the service key on the fly, mirroring the
+#   claude overlay handling.)
+#
+# Hard constraint compliance:
+#   - No existing image is modified (we only mount in extra files at runtime).
+#   - No existing docker-compose.yml is edited (this is a separate overlay).
+#   - No existing prepare_workspace.sh is edited (COMPOSE_FILE is exported by
+#     the parent process and prepare's `docker compose up -d` picks it up).
+# =============================================================================
+
+services:
+  app:
+    volumes:
+      # Absolute host path via env var (compose evaluates relative volume paths
+      # against the first compose file's dir, which would be the task's docker/).
+      - ${SAASBENCH_CODEX_RUNTIME_DIR}:/opt/codex:ro
+
+    # Keep this a *map* (not a list) so PATH overlays cleanly (compose
+    # precedence: environment > env_file), without duplicate accumulation.
+    environment:
+      PATH: /opt/codex/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin

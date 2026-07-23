@@ -1,0 +1,68 @@
+{
+  "quarantined_at": "2026-07-01T14:14:58",
+  "reason": "Out-of-scope evaluation nodes: these GraphQL mutations exist in NEITHER the task PRD (task.md §5.2.2 mutation table, grep=0) NOR the running Canvas GraphQL schema (verified via introspection: field not present in Mutation type). Per the principle that the evaluation set must correspond 1:1 with PRD + knowledge_base.json, tests for operations absent from both the spec and the source are evaluation-construction defects and are excluded from scoring.",
+  "verification": "each field checked against /tmp/schema_introspection.json Mutation.fields -> False; none used as prereq by any remaining node",
+  "count": 12,
+  "nodes": [
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_ASSIGNMENT",
+      "mutation_field": "deleteAssignment",
+      "query": "mutation { deleteAssignment }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DUPLICATE_ASSIGNMENT",
+      "mutation_field": "duplicateAssignment",
+      "query": "mutation { duplicateAssignment }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_UPDATE_MODULE",
+      "mutation_field": "updateModule",
+      "query": "mutation { updateModule }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_MODULE",
+      "mutation_field": "deleteModule",
+      "query": "mutation { deleteModule }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_PUBLISH_COURSE_PACE",
+      "mutation_field": "publishCoursePace",
+      "query": "mutation { publishCoursePace }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_UPDATE_COURSE_PACE",
+      "mutation_field": "updateCoursePace",
+      "query": "mutation { updateCoursePace }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_BLUEPRINT_SYNC",
+      "mutation_field": "blueprintSync",
+      "query": "mutation { blueprintSync }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_FILE",
+      "mutation_field": "deleteFile",
+      "query": "mutation { deleteFile }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_FOLDER",
+      "mutation_field": "deleteFolder",
+      "query": "mutation { deleteFolder }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_CREATE_PLANNER_NOTE",
+      "mutation_field": "createPlannerNote",
+      "query": "mutation { createPlannerNote }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_PLANNER_NOTE",
+      "mutation_field": "deletePlannerNote",
+      "query": "mutation { deletePlannerNote }"
+    },
+    {
+      "id": "GRAPHQL_MUTATION_DELETE_LTI_REGISTRATION",
+      "mutation_field": "deleteLtiRegistration",
+      "query": "mutation { deleteLtiRegistration }"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+# =============================================================================
+# Dockerfile.model: clean development environment for model evaluation.
+#
+# The base image provides a generic toolchain: Linux + Go + Node.js (yarn/pnpm)
+# + Python + commonly used JS/TS dependency caches.
+#
+# This template enforces an idle PID 1 and an empty workspace; the model under
+# test spawns its own application server inside the container.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

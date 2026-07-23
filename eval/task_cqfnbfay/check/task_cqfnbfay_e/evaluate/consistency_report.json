@@ -1,0 +1,128 @@
+{
+  "forward_coverage": {
+    "total_requirements": 125,
+    "covered_by_tests": 114,
+    "uncovered": [
+      {
+        "requirement": "Email 2FA verification flow — OTP via email, 6-digit code, ROTP/TOTP-based verification with 5-min drift",
+        "section": "task.md#4.5",
+        "severity": "medium"
+      },
+      {
+        "requirement": "Rate limiting — 429 Too Many Requests response when limit is approached, per-token in-memory counter",
+        "section": "task.md#5.1",
+        "severity": "medium"
+      },
+      {
+        "requirement": "GET /api/submissions/:id/documents — get submission documents with optional merge parameter",
+        "section": "task.md#5.3",
+        "severity": "low"
+      },
+      {
+        "requirement": "No-auth tracking endpoints — POST /api/submitter_email_clicks, /api/submitter_form_views, /api/attachments",
+        "section": "task.md#5.8",
+        "severity": "low"
+      },
+      {
+        "requirement": "Submissions export as CSV/XLSX from template detail page",
+        "section": "task.md#4.4b",
+        "severity": "low"
+      },
+      {
+        "requirement": "Masked fields — fields with mask:true preference show XXXX to subsequent submitters",
+        "section": "task.md#4.5",
+        "severity": "low"
+      },
+      {
+        "requirement": "KBA (Knowledge-Based Authentication) verification flow — start_kba, complete_kba, fail_kba events, ID Not Verified error",
+        "section": "task.md#4.5",
+        "severity": "low"
+      },
+      {
+        "requirement": "Resubmission mechanism — ALLOW_TO_RESUBMIT config enables creating new submission from completed form",
+        "section": "task.md#4.4d",
+        "severity": "low"
+      },
+      {
+        "requirement": "Additional validation rules — duplicate submitter emails, formula infinite loop, dangerous file extensions blacklist, invalid bcc_completed/reply_to",
+        "section": "task.md#5.3, 10.1",
+        "severity": "low"
+      },
+      {
+        "requirement": "Email bounce/complaint blocking — check EmailEvent records before sending, silently skip bounced/complained addresses",
+        "section": "task.md#4.8",
+        "severity": "low"
+      },
+      {
+        "requirement": "Invite next signer via field — invite_via_field_uuid, @ detection for email vs phone, submitters_order set to preserved",
+        "section": "task.md#4.5",
+        "severity": "low"
+      }
+    ],
+    "coverage_rate": 0.912,
+    "newly_covered_in_this_revision": [
+      {
+        "requirement": "POST /api/submissions/init endpoint",
+        "covered_by": "API_SUBMISSION_INIT"
+      },
+      {
+        "requirement": "POST /api/templates/:template_id/submissions nested POST route",
+        "covered_by": "API_SUBMISSION_NESTED_CREATE"
+      },
+      {
+        "requirement": "Conditional field logic",
+        "covered_by": "BIZ_CONDITIONAL_FIELDS_EXIST"
+      },
+      {
+        "requirement": "Role merging via roles array",
+        "covered_by": "BIZ_ROLE_MERGING"
+      },
+      {
+        "requirement": "User management CRUD",
+        "covered_by": "API_USER_MANAGEMENT"
+      },
+      {
+        "requirement": "Settings pages functional testing",
+        "covered_by": "FRONTEND_SETTINGS_PAGES"
+      }
+    ]
+  },
+  "backward_validity": {
+    "total_assertions": 442,
+    "with_valid_source": 442,
+    "fabricated": [],
+    "validity_rate": 1.0,
+    "fixed_in_this_revision": [
+      {
+        "test_id": "JOB_COMPLETION_PROCESSING",
+        "original_issue": "SQL query referenced completed_submitters.email which does not exist; table only has submitter_id FK",
+        "fix_applied": "Changed to JOIN query: SELECT COUNT(*) AS cnt FROM completed_submitters cs JOIN submitters s ON s.id = cs.submitter_id WHERE s.email = 'job-test@example.com'"
+      }
+    ]
+  },
+  "_analysis_notes": {
+    "forward_coverage_methodology": "Enumerated 125 distinct testable requirements from task.md by consolidating related items at practical granularity. Requirements grouped from: data model entities (§3), API endpoints (§5), business rules (§4), validation rules (§5.3), webhook system (§4.7), authentication (§4.1-4.2), RBAC (§7), frontend (§6), background jobs (§9/§11), email (§4.8), PDF tools (§4.6/§4.20-21), search (§4.10), and events API (§5.6). 114 of 125 are directly covered by at least one DAG node.",
+    "backward_validity_methodology": "Examined all 124 DAG nodes' P07, P08, P14, P15, P06, P09, P10, P11, P19, P12 assertion values (expected values, SQL queries, status codes, error messages, DOM selectors, column checks) against task.md sections and knowledge_base.json clarifications. Counted 442 individual assertions. All assertions trace to valid source specification entries.",
+    "p0_fix_summary": "Fixed generate_tests.py JSON-to-Python keyword conversion: replaced naive .replace('null','None') with regex re.sub(r'\\btrue\\b(?=\\s*[,}\\]\\n])', 'True') to prevent 'not_null' -> 'not_None' corruption. Affected 23 nodes / 46 assertion occurrences. All 19 test files regenerated and verified.",
+    "p1_coverage_improvement": "Added 6 new DAG nodes (API_SUBMISSION_INIT, API_SUBMISSION_NESTED_CREATE, BIZ_ROLE_MERGING, BIZ_CONDITIONAL_FIELDS_EXIST, API_USER_MANAGEMENT, FRONTEND_SETTINGS_PAGES) covering 6 of 8 medium-severity uncovered requirements. Coverage improved from 86.4% (108/125) to 91.2% (114/125).",
+    "remaining_uncovered": "11 requirements remain uncovered: 2 medium (Email 2FA flow, Rate limiting 429) and 9 low-severity (minor endpoints, edge-case validations, export features). The 2 medium items require specialized infrastructure (OTP generation, rate-limit state) that increases test complexity disproportionally to their scoring value.",
+    "additional_observations": [
+      "BIZ_FORMULA_STUB_ZERO references Submitters::NormalizeValues.calculate_formula_value but KB-023 locates it at Submitters::SubmitValues.calculate_formula_value — module name discrepancy in test setup (P12), not in assertion value. The expected result (0) correctly traces to KB-023.",
+      "RBAC_NON_ADMIN_DENIED creates a user with role:'user', but task.md §7.1 states only 'admin' role is defined. This may cause the P12 setup step to fail if role validation exists, but the assertion intent (non-admin restriction) is valid per §7.2.",
+      "All webhook-related assertions (event_type values, HTTP headers, retry behavior) trace cleanly to task.md §4.7 and KB-016/KB-017/KB-035.",
+      "All API isolation error messages ('not found using testing/production API key') are exact matches to task.md §7.3.",
+      "All validation error messages (email is invalid, role must be unique, phone should start with +, etc.) trace to task.md §5.3 error list."
+    ]
+  },
+  "_dag_summary": {
+    "total_nodes": 124,
+    "total_maxScore": 448,
+    "categories": 19,
+    "score_distribution": {
+      "shallow_pct": 14.1,
+      "deep_pct": 63.4,
+      "llm_judge_pct": 22.5
+    },
+    "all_thresholds_met": true
+  }
+}

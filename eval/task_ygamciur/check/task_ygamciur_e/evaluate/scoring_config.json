@@ -1,0 +1,92 @@
+{
+  "categories": {
+    "Action": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "ActionCollection": {
+      "maxScore": 10,
+      "node_count": 3
+    },
+    "Application": {
+      "maxScore": 46,
+      "node_count": 12
+    },
+    "ArchitectureQuality": {
+      "maxScore": 37,
+      "node_count": 8
+    },
+    "Authentication": {
+      "maxScore": 24,
+      "node_count": 8
+    },
+    "DataModel": {
+      "maxScore": 27,
+      "node_count": 9
+    },
+    "Datasource": {
+      "maxScore": 16,
+      "node_count": 5
+    },
+    "Deployment": {
+      "maxScore": 10,
+      "node_count": 5
+    },
+    "GitIntegration": {
+      "maxScore": 18,
+      "node_count": 7
+    },
+    "Organization": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "Page": {
+      "maxScore": 16,
+      "node_count": 5
+    },
+    "RBAC": {
+      "maxScore": 70,
+      "node_count": 16
+    },
+    "Security": {
+      "maxScore": 22,
+      "node_count": 6
+    },
+    "Theme": {
+      "maxScore": 17,
+      "node_count": 6
+    },
+    "UserManagement": {
+      "maxScore": 23,
+      "node_count": 6
+    },
+    "Workspace": {
+      "maxScore": 21,
+      "node_count": 5
+    }
+  },
+  "total_maxScore": 386,
+  "normalization": "0-100",
+  "scoring_method_distribution": {
+    "binary": {
+      "count": 44,
+      "maxScore": 144
+    },
+    "llm-judge": {
+      "count": 17,
+      "maxScore": 79
+    },
+    "weighted": {
+      "count": 48,
+      "maxScore": 163
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 109,
+    "score_distribution": {
+      "deep_pct": 70.2,
+      "shallow_pct": 9.3,
+      "llm_pct": 20.5
+    }
+  }
+}

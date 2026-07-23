@@ -1,0 +1,42 @@
+name: task_pkvwdnhj
+
+services:
+  app:
+    container_name: pkvwdnhj-app-1
+    image: shadetocloak/task_pkvwdnhj-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    ports:
+      - "8010:8010"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+  db:
+    container_name: pkvwdnhj-db-1
+    image: postgres:16-bookworm
+    ports:
+      - "5436:5432"
+    environment:
+      POSTGRES_USER: apppkvwdnhj
+      POSTGRES_PASSWORD: app123pkvwdnhj
+      POSTGRES_DB: app_pkvwdnhj
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apppkvwdnhj -d app_pkvwdnhj"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+volumes:
+  pgdata:

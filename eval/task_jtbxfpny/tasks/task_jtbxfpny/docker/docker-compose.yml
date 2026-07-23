@@ -1,0 +1,74 @@
+name: task_jtbxfpny
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: shadetocloak/task_jtbxfpny-app:${IMAGE_TAG:-baseline}
+    pull_policy: missing
+    container_name: app_jtbxfpny
+    ports:
+      - "8013:8013"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    # APP_CMD is parameterised so the same compose file works for two flows:
+    #   - baseline: APP_CMD defaults to bash /app/start.sh (the source baseline
+    #               provides this script inside ./workspace).
+    #   - model:    prepare_workspace.sh exports APP_CMD="sleep infinity" so
+    #               the candidate model writes code into an empty workspace
+    #               and starts the server itself.
+    command: ["bash", "-c", "${APP_CMD:-bash /app/start.sh}"]
+    restart: "no"
+    # Weak healthcheck: container existence is enough. Application readiness
+    # is verified separately by prepare_workspace.sh / test_*_code.sh, which
+    # poll the actual HTTP health endpoint. This avoids _wait_compose_ready
+    # blocking when PID 1 is `sleep infinity` (model flow).
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres_jtbxfpny
+    ports:
+      - "5438:5432"
+    environment:
+      POSTGRES_USER: appjtbxfpny
+      POSTGRES_PASSWORD: app123jtbxfpny
+      POSTGRES_DB: app_jtbxfpny
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appjtbxfpny -d app_jtbxfpny"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: redis_jtbxfpny
+    ports:
+      - "6390:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: "no"
+volumes:
+  postgres_data:
+  redis_data:

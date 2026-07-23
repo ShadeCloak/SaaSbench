@@ -1,0 +1,37 @@
+# =============================================================================
+# Dockerfile.model — clean development image for JVM-based tasks.
+# Builds a Java 17 + Maven + Gradle toolchain on top of the base dev image,
+# used by prepare_workspace.sh / test_model_output.sh (not by the source baseline).
+# =============================================================================
+
+ARG DEV_BASE_IMAGE=saasbench-dev:base
+FROM ${DEV_BASE_IMAGE}
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        openjdk-17-jdk maven gradle \
+ && rm -rf /var/lib/apt/lists/* \
+ && java --version && mvn --version | head -1
+
+# Optional Maven mirror — speeds up dependency downloads in some regions.
+# Override MAVEN_MIRROR_URL at build time, or remove this block to use Maven Central.
+ARG MAVEN_MIRROR_URL=https://maven.aliyun.com/repository/public
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<EOF
+<settings>
+  <mirrors>
+    <mirror>
+      <id>build-mirror</id>
+      <name>build mirror</name>
+      <url>${MAVEN_MIRROR_URL}</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

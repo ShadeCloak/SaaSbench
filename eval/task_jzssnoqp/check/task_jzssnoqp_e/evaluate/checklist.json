@@ -1,0 +1,2540 @@
+{
+  "total_items": 156,
+  "items": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "Application responds on port 8018",
+      "category": "Deployment",
+      "subcategory": "Accessibility",
+      "maxScore": 1,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "DEPLOY_HOMEPAGE",
+      "description": "Dashboard page served at root",
+      "category": "Deployment",
+      "subcategory": "Frontend",
+      "maxScore": 1,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "DB_TABLE_CORE",
+      "description": "Core tables: accounts, users, account_users, conversations, messages, contacts, inboxes, contact_inboxes, teams, labels",
+      "category": "DataModel",
+      "subcategory": "CoreTables",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P09"
+      ]
+    },
+    {
+      "id": "DB_TABLE_EXTENDED",
+      "description": "Extended tables: webhooks, automation_rules, campaigns, canned_responses, macros, custom_attribute_definitions, custom_filters, notifications, portals, articles, categories, agent_bots, dashboard_apps, notes, sla_policies, companies",
+      "category": "DataModel",
+      "subcategory": "ExtendedTables",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P09"
+      ]
+    },
+    {
+      "id": "DB_TABLE_ENTERPRISE",
+      "description": "Enterprise tables: custom_roles, applied_slas, sla_events, captain_assistants, captain_tools, captain_assistant_responses, copilot_suggestions",
+      "category": "DataModel",
+      "subcategory": "EnterpriseTables",
+      "maxScore": 2,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P09"
+      ]
+    },
+    {
+      "id": "DB_COLUMNS_CONVERSATIONS",
+      "description": "conversations: status, display_id, assignee_id, contact_id, inbox_id, account_id, team_id, priority, uuid, snoozed_until, custom_attributes, waiting_since, first_reply_created_at, last_activity_at",
+      "category": "DataModel",
+      "subcategory": "ConversationSchema",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DB_TABLE_CORE"
+      ],
+      "primitive_types": [
+        "P10"
+      ]
+    },
+    {
+      "id": "DB_COLUMNS_MESSAGES",
+      "description": "messages: content, message_type, private, status, content_type, sender_type, sender_id, content_attributes, conversation_id, account_id, inbox_id",
+      "category": "DataModel",
+      "subcategory": "MessageSchema",
+      "maxScore": 2,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DB_TABLE_CORE"
+      ],
+      "primitive_types": [
+        "P10"
+      ]
+    },
+    {
+      "id": "DB_COLUMNS_CONTACTS",
+      "description": "contacts: name, email, phone_number, identifier, contact_type, custom_attributes, blocked, last_activity_at, account_id",
+      "category": "DataModel",
+      "subcategory": "ContactSchema",
+      "maxScore": 2,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DB_TABLE_CORE"
+      ],
+      "primitive_types": [
+        "P10"
+      ]
+    },
+    {
+      "id": "DB_COLUMNS_ACCOUNTS",
+      "description": "accounts: name, locale, domain, support_email, auto_resolve_duration, feature_flags, settings, limits",
+      "category": "DataModel",
+      "subcategory": "AccountSchema",
+      "maxScore": 2,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DB_TABLE_CORE"
+      ],
+      "primitive_types": [
+        "P10"
+      ]
+    },
+    {
+      "id": "DB_INDEX_CONVERSATIONS",
+      "description": "Conversations table has performance indexes on account_id, inbox_id, assignee_id, contact_id, display_id",
+      "category": "DataModel",
+      "subcategory": "Indexes",
+      "maxScore": 1,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DB_TABLE_CORE"
+      ],
+      "primitive_types": [
+        "P11"
+      ]
+    },
+    {
+      "id": "AUTH_LOGIN",
+      "description": "POST /auth/sign_in returns access-token/client/uid headers",
+      "category": "Authentication",
+      "subcategory": "Login",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_types": [
+        "P13"
+      ]
+    },
+    {
+      "id": "AUTH_TOKEN_VALIDATE",
+      "description": "GET /auth/validate_token confirms token and returns user data with email/id",
+      "category": "Authentication",
+      "subcategory": "TokenValidation",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "AUTH_PROFILE_READ",
+      "description": "GET /api/v1/profile returns name, email, availability, account_id",
+      "category": "Authentication",
+      "subcategory": "ProfileAccess",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "AUTH_AGENT_LOGIN",
+      "description": "Agent user can login and gets role=agent in profile",
+      "category": "Authentication",
+      "subcategory": "AgentAuth",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_ACCOUNTS_UPDATE",
+      "description": "PATCH account name persists",
+      "category": "API",
+      "subcategory": "AccountUpdate",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_INBOXES_CREATE",
+      "description": "POST create web_widget inbox, verify channel_type=Channel::WebWidget",
+      "category": "API",
+      "subcategory": "InboxCreate",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONTACTS_CREATE",
+      "description": "POST create contact, email EVAL@Test.COM downcased to eval@test.com",
+      "category": "API",
+      "subcategory": "ContactCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONTACTS_SEARCH",
+      "description": "GET contacts/search?q=Eval returns at least 1 match",
+      "category": "API",
+      "subcategory": "ContactSearch",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P26"
+      ]
+    },
+    {
+      "id": "API_CONVERSATIONS_CREATE",
+      "description": "POST create conversation with status=open and auto display_id",
+      "category": "API",
+      "subcategory": "ConversationCreate",
+      "maxScore": 5,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_INBOXES_CREATE",
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONVERSATIONS_LIST",
+      "description": "GET conversations returns paginated payload with meta.all_count integer",
+      "category": "API",
+      "subcategory": "ConversationList",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_AGENTS_CREATE",
+      "description": "POST invite agent, verify role=agent in response",
+      "category": "API",
+      "subcategory": "AgentInvite",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_TEAMS_CRUD",
+      "description": "Create team, GET verify name, update, verify updated name",
+      "category": "API",
+      "subcategory": "TeamCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_LABELS_CRUD",
+      "description": "Create label, verify title, update, verify updated title",
+      "category": "API",
+      "subcategory": "LabelCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_WEBHOOKS_CREATE",
+      "description": "POST create webhook, verify url and subscriptions persisted",
+      "category": "API",
+      "subcategory": "WebhookCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CANNED_RESPONSES_CRUD",
+      "description": "Create canned response, verify short_code and content",
+      "category": "API",
+      "subcategory": "CannedResponseCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_AUTOMATION_RULES_CREATE",
+      "description": "POST create automation rule, verify conditions/actions structure persisted",
+      "category": "API",
+      "subcategory": "AutomationRuleCreate",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_INBOX_MEMBERS_ADD",
+      "description": "Add agent to inbox members and verify membership list via GET",
+      "category": "API",
+      "subcategory": "InboxMembers",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONVERSATIONS_COUNT",
+      "description": "GET conversations with status returns correct meta counts per status",
+      "category": "API",
+      "subcategory": "ConversationCounts",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CAMPAIGNS_CREATE",
+      "description": "POST create campaign on web_widget inbox, verify title",
+      "category": "API",
+      "subcategory": "CampaignCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_PORTALS_CRUD",
+      "description": "Create portal, verify slug, update name",
+      "category": "API",
+      "subcategory": "PortalCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_ARTICLES_CREATE",
+      "description": "POST create article, verify title and slug auto-generated",
+      "category": "API",
+      "subcategory": "ArticleCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_PORTALS_CRUD"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_AGENT_BOTS_CRUD",
+      "description": "Create agent bot, verify name and outgoing_url",
+      "category": "API",
+      "subcategory": "AgentBotCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_MACROS_CREATE",
+      "description": "POST macro with visibility=global, verify actions persisted",
+      "category": "API",
+      "subcategory": "MacroCreate",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CUSTOM_ATTR_DEF_CREATE",
+      "description": "POST custom attribute definition, verify key",
+      "category": "API",
+      "subcategory": "CustomAttrDefCreate",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CUSTOM_FILTERS_CRUD",
+      "description": "Create custom filter, verify name and filter_type",
+      "category": "API",
+      "subcategory": "CustomFilterCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_DASHBOARD_APPS_CRUD",
+      "description": "Create dashboard app, verify title",
+      "category": "API",
+      "subcategory": "DashboardAppCRUD",
+      "maxScore": 2,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_NOTIFICATIONS_LIST",
+      "description": "GET notifications returns paginated list with data array and meta",
+      "category": "API",
+      "subcategory": "NotificationList",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_NOTIFICATIONS_READ_MARK",
+      "description": "POST mark notification as read and verify read_at is set",
+      "category": "API",
+      "subcategory": "NotificationRead",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_NOTIFICATIONS_LIST"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_MESSAGE_CREATE_OUTGOING",
+      "description": "POST outgoing message, verify message_type=1",
+      "category": "BusinessLogic",
+      "subcategory": "MessageCreate",
+      "maxScore": 5,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_MESSAGE_PRIVATE_NOTE",
+      "description": "POST private note (private=true) persisted",
+      "category": "BusinessLogic",
+      "subcategory": "PrivateNote",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_MESSAGE_SOFT_DELETE",
+      "description": "DELETE message replaces content with 'This message was deleted' in DB",
+      "category": "BusinessLogic",
+      "subcategory": "SoftDelete",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_MESSAGE_CREATE_OUTGOING"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "API_CONVERSATION_LABELS_SET",
+      "description": "POST labels performs SET (replace) operation, verify label list",
+      "category": "BusinessLogic",
+      "subcategory": "LabelSet",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE",
+        "API_LABELS_CRUD"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONVERSATION_ASSIGN",
+      "description": "POST assign agent, verify assignee via GET",
+      "category": "BusinessLogic",
+      "subcategory": "Assignment",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CONVERSATION_PARTICIPANTS",
+      "description": "Add participant, verify in GET list, then remove",
+      "category": "BusinessLogic",
+      "subcategory": "Participants",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONTACT_NOTES_CRUD",
+      "description": "Create contact note, read list, delete",
+      "category": "API",
+      "subcategory": "ContactNotes",
+      "maxScore": 4,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_WEBHOOK_SECRET_AUTO",
+      "description": "Webhook secret auto-generated on create, not changed on URL update",
+      "category": "BusinessLogic",
+      "subcategory": "WebhookSecret",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_WEBHOOKS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_STATUS_TOGGLE",
+      "description": "Toggle open->resolved->open, verify each state",
+      "category": "BusinessLogic",
+      "subcategory": "StatusToggle",
+      "maxScore": 6,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P29"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_PRIORITY_SET",
+      "description": "Set priority=urgent, verify via GET",
+      "category": "BusinessLogic",
+      "subcategory": "Priority",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_MUTE",
+      "description": "Mute resolves conversation AND blocks contact (DB)",
+      "category": "BusinessLogic",
+      "subcategory": "MuteConversation",
+      "maxScore": 6,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_UNMUTE",
+      "description": "Unmute unblocks contact (DB)",
+      "category": "BusinessLogic",
+      "subcategory": "UnmuteConversation",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_CONVERSATION_MUTE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_SNOOZE",
+      "description": "Snooze sets status=3 and snoozed_until in DB",
+      "category": "BusinessLogic",
+      "subcategory": "Snooze",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_DISPLAY_ID_SEQUENCE",
+      "description": "Two conversations in same account have sequential display_ids",
+      "category": "BusinessLogic",
+      "subcategory": "DisplayIdSequence",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONTACT_EMAIL_NORMALIZE",
+      "description": "Empty email string becomes NULL in DB",
+      "category": "BusinessLogic",
+      "subcategory": "EmailNormalization",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_FILTER",
+      "description": "POST filter by status with flat payload array, verify filtered results",
+      "category": "BusinessLogic",
+      "subcategory": "ConversationFilter",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONTACT_CUSTOM_ATTRS_MERGE",
+      "description": "PATCH contact custom_attributes merges (not replaces) - two PUTs preserve both keys",
+      "category": "BusinessLogic",
+      "subcategory": "CustomAttrsMerge",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_AUTO_RESOLVE_SETTINGS",
+      "description": "Update auto_resolve_duration=30 and verify DB persistence",
+      "category": "BusinessLogic",
+      "subcategory": "AutoResolve",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONV_BLOCKED_CONTACT_RESOLVED",
+      "description": "Conversation from blocked contact starts with status=resolved",
+      "category": "BusinessLogic",
+      "subcategory": "BlockedContactConv",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_CONVERSATION_MUTE",
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONV_PENDING_STATUS",
+      "description": "Conversation status can be set to pending(2)",
+      "category": "BusinessLogic",
+      "subcategory": "PendingStatus",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_FIRST_REPLY_TRACKING",
+      "description": "First outgoing public message sets first_reply_created_at in DB",
+      "category": "BusinessLogic",
+      "subcategory": "FirstReplyTracking",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_MESSAGE_CREATE_OUTGOING"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_WAITING_SINCE",
+      "description": "Incoming contact message sets waiting_since, agent reply clears it",
+      "category": "BusinessLogic",
+      "subcategory": "WaitingSince",
+      "maxScore": 6,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CAMPAIGN_TYPE_ENFORCE",
+      "description": "web_widget inbox forces campaign_type=ongoing(0) even if one_off requested",
+      "category": "BusinessLogic",
+      "subcategory": "CampaignTypeEnforce",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CAMPAIGN_COMPLETED_IMMUTABLE",
+      "description": "Completed campaign returns error on update attempt",
+      "category": "BusinessLogic",
+      "subcategory": "CampaignImmutable",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CAMPAIGNS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "BIZ_CSAT_RATING_RANGE",
+      "description": "CSAT rating accepts 1-5, rejects 6",
+      "category": "BusinessLogic",
+      "subcategory": "CSATRating",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_WORKING_HOURS_OPEN_ALL_DAY",
+      "description": "open_all_day=true normalizes to open_hour=0,close_hour=23,close_min=59",
+      "category": "BusinessLogic",
+      "subcategory": "WorkingHours",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_PHONE_E164",
+      "description": "Invalid phone format rejected, valid E.164 accepted",
+      "category": "Validation",
+      "subcategory": "PhoneE164",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_EMAIL_FORMAT",
+      "description": "Invalid email format rejected with 422",
+      "category": "Validation",
+      "subcategory": "EmailFormat",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_NAME_LENGTH",
+      "description": "Contact name > 255 chars rejected",
+      "category": "Validation",
+      "subcategory": "NameLength",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_MESSAGE_CONTENT_LENGTH",
+      "description": "Message content > 150000 chars rejected",
+      "category": "Validation",
+      "subcategory": "ContentLength",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_MESSAGE_ATTACHMENT_LIMIT",
+      "description": "Message with > 16 attachments rejected",
+      "category": "Validation",
+      "subcategory": "AttachmentLimit",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_CONV_FILTER_INVALID_ATTR",
+      "description": "Filter with invalid attribute_key returns 422",
+      "category": "Validation",
+      "subcategory": "FilterInvalidAttr",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "VAL_CONV_FILTER_INVALID_OP",
+      "description": "Filter with invalid operator returns 422 with allowed operators list",
+      "category": "Validation",
+      "subcategory": "FilterInvalidOp",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_TYPE_AUTO_DETECT",
+      "description": "Contact with email auto-detected as lead (contact_type=1)",
+      "category": "Validation",
+      "subcategory": "ContactTypeDetect",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_UNIQUE_EMAIL",
+      "description": "Duplicate email in same account rejected",
+      "category": "Validation",
+      "subcategory": "UniqueEmail",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_AUTOMATION_QUERY_OPERATOR",
+      "description": "Automation rule missing query_operator in multi-condition rejected",
+      "category": "Validation",
+      "subcategory": "AutomationQueryOp",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_SEARCH_PAGINATION",
+      "description": "Contact search returns max 15 per page",
+      "category": "Validation",
+      "subcategory": "SearchPagination",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "VAL_CONV_JSONB_FIELD_LENGTH",
+      "description": "Conversation custom_attributes field > 1500 chars rejected",
+      "category": "Validation",
+      "subcategory": "JsonbFieldLength",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "API_WIDGET_CREATE_CONVERSATION",
+      "description": "Widget API creates conversation via POST /public/api/v1/inboxes/:inbox_id/contacts/:source_id/conversations",
+      "category": "PublicAPI",
+      "subcategory": "WidgetConvCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_WIDGET_SEND_MESSAGE",
+      "description": "Widget API sends message to conversation",
+      "category": "PublicAPI",
+      "subcategory": "WidgetMessage",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_WIDGET_CREATE_CONVERSATION"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_PUBLIC_CONTACT_CREATE",
+      "description": "Public API creates contact with inbox token",
+      "category": "PublicAPI",
+      "subcategory": "ContactCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_PLATFORM_ACCOUNT_CRUD",
+      "description": "Platform API /platform/api/v1/accounts CRUD",
+      "category": "PublicAPI",
+      "subcategory": "PlatformAccountCreate",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_PLATFORM_USER_CREATE",
+      "description": "Platform API creates user",
+      "category": "PublicAPI",
+      "subcategory": "PlatformUserCreate",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_REPORTS_SUMMARY",
+      "description": "GET /api/v2/reports/summary returns JSON data",
+      "category": "API",
+      "subcategory": "ReportsSummary",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_SLA_POLICIES_CRUD",
+      "description": "Create SLA policy, verify thresholds persisted",
+      "category": "Enterprise",
+      "subcategory": "SLAPolicyCRUD",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_COMPANIES_CRUD",
+      "description": "Create company, verify name, update",
+      "category": "Enterprise",
+      "subcategory": "CompanyCRUD",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_CUSTOM_ROLES_CRUD",
+      "description": "Create custom role with permissions, verify, update name",
+      "category": "Enterprise",
+      "subcategory": "CustomRoleCRUD",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CUSTOM_ROLE_REPORT_MANAGE",
+      "description": "Custom role with report_manage can access ALL report types (KB-074)",
+      "category": "Enterprise",
+      "subcategory": "CustomRoleReports",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "API_CUSTOM_ROLES_CRUD"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "BIZ_CUSTOM_ROLE_CONV_MANAGE_NO_DELETE",
+      "description": "conversation_manage permission does NOT grant delete (admin-only) - KB-059",
+      "category": "Enterprise",
+      "subcategory": "ConvManageNoDel",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "API_CUSTOM_ROLES_CRUD",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "API_CAPTAIN_TASKS",
+      "description": "Captain AI tasks API endpoint accessible",
+      "category": "Enterprise",
+      "subcategory": "CaptainAPI",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "API_COPILOT_SUGGEST",
+      "description": "Copilot suggestion endpoint exists",
+      "category": "Enterprise",
+      "subcategory": "CopilotAPI",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "API_SLA_APPLY_TO_CONVERSATION",
+      "description": "Apply SLA policy to conversation and verify applied_sla in DB",
+      "category": "Enterprise",
+      "subcategory": "SLAApply",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_SLA_POLICIES_CRUD",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_ZERO_INBOX_AGENT_NO_CONVERSATIONS",
+      "description": "Agent with zero inbox assignments sees no conversations (KB-061)",
+      "category": "Enterprise",
+      "subcategory": "ZeroInboxAgent",
+      "maxScore": 5,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_BULK_ACTIONS",
+      "description": "POST bulk actions to resolve multiple conversations",
+      "category": "API",
+      "subcategory": "BulkActions",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_DELETE_CONVERSATION",
+      "description": "Agent CANNOT delete conversation",
+      "category": "RBAC",
+      "subcategory": "ConversationDelete",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_DELETE_CONVERSATION",
+      "description": "Admin CAN delete conversation, DB confirms",
+      "category": "RBAC",
+      "subcategory": "ConversationDelete",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_DELETE_CONTACT",
+      "description": "Agent CANNOT delete contact",
+      "category": "RBAC",
+      "subcategory": "ContactDelete",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_DELETE_CONTACT",
+      "description": "Admin CAN delete contact, DB confirms",
+      "category": "RBAC",
+      "subcategory": "ContactDelete",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_CREATE_INBOX",
+      "description": "Agent CANNOT create inbox",
+      "category": "RBAC",
+      "subcategory": "InboxCreate",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_CREATE_INBOX",
+      "description": "Admin CAN create inbox",
+      "category": "RBAC",
+      "subcategory": "InboxCreate",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_CREATE_AUTOMATION",
+      "description": "Agent CANNOT create automation rules",
+      "category": "RBAC",
+      "subcategory": "AutomationCreate",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_CREATE_AUTOMATION",
+      "description": "Admin CAN create automation rules",
+      "category": "RBAC",
+      "subcategory": "AutomationCreate",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_CREATE_CAMPAIGN",
+      "description": "Agent CANNOT create campaigns",
+      "category": "RBAC",
+      "subcategory": "CampaignCreate",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_CREATE_CAMPAIGN",
+      "description": "Admin CAN create campaign",
+      "category": "RBAC",
+      "subcategory": "CampaignCreate",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_VIEW_REPORTS",
+      "description": "Agent CANNOT access reports",
+      "category": "RBAC",
+      "subcategory": "ReportAccess",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_VIEW_REPORTS",
+      "description": "Admin CAN access reports, verify JSON response",
+      "category": "RBAC",
+      "subcategory": "ReportAccess",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_DELETE_AGENT",
+      "description": "Agent CANNOT delete other agents",
+      "category": "RBAC",
+      "subcategory": "AgentDelete",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_DELETE_AGENT",
+      "description": "Admin CAN delete agent",
+      "category": "RBAC",
+      "subcategory": "AgentDelete",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_AGENTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_CREATE_WEBHOOK",
+      "description": "Agent CANNOT create webhooks",
+      "category": "RBAC",
+      "subcategory": "WebhookCreate",
+      "maxScore": 4,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_CREATE_WEBHOOK",
+      "description": "Admin CAN create webhook",
+      "category": "RBAC",
+      "subcategory": "WebhookCreate",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_ALLOW_READ_CONVERSATIONS",
+      "description": "Agent CAN read conversations (allow)",
+      "category": "RBAC",
+      "subcategory": "ConversationRead",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_INBOX_MEMBERS_ADD"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_ALLOW_CREATE_MESSAGE",
+      "description": "Agent CAN create messages in accessible conversations",
+      "category": "RBAC",
+      "subcategory": "MessageCreate",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "API_CONVERSATIONS_CREATE",
+        "API_INBOX_MEMBERS_ADD"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "REALTIME_ACTION_CABLE_CONNECT",
+      "description": "WebSocket connects to /cable and subscribes to RoomChannel",
+      "category": "RealTime",
+      "subcategory": "ActionCableConnect",
+      "maxScore": 6,
+      "complexity_tier": "high_concurrency",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P21"
+      ]
+    },
+    {
+      "id": "SEARCH_GLOBAL_CONVERSATIONS",
+      "description": "GET search finds conversations by message content",
+      "category": "Search",
+      "subcategory": "GlobalSearch",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_MESSAGE_CREATE_OUTGOING"
+      ],
+      "primitive_types": [
+        "P13",
+        "P26"
+      ]
+    },
+    {
+      "id": "SEARCH_CONTACTS",
+      "description": "GET contacts/search returns results sorted by relevance",
+      "category": "Search",
+      "subcategory": "ContactSearch",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P26"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_DASHBOARD_LAYOUT",
+      "description": "Dashboard page has clear three-column layout: sidebar + conversation list + detail pane",
+      "category": "Frontend",
+      "subcategory": "DashboardLayout",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_WIDGET_CHAT",
+      "description": "Web widget chat interface: message bubbles, input area, attachment button",
+      "category": "Frontend",
+      "subcategory": "WidgetChat",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_CONVERSATION_VIEW",
+      "description": "Conversation detail view shows message thread, contact sidebar, action buttons",
+      "category": "Frontend",
+      "subcategory": "ConversationView",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_SETTINGS_PAGE",
+      "description": "Settings page has organized sections for account, inboxes, agents, integrations",
+      "category": "Frontend",
+      "subcategory": "SettingsPage",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_CONTACT_MANAGEMENT",
+      "description": "Contact management page with search, filters, list view, detail panel",
+      "category": "Frontend",
+      "subcategory": "ContactManagement",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_HELP_CENTER",
+      "description": "Help center portal with article navigation, search, categories",
+      "category": "Frontend",
+      "subcategory": "HelpCenter",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_SERVICE_OBJECT_PATTERN",
+      "description": "Business logic uses Service Object pattern with clear separation from controllers",
+      "category": "ArchitectureQuality",
+      "subcategory": "ServiceObjectPattern",
+      "maxScore": 7,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_CONCERN_COMPOSITION",
+      "description": "Models use Concern/mixin composition for shared behavior",
+      "category": "ArchitectureQuality",
+      "subcategory": "ConcernComposition",
+      "maxScore": 7,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_CHANNEL_POLYMORPHISM",
+      "description": "Channel implementation uses polymorphism for multi-channel support",
+      "category": "ArchitectureQuality",
+      "subcategory": "ChannelPolymorphism",
+      "maxScore": 7,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_AUTOMATION_ENGINE",
+      "description": "Automation rule engine is extensible with clear condition/action separation",
+      "category": "ArchitectureQuality",
+      "subcategory": "AutomationEngine",
+      "maxScore": 7,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_REALTIME_DESIGN",
+      "description": "Action Cable channel design with proper broadcast and subscription logic",
+      "category": "ArchitectureQuality",
+      "subcategory": "RealtimeDesign",
+      "maxScore": 7,
+      "complexity_tier": "high_concurrency",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_MULTI_TENANCY",
+      "description": "Multi-tenancy isolation through account_id scoping",
+      "category": "ArchitectureQuality",
+      "subcategory": "MultiTenancy",
+      "maxScore": 7,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_RBAC_DESIGN",
+      "description": "RBAC system uses Pundit policies with clear permission hierarchy",
+      "category": "ArchitectureQuality",
+      "subcategory": "RBACDesign",
+      "maxScore": 7,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_API_ERROR_RESPONSE_QUALITY",
+      "description": "API error responses are structured JSON with useful error messages",
+      "category": "ArchitectureQuality",
+      "subcategory": "ErrorResponseQuality",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_CODE_ORGANIZATION",
+      "description": "Overall code organization follows Rails conventions with logical grouping",
+      "category": "ArchitectureQuality",
+      "subcategory": "CodeOrganization",
+      "maxScore": 7,
+      "complexity_tier": "linear_crud",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_REPORTS_PAGE",
+      "description": "Reports page has clear data visualization with charts and date filters",
+      "category": "Frontend",
+      "subcategory": "ReportsPage",
+      "maxScore": 8,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_FRONTEND_AUTOMATION_BUILDER",
+      "description": "Automation rule builder has condition/action UI with proper form controls",
+      "category": "Frontend",
+      "subcategory": "AutomationBuilder",
+      "maxScore": 8,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P04",
+        "P15",
+        "P17"
+      ]
+    },
+    {
+      "id": "LLM_ARCH_SIDEKIQ_JOB_DESIGN",
+      "description": "Background job design with proper queue separation and error handling",
+      "category": "ArchitectureQuality",
+      "subcategory": "SidekiqDesign",
+      "maxScore": 8,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [],
+      "primitive_types": [
+        "P03",
+        "P17"
+      ]
+    },
+    {
+      "id": "BIZ_AUTOASSIGN_ROUND_ROBIN",
+      "description": "Round-robin assignment distributes conversations across online agents",
+      "category": "BusinessLogic",
+      "subcategory": "AutoAssignRoundRobin",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_AGENTS_CREATE",
+        "API_INBOX_MEMBERS_ADD",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_AUTOASSIGN_NO_AGENTS_UNASSIGNED",
+      "description": "With no online agents, conversation stays unassigned",
+      "category": "BusinessLogic",
+      "subcategory": "AutoAssignNoAgent",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONTACT_MERGE",
+      "description": "Contact merge combines two contacts, secondary is destroyed",
+      "category": "BusinessLogic",
+      "subcategory": "ContactMerge",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONTACTS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_MACRO_EXECUTE",
+      "description": "Execute macro on conversation resolves it via action",
+      "category": "BusinessLogic",
+      "subcategory": "MacroExecute",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_MACROS_CREATE",
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_ACCESS_TOKEN_FORMAT",
+      "description": "has_secure_token generates 24-char Base58 URL-safe token (KB-055)",
+      "category": "Authentication",
+      "subcategory": "TokenFormat",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONV_CUSTOM_ATTRS_REPLACE",
+      "description": "PATCH conversation custom_attributes REPLACES (not merges) - opposite of contacts",
+      "category": "BusinessLogic",
+      "subcategory": "ConvAttrReplace",
+      "maxScore": 5,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_NOTIFICATION_PREFERENCES",
+      "description": "Update notification preferences via profile and verify persistence",
+      "category": "API",
+      "subcategory": "NotificationPrefs",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_SORT_ORDER",
+      "description": "Conversations sorted by last_activity_at DESC by default (KB-027)",
+      "category": "BusinessLogic",
+      "subcategory": "SortOrder",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_API_SNAKE_CASE_KEYS",
+      "description": "All API JSON responses use snake_case keys (KB-024)",
+      "category": "API",
+      "subcategory": "SnakeCaseKeys",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_WEBWIDGET_DEFAULTS",
+      "description": "New WebWidget has default widget_color=#1f93ff and reply_time=0 (KB-005)",
+      "category": "BusinessLogic",
+      "subcategory": "WebWidgetDefaults",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_INBOXES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATIONS_PAGE_SIZE",
+      "description": "Conversations default page size is 25 (KB-025)",
+      "category": "BusinessLogic",
+      "subcategory": "PageSize",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CSAT_UPDATE_WINDOW",
+      "description": "CSAT survey response update within 14 days allowed, after 14 days rejected (KB-037)",
+      "category": "BusinessLogic",
+      "subcategory": "CSATWindow",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_CSAT_RATING_RANGE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "VAL_API_RATE_LIMIT",
+      "description": "API enforces rate limiting (3000/min/IP via Rack::Attack) - KB-042",
+      "category": "Validation",
+      "subcategory": "RateLimit",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P02",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_EMAIL_INBOX_CREATE",
+      "description": "POST create email channel inbox",
+      "category": "API",
+      "subcategory": "EmailInbox",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONVERSATION_UUID_GENERATED",
+      "description": "Every conversation gets a UUID v4 auto-generated (KB-013)",
+      "category": "BusinessLogic",
+      "subcategory": "ConversationUUID",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATIONS_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_CONV_RECENT_MESSAGES_LIMIT",
+      "description": "Conversation serialization includes max 5 recent messages (KB-041)",
+      "category": "BusinessLogic",
+      "subcategory": "RecentMsgLimit",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_MESSAGE_CREATE_OUTGOING"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "API_AGENT_AVAILABILITY",
+      "description": "PUT profile availability to busy/online and verify",
+      "category": "API",
+      "subcategory": "AgentAvailability",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_LABEL_CACHED_LIST",
+      "description": "Setting labels on conversation updates cached_label_list in DB (KB-009)",
+      "category": "BusinessLogic",
+      "subcategory": "LabelCache",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_CONVERSATION_LABELS_SET"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_PUBSUB_TOKEN_PRESENT",
+      "description": "User has pubsub_token for Action Cable authentication (KB-040)",
+      "category": "Authentication",
+      "subcategory": "PubsubToken",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_ACCOUNT_LOCALE_ENUM",
+      "description": "Account locale accepts valid enum values (0=en default) and rejects invalid (KB-001)",
+      "category": "BusinessLogic",
+      "subcategory": "AccountLocale",
+      "maxScore": 3,
+      "complexity_tier": "linear_crud",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08"
+      ]
+    },
+    {
+      "id": "VAL_CONTACT_IDENTIFIER_UNIQUE",
+      "description": "Contact identifier must be unique per account",
+      "category": "Validation",
+      "subcategory": "IdentifierUnique",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    },
+    {
+      "id": "BIZ_ARTICLE_SLUG_FORMAT",
+      "description": "Article slug auto-generated as {unix_timestamp}-{title.parameterize} (KB-020)",
+      "category": "BusinessLogic",
+      "subcategory": "ArticleSlug",
+      "maxScore": 4,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "API_ARTICLES_CREATE"
+      ],
+      "primitive_types": [
+        "P13",
+        "P08",
+        "P07"
+      ]
+    },
+    {
+      "id": "BIZ_SEARCH_MESSAGES_LIMIT",
+      "description": "Search limits messages to recent 3 months (KB-041)",
+      "category": "Search",
+      "subcategory": "MessageLimit",
+      "maxScore": 3,
+      "complexity_tier": "workflow_automator",
+      "prereqs": [
+        "BIZ_MESSAGE_CREATE_OUTGOING"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15",
+        "P07"
+      ]
+    },
+    {
+      "id": "RBAC_AGENT_DENY_CSAT_DOWNLOAD",
+      "description": "Agent CANNOT download CSAT reports",
+      "category": "RBAC",
+      "subcategory": "CSATDownload",
+      "maxScore": 3,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P14"
+      ]
+    },
+    {
+      "id": "RBAC_ADMIN_ALLOW_CSAT_DOWNLOAD",
+      "description": "Admin CAN access CSAT download",
+      "category": "RBAC",
+      "subcategory": "CSATDownload",
+      "maxScore": 2,
+      "complexity_tier": "marketplace_rbac",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_types": [
+        "P13",
+        "P04",
+        "P15"
+      ]
+    }
+  ]
+}

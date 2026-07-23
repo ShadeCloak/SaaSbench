@@ -1,0 +1,7958 @@
+{
+ "meta": {
+  "task_id": "task_qmjfeopc",
+  "total_nodes": 137,
+  "source_prd": "task/task.md",
+  "generated_at": "2026-03-01T14:00:00Z",
+  "placeholders": {
+   "API_V3_PREFIX": "/api/v3",
+   "API_V4_PREFIX": "/api/v4"
+  }
+ },
+ "nodes": [
+  {
+   "id": "DEPLOY_HEALTH",
+   "description": "The application is accessible on port 8002",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/",
+      "timeout": 15
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       301,
+       302,
+       401,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Accessibility",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_PACKAGE_JSON",
+   "description": "package.json exists and references a Node.js web framework and a MongoDB client / ODM (recommended: express + mongoose; alternatives such as fastify / koa / hono / nestjs and prisma / typegoose / native mongodb driver are also acceptable).",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P01",
+     "inputs": {
+      "path": "package.json"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "path": "package.json",
+      "match_type": "regex",
+      "pattern": "\"(express|fastify|koa|hono|@nestjs/core|@hapi/hapi|restify)\"\\s*:\\s*\""
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "path": "package.json",
+      "match_type": "regex",
+      "pattern": "\"(mongoose|prisma|@prisma/client|typegoose|@typegoose/typegoose|mongodb|mikro-orm)\"\\s*:\\s*\""
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Dependencies",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_MONGODB_CONNECTION",
+   "description": "MongoDB connection is available and the app_qmjfeopc database is accessible",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.runCommand({ping:1})'",
+      "expect_success": true,
+      "expect_output_contains": "ok"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Database",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "DB_COLLECTIONS_CORE",
+   "description": "Core MongoDB collections exist (users, tasks, groups, challenges)",
+   "prereqs": [
+    "DEPLOY_MONGODB_CONNECTION"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'JSON.stringify(db.getCollectionNames())'",
+      "expect_success": true,
+      "expect_output_contains": "users"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "CoreCollections",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_USER_DOCUMENT_FIELDS",
+   "description": "The User document contains the core fields (auth, stats, items, preferences, party, etc.)",
+   "prereqs": [
+    "DB_COLLECTIONS_CORE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let u=db.users.findOne(); print(JSON.stringify(Object.keys(u)))'",
+      "expect_success": true,
+      "expect_output_contains": "stats"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "UserDocument",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_REGISTER_USER",
+   "description": "POST {{API_V3_PREFIX}}/user/auth/local/register creates a new user and returns the complete user object",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/auth/local/register",
+      "body": {
+       "username": "{{user_username}}",
+       "email": "{{user_email}}",
+       "password": "{{user_password}}",
+       "confirmPassword": "{{user_password}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "_id",
+       "apiToken",
+       "auth",
+       "stats",
+       "items",
+       "preferences"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.hp",
+        "expected": 50
+       },
+       {
+        "path": "$.data.stats.lvl",
+        "expected": 1
+       },
+       {
+        "path": "$.data.stats.class",
+        "expected": "warrior"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Registration",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "AUTH_API_KEY_ACCESS",
+   "description": "Accessing GET {{API_V3_PREFIX}}/user with the x-api-user + x-api-key headers returns the complete user document",
+   "prereqs": [
+    "AUTH_REGISTER_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "user",
+      "header_user": "x-api-user",
+      "header_key": "x-api-key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "_id",
+       "stats",
+       "items",
+       "preferences",
+       "profile"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.auth.local.username",
+        "expected": "{{user_username}}"
+       },
+       {
+        "path": "$.data.stats.maxHealth",
+        "expected": true,
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "APIKeyAuth",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_REGISTER_USER2",
+   "description": "Register a second user (for party/quest/inbox testing)",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/auth/local/register",
+      "body": {
+       "username": "{{user2_username}}",
+       "email": "{{user2_email}}",
+       "password": "{{user_password}}",
+       "confirmPassword": "{{user_password}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.hp",
+        "expected": 50
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Registration2",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TASK_HABIT",
+   "description": "Complete Habit CRUD flow",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "{{API_V3_PREFIX}}/tasks/user",
+      "id_path": "{{API_V3_PREFIX}}/tasks",
+      "create_body": {
+       "type": "habit",
+       "text": "Eval Habit",
+       "up": true,
+       "down": true,
+       "priority": 1
+      },
+      "update_body": {
+       "text": "Updated Habit"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "_id",
+       "type",
+       "text",
+       "value",
+       "up",
+       "down"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "HabitCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TASK_DAILY",
+   "description": "Complete Daily CRUD flow (including repeat)",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "{{API_V3_PREFIX}}/tasks/user",
+      "id_path": "{{API_V3_PREFIX}}/tasks",
+      "create_body": {
+       "type": "daily",
+       "text": "Eval Daily",
+       "frequency": "weekly",
+       "repeat": {
+        "m": true,
+        "t": true,
+        "w": true,
+        "th": true,
+        "f": true,
+        "s": false,
+        "su": false
+       }
+      },
+      "update_body": {
+       "text": "Updated Daily"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "_id",
+       "type",
+       "text",
+       "frequency",
+       "repeat",
+       "streak"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "DailyCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TASK_TODO",
+   "description": "Complete Todo CRUD flow",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "{{API_V3_PREFIX}}/tasks/user",
+      "id_path": "{{API_V3_PREFIX}}/tasks",
+      "create_body": {
+       "type": "todo",
+       "text": "Eval Todo",
+       "priority": 1.5
+      },
+      "update_body": {
+       "text": "Updated Todo"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "_id",
+       "type",
+       "text",
+       "completed",
+       "priority"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "TodoCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TASK_REWARD",
+   "description": "Complete Reward CRUD flow",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "{{API_V3_PREFIX}}/tasks/user",
+      "id_path": "{{API_V3_PREFIX}}/tasks",
+      "create_body": {
+       "type": "reward",
+       "text": "Eval Reward",
+       "value": 10
+      },
+      "update_body": {
+       "text": "Updated Reward"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "_id",
+       "type",
+       "text",
+       "value"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "RewardCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TASK_BATCH_CREATE",
+   "description": "POST {{API_V3_PREFIX}}/tasks/user accepts an array body for batch creation",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": [
+       {
+        "type": "habit",
+        "text": "Batch1"
+       },
+       {
+        "type": "todo",
+        "text": "Batch2"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "BatchCreate",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_TASK_ALIAS_ACCESS",
+   "description": "Task alias: access a task using the alias instead of _id",
+   "prereqs": [
+    "CRUD_TASK_HABIT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "habit",
+       "text": "Alias Test",
+       "alias": "myalias123"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tasks/myalias123"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.alias",
+        "expected": "myalias123"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "TaskAlias",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_TASK_UPDATE_CHECKLIST_REPLACE",
+   "description": "PUT /tasks/:taskId updates the checklist as a full replacement",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "daily",
+       "text": "Eval daily"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "{{API_V3_PREFIX}}/tasks/{{daily_id}}",
+      "body": {
+       "checklist": [
+        {
+         "text": "new item 1",
+         "completed": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.checklist[0].text",
+        "op": "==",
+        "expected": "new item 1"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "ChecklistReplace",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SCORE_HABIT_UP",
+   "description": "Habit score up: delta>0, gains EXP and GP",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "habit",
+       "text": "Eval habit"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{habit_id}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.delta",
+        "op": ">",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskScoring",
+    "subcategory": "HabitScoreUp",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_SCORE_TODO_COMPLETE",
+   "description": "Todo score up → completed=true",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "todo",
+       "text": "Eval todo"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{todo_id}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tasks/{{todo_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.completed",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskScoring",
+    "subcategory": "TodoComplete",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SCORE_REWARD_DEDUCT_GP",
+   "description": "Reward score: deducts GP",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.gp\":100}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "reward",
+       "text": "Eval reward",
+       "value": 10
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{reward_id}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.gp",
+        "op": "<",
+        "expected": 100
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskScoring",
+    "subcategory": "RewardGPDeduct",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SCORE_REWARD_INSUFFICIENT_GP",
+   "description": "Reward score with insufficient gold → 401",
+   "prereqs": [
+    "CRUD_TASK_REWARD"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.gp\":0}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{reward_id_500}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       401,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskScoring",
+    "subcategory": "RewardInsufficientGP",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SCORE_HABIT_COUNTER",
+   "description": "Habit counterUp tracking: score up 5 times → counterUp=5",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "habit",
+       "text": "Eval habit"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{habit_id}}/score/up",
+      "repeat": 5
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tasks/{{habit_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.counterUp",
+        "op": ">=",
+        "expected": 5
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskScoring",
+    "subcategory": "HabitCounter",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_STAT_ALLOCATE_SINGLE",
+   "description": "Allocate 1 point to CON: con+=1, points-=1",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.points\":3,\"stats.con\":0,\"stats.lvl\":10,\"stats.class\":\"warrior\",\"flags.classSelected\":true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/allocate",
+      "body": {
+       "stat": "con"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.points",
+        "op": "==",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RPGStats",
+    "subcategory": "AllocateSingle",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_STAT_ALLOCATE_BULK",
+   "description": "Batch allocation str=2,int=1 → points-3",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.points\":5,\"stats.str\":0,\"stats.int\":0,\"stats.lvl\":10,\"stats.class\":\"warrior\",\"flags.classSelected\":true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/allocate-bulk",
+      "body": {
+       "stats": {
+        "str": 2,
+        "int": 1
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.points",
+        "op": "==",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RPGStats",
+    "subcategory": "AllocateBulk",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_STAT_MAX_MP_FORMULA",
+   "description": "MaxMP=(150+50)*2+30=430",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.int\":150,\"stats.buffs.int\":50,\"stats.lvl\":100,\"stats.class\":\"wizard\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.maxMP",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RPGStats",
+    "subcategory": "MaxMPFormula",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs",
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_STAT_HP_CLAMP_ZERO",
+   "description": "Negative HP is clamped to 0",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":-5}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.hp",
+        "op": ">=",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RPGStats",
+    "subcategory": "HPClamp",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_STAT_GEAR_BONUS",
+   "description": "Equipment bonus: weapon_rogue_1 gives str>=2",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.gear.equipped.weapon\":\"weapon_rogue_1\",\"items.gear.owned.weapon_rogue_1\":true,\"stats.str\":0,\"stats.lvl\":13,\"stats.class\":\"rogue\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user?userFields=stats"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.str",
+        "op": ">=",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RPGStats",
+    "subcategory": "GearBonus",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_CLASS_CHANGE",
+   "description": "Class change: lvl>=10, first time free",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.lvl\":10,\"stats.class\":\"warrior\",\"flags.classSelected\":false,\"balance\":2}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/change-class",
+      "body": {
+       "class": "healer"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.class",
+        "op": "exists",
+        "expected": true
+       },
+       {
+        "path": "$.data.flags.classSelected",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClassSystem",
+    "subcategory": "ClassChange",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_SPELL_HEALER_FULL_HP_ERROR",
+   "description": "Healer casting Healing Light at full health → 401",
+   "prereqs": [
+    "BIZ_CLASS_CHANGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.class\":\"healer\",\"stats.lvl\":11,\"stats.hp\":50,\"stats.mp\":200}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/class/cast/heal"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClassSystem",
+    "subcategory": "SpellValidation",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SPELL_WIZARD_FROST_DOUBLE_ERROR",
+   "description": "Wizard casting Chilling Frost again when already active → 400",
+   "prereqs": [
+    "BIZ_CLASS_CHANGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.class\":\"wizard\",\"stats.lvl\":15,\"stats.mp\":400,\"stats.buffs.streaks\":true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/class/cast/frost"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClassSystem",
+    "subcategory": "SpellValidation",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_PET_HATCH",
+   "description": "Pet hatching: Wolf+Base → Wolf-Base value=5",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.eggs.Wolf\":1,\"items.hatchingPotions.Base\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/hatch/Wolf/Base"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.pets[\"Wolf-Base\"]",
+        "expected": 5
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "Hatching",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_PET_FEED_NONPREFERRED",
+   "description": "Non-preferred food: Wolf-Base+Milk → value+2 (5→7)",
+   "prereqs": [
+    "BIZ_PET_HATCH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets.Wolf-Base\":5,\"items.food.Milk\":2}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/feed/Wolf-Base/Milk"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.pets[\"Wolf-Base\"]",
+        "expected": 5,
+        "op": ">="
+       },
+       {
+        "path": "$.data.items.food.Milk",
+        "expected": 0,
+        "op": ">="
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "FeedNonPreferred",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_PET_FEED_EVOLVE_MOUNT",
+   "description": "Feeding a pet with value=49 → evolves into a mount (pet=-1, mount=true)",
+   "prereqs": [
+    "BIZ_PET_HATCH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets.Wolf-Base\":49,\"items.food.Milk\":1,\"items.mounts.Wolf-Base\":null}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/feed/Wolf-Base/Milk"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.pets[\"Wolf-Base\"]",
+        "expected": -1
+       },
+       {
+        "path": "$.data.items.mounts[\"Wolf-Base\"]",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "EvolvMount",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_PET_FEED_SADDLE",
+   "description": "Feeding a Saddle directly evolves into a mount",
+   "prereqs": [
+    "BIZ_PET_HATCH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets.Wolf-Base\":5,\"items.food.Saddle\":1,\"items.mounts.Wolf-Base\":null}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/feed/Wolf-Base/Saddle"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.mounts[\"Wolf-Base\"]",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "SaddleFeed",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_PET_FEED_INSUFFICIENT_ERROR",
+   "description": "Insufficient food → 401",
+   "prereqs": [
+    "BIZ_PET_HATCH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets.Wolf-Base\":5,\"items.food.Milk\":0}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/feed/Wolf-Base/Milk"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       401,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "FeedInsufficientError",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_BUY_HEALTH_POTION",
+   "description": "Health Potion：25GP → hp+15 (30→45, gp 200→175)",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":30,\"stats.gp\":200}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-health-potion"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.hp",
+        "op": "==",
+        "expected": 45
+       },
+       {
+        "path": "$.data.gp",
+        "op": "==",
+        "expected": 175
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "HealthPotion",
+    "method": "weighted",
+    "maxScore": 5,
+    "_round16_note": "P07 envelope fix: any_of allows success/stats.hp/hp variants"
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_BUY_HEALTH_POTION_CAP",
+   "description": "HP upper-limit clamping: hp=45 → cap 50",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":45,\"stats.gp\":200}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-health-potion"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.hp",
+        "op": "==",
+        "expected": 50
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "HealthPotionCap",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_BUY_HEALTH_POTION_FULL_HP_ERROR",
+   "description": "Purchasing at full health → 401",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":50,\"stats.gp\":200}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-health-potion"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "HealthPotionFullHP",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_BUY_ARMOIRE_GP",
+   "description": "Enchanted Armoire: 100GP for a random reward",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.gp\":200,\"flags.armoireEnabled\":true,\"flags.armoireOpened\":true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-armoire"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.armoire",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "Armoire",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_BUY_GEM_GOLD",
+   "description": "Buying a Gem with gold: 20GP=1gem (balance+=0.25)",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-gems",
+      "body": {
+       "quantity": 1
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "GemPurchase",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_BUY_GEM_CAP",
+   "description": "Gem monthly cap 24 → 401",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"purchased.plan.gemsBought\":40,\"stats.gp\":100,\"purchased.plan.customerId\":\"test\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/buy-gems",
+      "body": {
+       "quantity": 1
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       401,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "GemCap",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SELL_ITEM_GP",
+   "description": "Selling a Wolf egg: value=3, gp+3",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.eggs.Wolf\":2,\"stats.gp\":100}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/sell/eggs/Wolf"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.gp",
+        "expected": 103,
+        "tolerance": 5
+       },
+       {
+        "path": "$.data.items.eggs.Wolf",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "SellItem",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SHOP_MARKET",
+   "description": "GET /shops/market returns identifier=market + categories",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/shops/market"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.identifier",
+        "expected": "market"
+       },
+       {
+        "path": "$.data.categories",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "ShopMarket",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SOCIAL_CREATE_PARTY",
+   "description": "Create a Party (type=party) — prerequisite for the Quest system",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS",
+    "AUTH_REGISTER_USER2"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups",
+      "body": {
+       "name": "Eval Party",
+       "type": "party"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.type",
+        "expected": "party"
+       },
+       {
+        "path": "$.data.name",
+        "expected": "Eval Party"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Party",
+    "subcategory": "CreateParty",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SOCIAL_PARTY_INVITE_ACCEPT",
+   "description": "Invite user2 to join the party and accept",
+   "prereqs": [
+    "SOCIAL_CREATE_PARTY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"inbox.blocks\":[]}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/invite",
+      "body": {
+       "uuids": [
+        "{{user2_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user2",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/join"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.memberCount",
+        "op": "==",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Party",
+    "subcategory": "InviteAccept",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_QUEST_INVITE",
+   "description": "Party leader initiates a quest invitation",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.quest.key",
+        "op": "==",
+        "expected": "whale"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "QuestInvite",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_QUEST_ACCEPT",
+   "description": "Party member accepts the quest invitation",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user2",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/accept"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.quest.active",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "QuestAccept",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_QUEST_FORCE_START",
+   "description": "Leader force-start without waiting for everyone to accept",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/force-start"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.quest.active",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "ForceStart",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_QUEST_BOSS_DAMAGE",
+   "description": "After a Boss quest is activated, completing a daily → quest.progress.up > 0 (the boss takes damage)",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/force-start"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "daily",
+       "text": "Eval Quest Daily"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{daily_id}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._tmp.quest.progressDelta",
+        "op": ">",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "BossDamage",
+    "method": "weighted",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs",
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_QUEST_BOSS_DEF_DIVISOR",
+   "description": "Boss def acts as the defense divisor: actual damage = dmg/def",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/force-start"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let g=db.groups.findOne({type:\"party\",\"quest.key\":\"whale\"}); print(JSON.stringify({key:g.quest.key, hp:g.quest.progress.hp}))'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.key",
+        "op": "==",
+        "expected": "whale"
+       },
+       {
+        "path": "$.hp",
+        "op": ">",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "BossDefDivisor",
+    "method": "weighted",
+    "maxScore": 4,
+    "_round16_note": "P07 fix: task.md §3.4 specifies quest.progress.hp/up, not .success; any_of allows any one of hp/up/success to be present"
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_QUEST_CANCEL_SCROLL_RETURN",
+   "description": "Cancel a pending quest → the scroll is returned to the leader",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.vice2\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/vice2"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/cancel"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.quests.vice2",
+        "op": "==",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "CancelScrollReturn",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_QUEST_ABORT",
+   "description": "Abort an active quest → active becomes false",
+   "prereqs": [
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.quests.whale\":1}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/invite/whale"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/force-start"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/quests/abort"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.quest.active",
+        "op": "==",
+        "expected": false
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "QuestSystem",
+    "subcategory": "AbortQuest",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SUBSCRIPTION_CREATE",
+   "description": "Set up a subscription via the DB → isSubscribed is true",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"purchased.plan.customerId\":\"eval_sub\",\"purchased.plan.planId\":\"basic_earned\",\"purchased.plan.dateCreated\":new Date(),\"purchased.plan.dateCurrentTypeCreated\":new Date(),\"purchased.plan.consecutive.count\":0,\"purchased.plan.consecutive.trinkets\":0,\"purchased.plan.consecutive.gemCapExtra\":0}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.plan.customerId",
+        "expected": "eval_sub"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Subscription",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIPTION_CANCEL_PERKS",
+   "description": "After cancelling the subscription, benefits still apply before dateTerminated",
+   "prereqs": [
+    "BIZ_SUBSCRIPTION_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let future=new Date(); future.setMonth(future.getMonth()+1); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"purchased.plan.dateTerminated\":future}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.plan.dateTerminated",
+        "op": "exists",
+        "expected": true
+       },
+       {
+        "path": "$.data.purchased.plan.customerId",
+        "expected": "eval_sub",
+        "comment": "dateTerminated has not been reached, customerId still present"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Subscription",
+    "subcategory": "CancelPerks",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIPTION_GIFT_AUTOCREATE",
+   "description": "A gift subscription automatically creates a subscription period for a user without a subscription",
+   "prereqs": [
+    "AUTH_REGISTER_USER2"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user2_username}}\"},{$set:{\"purchased.plan.customerId\":null,\"purchased.plan.dateTerminated\":null}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let future=new Date(); future.setMonth(future.getMonth()+3); db.users.updateOne({\"auth.local.username\":\"{{user2_username}}\"},{$set:{\"purchased.plan.dateTerminated\":future,\"purchased.plan.dateCreated\":new Date()}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user2",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.plan.dateTerminated",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Subscription",
+    "subcategory": "GiftAutoCreate",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_SUBSCRIPTION_CONSECUTIVE_BENEFITS",
+   "description": "5 consecutive months of subscription → gemCapExtra=10, trinkets increase",
+   "prereqs": [
+    "BIZ_SUBSCRIPTION_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"purchased.plan.consecutive.count\":5,\"purchased.plan.consecutive.gemCapExtra\":10,\"purchased.plan.consecutive.trinkets\":6}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.plan.consecutive.gemCapExtra",
+        "expected": 10
+       },
+       {
+        "path": "$.data.purchased.plan.consecutive.trinkets",
+        "expected": 6
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Subscription",
+    "subcategory": "ConsecutiveBenefits",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_NOTIFICATION_READ",
+   "description": "GET {{API_V3_PREFIX}}/notifications fetches the notification list + POST marks as read",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$push:{notifications:{id:\"eval-notif-0001\",type:\"GENERIC_MESSAGE\",data:{message:\"eval\"},seen:false}}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/notifications/eval-notif-0001/read"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.success",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Notification",
+    "subcategory": "ReadNotifications",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_ACHIEVEMENT_STREAK_21",
+   "description": "Daily streak=21 triggers the streak achievement",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "daily",
+       "text": "Eval Streak Daily",
+       "frequency": "daily",
+       "everyX": 1
+      }
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.tasks.updateOne({_id:\"{{daily_id}}\"},{$set:{streak:20,completed:false}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/{{daily_id}}/score/up"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.achievements.streak",
+        "op": ">=",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Achievement",
+    "subcategory": "StreakAchievement",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_REBIRTH_FREE",
+   "description": "Rebirth free condition: lvl>=100 and 45 days since the last one",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let old=new Date(); old.setDate(old.getDate()-50); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.lvl\":100,\"stats.hp\":50,\"stats.gp\":500,\"stats.exp\":200,\"balance\":0,\"flags.lastFreeRebirth\":old}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/rebirth"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.user.stats.lvl",
+        "op": "==",
+        "expected": 1
+       },
+       {
+        "path": "$.data.user.stats.exp",
+        "op": "==",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Lifecycle",
+    "subcategory": "RebirthFree",
+    "method": "weighted",
+    "maxScore": 5,
+    "_round16_note": "P07 envelope fix: task.md §3.1.2 specifies the stats.* path, not the HTTP envelope; any_of allows $.data.stats / $.stats variants"
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs",
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_REVIVE_USER",
+   "description": "Revive: HP=50, EXP=0, loses 1 level (2→1)",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":0,\"stats.lvl\":2,\"stats.exp\":100,\"stats.gp\":50}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/revive"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.hp",
+        "op": "==",
+        "expected": 50
+       },
+       {
+        "path": "$.data.stats.lvl",
+        "op": "==",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Lifecycle",
+    "subcategory": "Revive",
+    "method": "weighted",
+    "maxScore": 5,
+    "_round16_note": "P07 envelope fix: any_of allows $.data.stats / $.stats variants"
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_RESET_USER",
+   "description": "Reset：HP=50, lvl=1, stats=0, GP=0",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":30,\"stats.lvl\":10,\"stats.str\":5,\"stats.con\":5,\"stats.int\":5,\"stats.per\":5,\"stats.gp\":500}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/reset"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.user.stats.lvl",
+        "op": "==",
+        "expected": 1
+       },
+       {
+        "path": "$.data.user.stats.gp",
+        "op": "==",
+        "expected": 0
+       },
+       {
+        "path": "$.data.user.stats.str",
+        "op": "==",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Lifecycle",
+    "subcategory": "Reset",
+    "method": "weighted",
+    "maxScore": 5,
+    "_round16_note": "P07 envelope fix: any_of allows $.data.stats / $.stats variants"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_CRON_TRIGGER",
+   "description": "POST {{API_V3_PREFIX}}/cron can be triggered",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"_cronSignature\":\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "CronTrigger",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_CRON_RESET_DROP_COUNT",
+   "description": "Cron resets lastDrop.count=0",
+   "prereqs": [
+    "BIZ_CRON_TRIGGER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let d=new Date(); d.setDate(d.getDate()-2); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.lastDrop.count\":4,\"lastCron\":d}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":new Date(Date.now()-86400000)}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"_cronSignature\":\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.lastDrop.count",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "ResetDropCount",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs",
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_CRON_HP_DAMAGE_MISSED_DAILY",
+   "description": "Cron deducts HP for uncompleted due dailies",
+   "prereqs": [
+    "BIZ_CRON_TRIGGER",
+    "CRUD_TASK_DAILY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let d=new Date(); d.setDate(d.getDate()-2); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"stats.hp\":50,\"lastCron\":d,\"preferences.dayStart\":0,\"preferences.timezoneOffset\":0}}); db.tasks.updateOne({userId:db.users.findOne({\"auth.local.username\":\"{{user_username}}\"})._id, type:\"daily\"},{$set:{completed:false,isDue:true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":new Date(Date.now()-86400000)}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"_cronSignature\":\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.hp",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "HPDamageMissedDaily",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs",
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_CRON_STREAK_LOSS",
+   "description": "Cron resets the streak to 0 for uncompleted dailies",
+   "prereqs": [
+    "BIZ_CRON_TRIGGER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tasks/user",
+      "body": {
+       "type": "daily",
+       "text": "Eval Cron Daily",
+       "frequency": "daily",
+       "everyX": 1
+      }
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let uid=db.users.findOne({\"auth.local.username\":\"{{user_username}}\"})._id;let sd=new Date();sd.setDate(sd.getDate()-7);db.tasks.updateOne({userId:uid,type:\"daily\"},{$set:{streak:10,completed:false,startDate:sd,everyX:1,frequency:\"daily\",isDue:true,yesterDaily:true}});let lc=new Date();lc.setDate(lc.getDate()-2);db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{lastCron:lc,_cronSignature:\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tasks/{{daily_id}}"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.streak",
+        "op": "==",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "StreakLoss",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_CRON_BUFF_RESET",
+   "description": "Cron resets buffs (transformation effects such as snowball expire automatically)",
+   "prereqs": [
+    "BIZ_CRON_TRIGGER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let d=new Date(); d.setDate(d.getDate()-2); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":d,\"stats.buffs.snowball\":true,\"stats.buffs.str\":10}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":new Date(Date.now()-86400000)}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"_cronSignature\":\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.stats.buffs.str",
+        "op": "exists",
+        "expected": true
+       },
+       {
+        "path": "$.data.stats.buffs.snowball",
+        "op": "in",
+        "expected": [
+         false,
+         null
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "BuffReset",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_CRON_GEMSBOUGHT_RESET",
+   "description": "Cron resets plan.gemsBought=0 across months",
+   "prereqs": [
+    "BIZ_CRON_TRIGGER",
+    "BIZ_SUBSCRIPTION_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let d=new Date(); d.setMonth(d.getMonth()-2); db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":d,\"purchased.plan.gemsBought\":10,\"purchased.plan.customerId\":\"eval_sub\",\"purchased.plan.dateUpdated\":d}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"lastCron\":new Date(Date.now()-86400000)}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"_cronSignature\":\"NOT_RUNNING\"}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/cron"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.plan.gemsBought",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CronSystem",
+    "subcategory": "GemsBoughtReset",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "db_queries"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_CONTENT_API",
+   "description": "GET {{API_V3_PREFIX}}/content returns gear/quests/eggs/food",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/content"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "success"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.quests",
+        "op": "exists"
+       },
+       {
+        "path": "$.data.gear",
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "ContentStructure",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_CONTENT_LOCALIZATION",
+   "description": "Content ?language=fr returns localization",
+   "prereqs": [
+    "BIZ_CONTENT_API"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/content?language=fr"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.gear",
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "Localization",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_WORLD_STATE",
+   "description": "GET {{API_V3_PREFIX}}/world-state returns data",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/world-state"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "WorldState",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SOCIAL_CREATE_GROUP",
+   "description": "Create a guild",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups",
+      "body": {
+       "name": "Eval Guild",
+       "type": "guild",
+       "privacy": "private"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "CreateGroup",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SOCIAL_GROUP_CHAT_POST",
+   "description": "POST a chat message to a group",
+   "prereqs": [
+    "SOCIAL_CREATE_PARTY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/groups/{{party_id}}/chat",
+      "body": {
+       "message": "Hello from eval!"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.message",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "GroupChat",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_CHALLENGE_CREATE",
+   "description": "Create a Challenge",
+   "prereqs": [
+    "SOCIAL_CREATE_PARTY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/challenges",
+      "body": {
+       "group": "{{party_id}}",
+       "name": "Eval Challenge",
+       "shortName": "eval-ch"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Challenges",
+    "subcategory": "CreateChallenge",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_CHALLENGE_JOIN_SYNC",
+   "description": "Challenge join synchronizes tasks",
+   "prereqs": [
+    "BIZ_CHALLENGE_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user2",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/challenges/{{challenge_id}}/join"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Challenges",
+    "subcategory": "JoinSync",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_INBOX_SEND_MESSAGE",
+   "description": "Send a private message",
+   "prereqs": [
+    "AUTH_REGISTER_USER",
+    "AUTH_REGISTER_USER2"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/members/send-private-message",
+      "body": {
+       "message": "Hello from eval",
+       "toUserId": "{{user2_id}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/inbox/messages"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "InboxSend",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_INBOX_BLOCK_SEND_ERROR",
+   "description": "Sending a private message to a blocked user → 401",
+   "prereqs": [
+    "BIZ_INBOX_SEND_MESSAGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/block/{{user2_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/members/send-private-message",
+      "body": {
+       "message": "blocked test",
+       "toUserId": "{{user2_id}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "InboxBlockError",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_USER_UPDATE_PREFERENCES",
+   "description": "PUT /user partially updates preferences via dot paths",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "{{API_V3_PREFIX}}/user",
+      "body": {
+       "preferences.language": "fr",
+       "preferences.dayStart": 5
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.preferences.language",
+        "expected": "fr"
+       },
+       {
+        "path": "$.data.preferences.dayStart",
+        "expected": 5
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserAPI",
+    "subcategory": "UpdatePreferences",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_TAGS_CRUD",
+   "description": "Create and fetch Tags",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/tags",
+      "body": {
+       "name": "Eval Tag"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.name",
+        "expected": "Eval Tag"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tags"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "TagsCRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_TAGS_REORDER",
+   "description": "POST /reorder-tags {tagId, to}",
+   "prereqs": [
+    "BIZ_TAGS_CRUD"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/reorder-tags",
+      "body": {
+       "tagId": "{{tag_id}}",
+       "to": 0
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaskCRUD",
+    "subcategory": "TagsReorder",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_WEBHOOK_CRUD",
+   "description": "Webhook creates a taskActivity type",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/webhook",
+      "body": {
+       "url": "https://httpbin.org/post",
+       "type": "taskActivity",
+       "options": {
+        "scored": true,
+        "created": false,
+        "updated": false,
+        "deleted": false
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.type",
+        "expected": "taskActivity"
+       },
+       {
+        "path": "$.data.enabled",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Webhooks",
+    "subcategory": "WebhookCRUD",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_EXPORT_HISTORY_CSV",
+   "description": "GET /export/history.csv returns CSV",
+   "prereqs": [
+    "CRUD_TASK_HABIT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/export/history.csv"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.headers.content-type",
+        "op": "contains",
+        "expected": "csv"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataExport",
+    "subcategory": "HistoryCSV",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "RBAC_ADMIN_SETUP",
+   "description": "Create an admin user",
+   "prereqs": [
+    "AUTH_REGISTER_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'let r=db.users.updateOne({$or:[{\"auth.local.username\":\"{{admin_username}}\"},{\"auth.local.email\":\"{{admin_email}}\"}]},{$set:{\"contributor.admin\":true,\"permissions.fullAccess\":true,\"permissions.news\":true,\"permissions.userSupport\":true,\"permissions.challengeAdmin\":true,\"permissions.moderator\":true,\"permissions.accessControl\":true,\"permissions.coupons\":true}}); print(JSON.stringify(r))'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key",
+      "force_refresh": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/blockers"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.success",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminSetup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_SEARCH_USERS",
+   "description": "Admin GET {{API_V4_PREFIX}}/admin/search → 200",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/search/{{admin_username}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data[0]._id",
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminSearch",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_ADMIN_SEARCH",
+   "description": "Regular user admin search → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "GET {{API_V4_PREFIX}}/admin/search/{{admin_username}}",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedAdmin",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_COUPON_GENERATE",
+   "description": "Regular user coupon → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "POST {{API_V3_PREFIX}}/coupons/generate",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedCoupon",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_COUPON_GENERATE",
+   "description": "Admin coupon → 200",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/coupons/generate/wondercon?count=1"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data[0]._id",
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminCoupon",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "EDGE_REGISTER_DUPLICATE_USERNAME",
+   "description": "Registering with a duplicate username → error",
+   "prereqs": [
+    "AUTH_REGISTER_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/auth/local/register",
+      "body": {
+       "username": "{{user_username}}",
+       "email": "dup@test.com",
+       "password": "DupPass123!@#",
+       "confirmPassword": "DupPass123!@#"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400,
+       401
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DuplicateUsername",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_DELETE_ACCOUNT_PASSWORD",
+   "description": "Deleting an account without a password → 400",
+   "prereqs": [
+    "AUTH_REGISTER_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "{{API_V3_PREFIX}}/user",
+      "body": {}
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DeleteAccountAuth",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_TASK_TYPE_FILTER",
+   "description": "GET /tasks/user without type returns all uncompleted todo + habit/daily/reward",
+   "prereqs": [
+    "CRUD_TASK_HABIT",
+    "CRUD_TASK_TODO"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/tasks/user?type=habits"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data[0].type",
+        "op": "==",
+        "expected": "habit"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "TaskFilter",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_RATE_LIMIT",
+   "description": "Exceeding 30 req/60s → 429",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user",
+      "repeat": 35
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       429
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "RateLimit",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_CODE_STRUCTURE",
+   "description": "Code architecture quality evaluation",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "/app/"
+      ],
+      "rubric_prompt": "GOAL: Judge the overall code architecture of this Node.js backend (Express + MongoDB-based (or equivalent Node.js + MongoDB stack) gamified task manager).\n\nEVIDENCE: server-side source: routes/controllers, models, middleware, services, top-level app.js / index.js.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Code is organised into recognisable layers: routes/controllers, services / business logic, models, middleware.\n2. Controllers are thin (parse, validate, call service, render) and contain no inline DB queries.\n3. Mongoose models live under models/ with one model per file.\n4. Cross-cutting concerns (auth, rate-limit, error handling) are implemented as framework middleware applied centrally (e.g., Express `app.use`; equivalents in other Node frameworks acceptable), not duplicated per route.\n5. Configuration is loaded from environment variables through a single config module, not scattered process.env reads.\n6. The folder layout is consistent (no duplicate directories like routes/ vs router/ vs api/).\n\nSCORING ANCHORS:\n- 0 (none): All logic in a single index.js with no separation.\n- 2 (weak): Routes split out but controllers contain DB queries; no service layer.\n- 4 (good): Three-layer split (routes/services/models) with central middleware; minor duplication.\n- 6 (excellent): All six criteria satisfied with idiomatic idiomatic layered framework conventions (Express recommended; Fastify / Koa / Hono / NestJS also acceptable).\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification citing files>\"}.",
+      "criteria": [
+       {
+        "dimension": "LayeredArchitecture",
+        "weight": 2,
+        "description": "Whether there is a clear MVC or layered architecture (models/controllers/routes/middlewares/libs)"
+       },
+       {
+        "dimension": "DataModeling",
+        "weight": 2,
+        "description": "Whether a Mongoose Schema or similar ODM is used to define data models, and whether the schema is complete"
+       },
+       {
+        "dimension": "RoutingOrganization",
+        "weight": 1,
+        "description": "Whether routes are grouped by functional module, and whether there is versioning (v3/v4)"
+       },
+       {
+        "dimension": "ErrorHandling",
+        "weight": 1,
+        "description": "Whether there is a unified error-handling middleware and custom error classes"
+       }
+      ],
+      "score_range": [
+       0,
+       6
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "CodeStructure",
+    "method": "llm-judge",
+    "maxScore": 6,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_COUPON_VALIDATE",
+   "description": "Coupon validation: after an admin generates a coupon, the user redeems it to obtain gems",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "user"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/coupons/validate/TESTCODE123"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.valid",
+        "op": "==",
+        "expected": false
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Payment",
+    "subcategory": "CouponValidate",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_IAP_ANDROID_VERIFY_ERROR",
+   "description": "IAP Android invalid receipt → 401 [ENV-LIMIT: Android IAP verification requires Google Play credentials (IAP_GOOGLE_KEYDIR/PLAY_API_*) absent from the test env, so an invalid receipt surfaces as 500 rather than a clean 401; 500 accepted as the env-limited rejection.]",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "user"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/iap/android/verify",
+      "body": {
+       "transaction": {
+        "receipt": "invalid_receipt",
+        "signature": "invalid_sig"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       500
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Payment",
+    "subcategory": "IAPVerifyError",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_EQUIP_WEAPON",
+   "description": "Equip: POST {{API_V3_PREFIX}}/user/equip/equipped/weapon_warrior_0",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.gear.owned.weapon_warrior_0\":true}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/equip/equipped/weapon_warrior_0"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.gear.equipped.weapon",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Equipment",
+    "subcategory": "EquipWeapon",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_UNEQUIP",
+   "description": "Unequip: POST {{API_V4_PREFIX}}/user/unequip/weapon",
+   "prereqs": [
+    "BIZ_EQUIP_WEAPON"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/user/unequip/equipped"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.items.gear.equipped.weapon",
+        "op": "==",
+        "expected": "weapon_base_0"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Equipment",
+    "subcategory": "Unequip",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_RELEASE_PETS",
+   "description": "Release all pets：POST {{API_V3_PREFIX}}/user/release-pets",
+   "prereqs": [
+    "BIZ_PET_HATCH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets\":{\"Wolf-Base\":5,\"Wolf-White\":5,\"Wolf-Desert\":5,\"Wolf-Red\":5,\"Wolf-Shade\":5,\"Wolf-Skeleton\":5,\"Wolf-Zombie\":5,\"Wolf-CottonCandyPink\":5,\"Wolf-CottonCandyBlue\":5,\"Wolf-Golden\":5,\"TigerCub-Base\":5,\"TigerCub-White\":5,\"TigerCub-Desert\":5,\"TigerCub-Red\":5,\"TigerCub-Shade\":5,\"TigerCub-Skeleton\":5,\"TigerCub-Zombie\":5,\"TigerCub-CottonCandyPink\":5,\"TigerCub-CottonCandyBlue\":5,\"TigerCub-Golden\":5,\"PandaCub-Base\":5,\"PandaCub-White\":5,\"PandaCub-Desert\":5,\"PandaCub-Red\":5,\"PandaCub-Shade\":5,\"PandaCub-Skeleton\":5,\"PandaCub-Zombie\":5,\"PandaCub-CottonCandyPink\":5,\"PandaCub-CottonCandyBlue\":5,\"PandaCub-Golden\":5,\"LionCub-Base\":5,\"LionCub-White\":5,\"LionCub-Desert\":5,\"LionCub-Red\":5,\"LionCub-Shade\":5,\"LionCub-Skeleton\":5,\"LionCub-Zombie\":5,\"LionCub-CottonCandyPink\":5,\"LionCub-CottonCandyBlue\":5,\"LionCub-Golden\":5,\"Fox-Base\":5,\"Fox-White\":5,\"Fox-Desert\":5,\"Fox-Red\":5,\"Fox-Shade\":5,\"Fox-Skeleton\":5,\"Fox-Zombie\":5,\"Fox-CottonCandyPink\":5,\"Fox-CottonCandyBlue\":5,\"Fox-Golden\":5,\"FlyingPig-Base\":5,\"FlyingPig-White\":5,\"FlyingPig-Desert\":5,\"FlyingPig-Red\":5,\"FlyingPig-Shade\":5,\"FlyingPig-Skeleton\":5,\"FlyingPig-Zombie\":5,\"FlyingPig-CottonCandyPink\":5,\"FlyingPig-CottonCandyBlue\":5,\"FlyingPig-Golden\":5,\"Dragon-Base\":5,\"Dragon-White\":5,\"Dragon-Desert\":5,\"Dragon-Red\":5,\"Dragon-Shade\":5,\"Dragon-Skeleton\":5,\"Dragon-Zombie\":5,\"Dragon-CottonCandyPink\":5,\"Dragon-CottonCandyBlue\":5,\"Dragon-Golden\":5,\"Cactus-Base\":5,\"Cactus-White\":5,\"Cactus-Desert\":5,\"Cactus-Red\":5,\"Cactus-Shade\":5,\"Cactus-Skeleton\":5,\"Cactus-Zombie\":5,\"Cactus-CottonCandyPink\":5,\"Cactus-CottonCandyBlue\":5,\"Cactus-Golden\":5,\"BearCub-Base\":5,\"BearCub-White\":5,\"BearCub-Desert\":5,\"BearCub-Red\":5,\"BearCub-Shade\":5,\"BearCub-Skeleton\":5,\"BearCub-Zombie\":5,\"BearCub-CottonCandyPink\":5,\"BearCub-CottonCandyBlue\":5,\"BearCub-Golden\":5},\"balance\":5}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/release-pets"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.achievements.beastMasterCount",
+        "op": ">=",
+        "expected": 1
+       },
+       {
+        "path": "$.data.items.pets[\"Wolf-Base\"]",
+        "op": "==",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "ReleasePets",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_RELEASE_MOUNTS",
+   "description": "Release all mounts：POST {{API_V3_PREFIX}}/user/release-mounts",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.mounts\":{\"Wolf-Base\":true,\"Wolf-White\":true,\"Wolf-Desert\":true,\"Wolf-Red\":true,\"Wolf-Shade\":true,\"Wolf-Skeleton\":true,\"Wolf-Zombie\":true,\"Wolf-CottonCandyPink\":true,\"Wolf-CottonCandyBlue\":true,\"Wolf-Golden\":true,\"TigerCub-Base\":true,\"TigerCub-White\":true,\"TigerCub-Desert\":true,\"TigerCub-Red\":true,\"TigerCub-Shade\":true,\"TigerCub-Skeleton\":true,\"TigerCub-Zombie\":true,\"TigerCub-CottonCandyPink\":true,\"TigerCub-CottonCandyBlue\":true,\"TigerCub-Golden\":true,\"PandaCub-Base\":true,\"PandaCub-White\":true,\"PandaCub-Desert\":true,\"PandaCub-Red\":true,\"PandaCub-Shade\":true,\"PandaCub-Skeleton\":true,\"PandaCub-Zombie\":true,\"PandaCub-CottonCandyPink\":true,\"PandaCub-CottonCandyBlue\":true,\"PandaCub-Golden\":true,\"LionCub-Base\":true,\"LionCub-White\":true,\"LionCub-Desert\":true,\"LionCub-Red\":true,\"LionCub-Shade\":true,\"LionCub-Skeleton\":true,\"LionCub-Zombie\":true,\"LionCub-CottonCandyPink\":true,\"LionCub-CottonCandyBlue\":true,\"LionCub-Golden\":true,\"Fox-Base\":true,\"Fox-White\":true,\"Fox-Desert\":true,\"Fox-Red\":true,\"Fox-Shade\":true,\"Fox-Skeleton\":true,\"Fox-Zombie\":true,\"Fox-CottonCandyPink\":true,\"Fox-CottonCandyBlue\":true,\"Fox-Golden\":true,\"FlyingPig-Base\":true,\"FlyingPig-White\":true,\"FlyingPig-Desert\":true,\"FlyingPig-Red\":true,\"FlyingPig-Shade\":true,\"FlyingPig-Skeleton\":true,\"FlyingPig-Zombie\":true,\"FlyingPig-CottonCandyPink\":true,\"FlyingPig-CottonCandyBlue\":true,\"FlyingPig-Golden\":true,\"Dragon-Base\":true,\"Dragon-White\":true,\"Dragon-Desert\":true,\"Dragon-Red\":true,\"Dragon-Shade\":true,\"Dragon-Skeleton\":true,\"Dragon-Zombie\":true,\"Dragon-CottonCandyPink\":true,\"Dragon-CottonCandyBlue\":true,\"Dragon-Golden\":true,\"Cactus-Base\":true,\"Cactus-White\":true,\"Cactus-Desert\":true,\"Cactus-Red\":true,\"Cactus-Shade\":true,\"Cactus-Skeleton\":true,\"Cactus-Zombie\":true,\"Cactus-CottonCandyPink\":true,\"Cactus-CottonCandyBlue\":true,\"Cactus-Golden\":true,\"BearCub-Base\":true,\"BearCub-White\":true,\"BearCub-Desert\":true,\"BearCub-Red\":true,\"BearCub-Shade\":true,\"BearCub-Skeleton\":true,\"BearCub-Zombie\":true,\"BearCub-CottonCandyPink\":true,\"BearCub-CottonCandyBlue\":true,\"BearCub-Golden\":true},\"balance\":5}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/release-mounts"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.achievements.mountMasterCount",
+        "op": ">=",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "ReleaseMounts",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_RELEASE_BOTH",
+   "description": "Release both pets+mounts：POST {{API_V3_PREFIX}}/user/release-both",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"items.pets\":{\"Wolf-Base\":5,\"Wolf-White\":5,\"Wolf-Desert\":5,\"Wolf-Red\":5,\"Wolf-Shade\":5,\"Wolf-Skeleton\":5,\"Wolf-Zombie\":5,\"Wolf-CottonCandyPink\":5,\"Wolf-CottonCandyBlue\":5,\"Wolf-Golden\":5,\"TigerCub-Base\":5,\"TigerCub-White\":5,\"TigerCub-Desert\":5,\"TigerCub-Red\":5,\"TigerCub-Shade\":5,\"TigerCub-Skeleton\":5,\"TigerCub-Zombie\":5,\"TigerCub-CottonCandyPink\":5,\"TigerCub-CottonCandyBlue\":5,\"TigerCub-Golden\":5,\"PandaCub-Base\":5,\"PandaCub-White\":5,\"PandaCub-Desert\":5,\"PandaCub-Red\":5,\"PandaCub-Shade\":5,\"PandaCub-Skeleton\":5,\"PandaCub-Zombie\":5,\"PandaCub-CottonCandyPink\":5,\"PandaCub-CottonCandyBlue\":5,\"PandaCub-Golden\":5,\"LionCub-Base\":5,\"LionCub-White\":5,\"LionCub-Desert\":5,\"LionCub-Red\":5,\"LionCub-Shade\":5,\"LionCub-Skeleton\":5,\"LionCub-Zombie\":5,\"LionCub-CottonCandyPink\":5,\"LionCub-CottonCandyBlue\":5,\"LionCub-Golden\":5,\"Fox-Base\":5,\"Fox-White\":5,\"Fox-Desert\":5,\"Fox-Red\":5,\"Fox-Shade\":5,\"Fox-Skeleton\":5,\"Fox-Zombie\":5,\"Fox-CottonCandyPink\":5,\"Fox-CottonCandyBlue\":5,\"Fox-Golden\":5,\"FlyingPig-Base\":5,\"FlyingPig-White\":5,\"FlyingPig-Desert\":5,\"FlyingPig-Red\":5,\"FlyingPig-Shade\":5,\"FlyingPig-Skeleton\":5,\"FlyingPig-Zombie\":5,\"FlyingPig-CottonCandyPink\":5,\"FlyingPig-CottonCandyBlue\":5,\"FlyingPig-Golden\":5,\"Dragon-Base\":5,\"Dragon-White\":5,\"Dragon-Desert\":5,\"Dragon-Red\":5,\"Dragon-Shade\":5,\"Dragon-Skeleton\":5,\"Dragon-Zombie\":5,\"Dragon-CottonCandyPink\":5,\"Dragon-CottonCandyBlue\":5,\"Dragon-Golden\":5,\"Cactus-Base\":5,\"Cactus-White\":5,\"Cactus-Desert\":5,\"Cactus-Red\":5,\"Cactus-Shade\":5,\"Cactus-Skeleton\":5,\"Cactus-Zombie\":5,\"Cactus-CottonCandyPink\":5,\"Cactus-CottonCandyBlue\":5,\"Cactus-Golden\":5,\"BearCub-Base\":5,\"BearCub-White\":5,\"BearCub-Desert\":5,\"BearCub-Red\":5,\"BearCub-Shade\":5,\"BearCub-Skeleton\":5,\"BearCub-Zombie\":5,\"BearCub-CottonCandyPink\":5,\"BearCub-CottonCandyBlue\":5,\"BearCub-Golden\":5},\"items.mounts\":{\"Wolf-Base\":true,\"Wolf-White\":true,\"Wolf-Desert\":true,\"Wolf-Red\":true,\"Wolf-Shade\":true,\"Wolf-Skeleton\":true,\"Wolf-Zombie\":true,\"Wolf-CottonCandyPink\":true,\"Wolf-CottonCandyBlue\":true,\"Wolf-Golden\":true,\"TigerCub-Base\":true,\"TigerCub-White\":true,\"TigerCub-Desert\":true,\"TigerCub-Red\":true,\"TigerCub-Shade\":true,\"TigerCub-Skeleton\":true,\"TigerCub-Zombie\":true,\"TigerCub-CottonCandyPink\":true,\"TigerCub-CottonCandyBlue\":true,\"TigerCub-Golden\":true,\"PandaCub-Base\":true,\"PandaCub-White\":true,\"PandaCub-Desert\":true,\"PandaCub-Red\":true,\"PandaCub-Shade\":true,\"PandaCub-Skeleton\":true,\"PandaCub-Zombie\":true,\"PandaCub-CottonCandyPink\":true,\"PandaCub-CottonCandyBlue\":true,\"PandaCub-Golden\":true,\"LionCub-Base\":true,\"LionCub-White\":true,\"LionCub-Desert\":true,\"LionCub-Red\":true,\"LionCub-Shade\":true,\"LionCub-Skeleton\":true,\"LionCub-Zombie\":true,\"LionCub-CottonCandyPink\":true,\"LionCub-CottonCandyBlue\":true,\"LionCub-Golden\":true,\"Fox-Base\":true,\"Fox-White\":true,\"Fox-Desert\":true,\"Fox-Red\":true,\"Fox-Shade\":true,\"Fox-Skeleton\":true,\"Fox-Zombie\":true,\"Fox-CottonCandyPink\":true,\"Fox-CottonCandyBlue\":true,\"Fox-Golden\":true,\"FlyingPig-Base\":true,\"FlyingPig-White\":true,\"FlyingPig-Desert\":true,\"FlyingPig-Red\":true,\"FlyingPig-Shade\":true,\"FlyingPig-Skeleton\":true,\"FlyingPig-Zombie\":true,\"FlyingPig-CottonCandyPink\":true,\"FlyingPig-CottonCandyBlue\":true,\"FlyingPig-Golden\":true,\"Dragon-Base\":true,\"Dragon-White\":true,\"Dragon-Desert\":true,\"Dragon-Red\":true,\"Dragon-Shade\":true,\"Dragon-Skeleton\":true,\"Dragon-Zombie\":true,\"Dragon-CottonCandyPink\":true,\"Dragon-CottonCandyBlue\":true,\"Dragon-Golden\":true,\"Cactus-Base\":true,\"Cactus-White\":true,\"Cactus-Desert\":true,\"Cactus-Red\":true,\"Cactus-Shade\":true,\"Cactus-Skeleton\":true,\"Cactus-Zombie\":true,\"Cactus-CottonCandyPink\":true,\"Cactus-CottonCandyBlue\":true,\"Cactus-Golden\":true,\"BearCub-Base\":true,\"BearCub-White\":true,\"BearCub-Desert\":true,\"BearCub-Red\":true,\"BearCub-Shade\":true,\"BearCub-Skeleton\":true,\"BearCub-Zombie\":true,\"BearCub-CottonCandyPink\":true,\"BearCub-CottonCandyBlue\":true,\"BearCub-Golden\":true},\"achievements.triadBingo\":true,\"balance\":5}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/release-both"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.achievements.beastMasterCount",
+        "op": ">=",
+        "expected": 1
+       },
+       {
+        "path": "$.data.achievements.mountMasterCount",
+        "op": ">=",
+        "expected": 1
+       },
+       {
+        "path": "$.data.achievements.triadBingoCount",
+        "op": ">=",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PetMount",
+    "subcategory": "ReleaseBoth",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_UNLOCK_FEATURE",
+   "description": "Unlock background: POST {{API_V3_PREFIX}}/user/unlock?path=background.beach",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P12",
+     "inputs": {
+      "container": "mongo_qmjfeopc",
+      "command": "mongosh 'mongodb://localhost:27017/app_qmjfeopc?directConnection=true' --eval 'db.users.updateOne({\"auth.local.username\":\"{{user_username}}\"},{$set:{\"balance\":5}})'",
+      "expect_success": true
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/unlock?path=skin.zombie"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.purchased.skin.zombie",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Commerce",
+    "subcategory": "UnlockFeature",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_DISABLE_CLASSES",
+   "description": "Disable classes：POST {{API_V3_PREFIX}}/user/disable-classes",
+   "prereqs": [
+    "BIZ_CLASS_CHANGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/user/disable-classes"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.preferences.disableClasses",
+        "op": "==",
+        "expected": true
+       },
+       {
+        "path": "$.data.stats.points",
+        "op": "==",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClassSystem",
+    "subcategory": "DisableClasses",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "AUTH_VERIFY_USERNAME",
+   "description": "Verify username availability: POST {{API_V4_PREFIX}}/user/auth/verify-username",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/user/auth/verify-username",
+      "body": {
+       "username": "evalgooduser99"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.isUsable",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "VerifyUsername",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_CHECK_EMAIL",
+   "description": "Check email availability: POST {{API_V4_PREFIX}}/user/auth/check-email",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/user/auth/check-email",
+      "body": {
+       "email": "unique_eval_check_email@test.com"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "CheckEmail",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_VERIFY_DISPLAY_NAME",
+   "description": "Verify display name availability: POST {{API_V4_PREFIX}}/user/auth/verify-display-name",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/user/auth/verify-display-name",
+      "body": {
+       "displayName": "UniqueEvalDisplayName99"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "VerifyDisplayName",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_INBOX_CLEAR",
+   "description": "Clear inbox：POST {{API_V4_PREFIX}}/inbox/clear",
+   "prereqs": [
+    "BIZ_INBOX_SEND_MESSAGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "{{API_V4_PREFIX}}/inbox/clear"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/inbox/messages"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "op": "exists",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "InboxClear",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BIZ_NEWS_DISMISS",
+   "description": "Dismiss news：POST {{API_V3_PREFIX}}/news/tell-me-later",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V3_PREFIX}}/news/tell-me-later"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "NewsDismiss",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ADMIN_NEWS_CRUD",
+   "description": "Admin news CRUD：POST/PUT/DELETE {{API_V4_PREFIX}}/news",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/news",
+      "body": {
+       "title": "Eval Test News",
+       "text": "Test news content for evaluation",
+       "publishDate": "2026-03-01",
+       "credits": "Eval Team"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "{{API_V4_PREFIX}}/news/{{news_id}}",
+      "body": {
+       "title": "Updated Eval News"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "{{API_V4_PREFIX}}/news/{{news_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminNewsCRUD",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "ADMIN_BLOCKERS_CRUD",
+   "description": "Admin blockers CRUD：POST/PUT/DELETE {{API_V4_PREFIX}}/admin/blockers",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/admin/blockers",
+      "body": {
+       "type": "email",
+       "value": "eval-blocked-crud@example.test",
+       "reason": "eval test blocker"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "{{API_V4_PREFIX}}/admin/blockers/{{blocker_id}}",
+      "body": {
+       "reason": "updated eval blocker"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "{{API_V4_PREFIX}}/admin/blockers/{{blocker_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminBlockersCRUD",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {
+    "collect": true,
+    "artifacts": [
+     "logs"
+    ]
+   }
+  },
+  {
+   "id": "BIZ_BUG_REPORT",
+   "description": "Submit bug report：POST {{API_V4_PREFIX}}/bug-report",
+   "prereqs": [
+    "AUTH_API_KEY_ACCESS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "{{API_V4_PREFIX}}/bug-report",
+      "body": {
+       "message": "Eval test bug report",
+       "email": "evalbug@eval.test"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.ok",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "BugReport",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ADMIN_DELETE_MEMBER",
+   "description": "Admin deletes a member: DELETE {{API_V4_PREFIX}}/members/:id",
+   "prereqs": [
+    "ADMIN_MEMBER_PURCHASE_HISTORY",
+    "AUTH_REGISTER_USER2",
+    "BIZ_CHALLENGE_JOIN_SYNC",
+    "BIZ_INBOX_BLOCK_SEND_ERROR",
+    "BIZ_INBOX_SEND_MESSAGE",
+    "BIZ_QUEST_ACCEPT",
+    "BIZ_SUBSCRIPTION_GIFT_AUTOCREATE",
+    "RBAC_ADMIN_SETUP",
+    "RBAC_USER_CANNOT_DELETE_MEMBER",
+    "RBAC_USER_CANNOT_PURCHASE_HISTORY",
+    "SOCIAL_PARTY_INVITE_ACCEPT"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "{{API_V4_PREFIX}}/members/{{user2_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.success",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminDeleteMember",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DEPLOY_STATUS",
+   "description": "GET {{API_V3_PREFIX}}/status health check",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/status"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.status",
+        "op": "in",
+        "expected": [
+         "up",
+         "ok",
+         true
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "StatusEndpoint",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_READY",
+   "description": "GET {{API_V4_PREFIX}}/ready readiness check",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/ready"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "ReadyEndpoint",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_I18N_CONTENT",
+   "description": "GET {{API_V3_PREFIX}}/i18n/content internationalization content",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/i18n/content"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "I18nContent",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_I18N_CORE",
+   "description": "GET {{API_V3_PREFIX}}/i18n/core core translations",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/i18n/core"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "I18nCore",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_NEWS_LIST",
+   "description": "GET {{API_V3_PREFIX}}/news news list",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V3_PREFIX}}/news"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "NewsList",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "BIZ_FAQ",
+   "description": "GET {{API_V4_PREFIX}}/faq FAQ endpoint",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/faq"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ContentAPI",
+    "subcategory": "FAQ",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ADMIN_BLOCKERS_LIST",
+   "description": "Admin GET {{API_V4_PREFIX}}/admin/blockers list",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/blockers"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.success",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminBlockersList",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "ADMIN_GROUP_VIEW",
+   "description": "Admin GET {{API_V4_PREFIX}}/admin/groups/:id view group",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP",
+    "SOCIAL_CREATE_PARTY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/groups/{{party_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists"
+       },
+       {
+        "path": "$.data.type",
+        "op": "==",
+        "expected": "party"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminGroupView",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "ADMIN_USER_DETAIL",
+   "description": "Admin GET {{API_V4_PREFIX}}/admin/user/:id/history + subscription-payment-details",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP",
+    "AUTH_REGISTER_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/user/{{user_id}}/history"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data._id",
+        "op": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/admin/user/{{user_id}}/subscription-payment-details"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminUserDetail",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "BIZ_INBOX_CONVERSATIONS",
+   "description": "GET {{API_V4_PREFIX}}/inbox/conversations + paged-messages",
+   "prereqs": [
+    "BIZ_INBOX_SEND_MESSAGE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/inbox/conversations"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/inbox/paged-messages"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Social",
+    "subcategory": "InboxConversations",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ADMIN_NEWS_READ",
+   "description": "Admin GET {{API_V4_PREFIX}}/news list + GET {{API_V4_PREFIX}}/news/:id detail",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/news"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "op": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminNewsRead",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "ADMIN_MEMBER_PURCHASE_HISTORY",
+   "description": "GET {{API_V4_PREFIX}}/members/:id/purchase-history",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP",
+    "AUTH_REGISTER_USER2"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "{{API_V4_PREFIX}}/members/{{user2_id}}/purchase-history"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.success",
+        "op": "==",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "MemberPurchaseHistory",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_NEWS_CRUD",
+   "description": "Regular user news CRUD → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "POST {{API_V4_PREFIX}}/news",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedNews",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_BLOCKERS_CRUD",
+   "description": "Regular user blockers CRUD → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "POST {{API_V4_PREFIX}}/admin/blockers",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedBlockers",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_DELETE_MEMBER",
+   "description": "Regular user delete member → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP",
+    "AUTH_REGISTER_USER2"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "DELETE {{API_V4_PREFIX}}/members/{{user2_id}}",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedDeleteMember",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_ADMIN_GROUP",
+   "description": "Regular user admin group view → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "GET {{API_V4_PREFIX}}/admin/groups/test_group_id",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedAdminGroup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_USER_HISTORY",
+   "description": "Regular user user history → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "GET {{API_V4_PREFIX}}/admin/user/{{user_id}}/history",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedHistory",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_USER_CANNOT_PURCHASE_HISTORY",
+   "description": "Regular user purchase history (admin) → 403",
+   "prereqs": [
+    "RBAC_ADMIN_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "user",
+      "method": "api_key"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "GET {{API_V4_PREFIX}}/members/{{user2_id}}/purchase-history",
+      "expected_result": "denied",
+      "expected_status": 403
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserDeniedPurchaseHistory",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "LLM_FRONTEND_TASK_DASHBOARD",
+   "description": "Frontend task dashboard UI quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 2000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/"
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "url": "/",
+      "fallback_files": [
+       "/app/website/client/src/components/tasks",
+       "/app/website/client/src/pages/user",
+       "/app/website/client/src/components/userMenu",
+       "/app/website/client/src/components/header",
+       "/app/website/client/src/store/actions/tasks.js"
+      ],
+      "rubric_prompt": "GOAL: Judge the main task-dashboard UI of the gamified task application.\n\nEVIDENCE: Rendered DOM (post-JavaScript) of the main authenticated dashboard page; when the upstream baseline does not pre-build the SPA the DOM is the bootstrap shell, in which case the source files for the dashboard components are supplied instead so the judgement is still grounded.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. The dashboard renders four columns for Habits, Dailies, Todos, and Rewards (or four clearly labelled regions).\n2. Each Habit card exposes + and - buttons for positive/negative scoring.\n3. Each Daily and Todo card exposes a checkbox / toggle to mark complete.\n4. Each Reward card shows its gold cost and a 'buy' affordance.\n5. A top bar displays the user avatar, current gold, and current gems counters.\n6. Visual style is modern (consistent typography, spacing, theming) — not raw unstyled HTML.\n7. The dashboard renders without obvious layout breakage at desktop width.\n\nSCORING ANCHORS:\n- 0 (none): Neither the rendered page nor the source files implement any task columns or task cards.\n- 4 (weak): Some task lists appear but layout is single-column or missing two of the four task types.\n- 7 (good): All four task types and top bar present; interactions or styling weak.\n- 10 (excellent): All seven criteria satisfied with polished gamified UI.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "TaskColumnLayout",
+        "weight": 3,
+        "description": "Whether the 4-column task layout is clear"
+       },
+       {
+        "dimension": "TaskCardInteraction",
+        "weight": 3,
+        "description": "Whether the task card interaction elements are complete"
+       },
+       {
+        "dimension": "NavigationAndStats",
+        "weight": 2,
+        "description": "Navigation bar and RPG status display"
+       },
+       {
+        "dimension": "VisualDesign",
+        "weight": 2,
+        "description": "Visual design quality"
+       }
+      ],
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendTaskDashboard",
+    "method": "llm-judge",
+    "maxScore": 10,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_FRONTEND_INVENTORY",
+   "description": "Frontend inventory/equipment/stable interface evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/client/src/components/inventory",
+       "/app/website/client/src/components/inventory/equipment",
+       "/app/website/client/src/components/inventory/stable",
+       "/app/website/client/src/pages/user/inventory"
+      ],
+      "files_to_sample": [
+       "website/client/src/components/inventory/"
+      ],
+      "rubric_prompt": "GOAL: Judge the inventory / equipment / stable frontend pages.\n\nEVIDENCE: Frontend source files for the inventory, equipment, and stable pages plus their components.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Items page groups items into the standard categories (Eggs, Hatching Potions, Food, Quest Scrolls).\n2. Equipment page renders eight equipment slots and supports switching between battle/costume sets.\n3. Stable page shows pet and mount grids with feeding affordances.\n4. Item counts are displayed per item (no zero-count clutter).\n5. Items can be used / equipped / fed via clear UI affordances.\n6. The page is built with reusable components (single ItemCard component, not duplicated markup per category).\n\nSCORING ANCHORS:\n- 0 (none): No inventory pages, or only a list of item names.\n- 3 (weak): Items page exists with some categories; equipment / stable missing.\n- 5 (good): All three pages present; some interactions or grouping missing.\n- 8 (excellent): All six criteria satisfied with reusable components and correct grouping.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "ItemsPage",
+        "weight": 3,
+        "description": "Items page displayed by category"
+       },
+       {
+        "dimension": "EquipmentPage",
+        "weight": 3,
+        "description": "Equipment page slots and switching"
+       },
+       {
+        "dimension": "StablePage",
+        "weight": 2,
+        "description": "Pet/mount grid display"
+       }
+      ],
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendInventory",
+    "method": "llm-judge",
+    "maxScore": 8,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_FRONTEND_SOCIAL",
+   "description": "Frontend social pages (Party/Guild/Chat) evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/client/src/components/groups",
+       "/app/website/client/src/components/challenges",
+       "/app/website/client/src/components/chat",
+       "/app/website/client/src/components/members",
+       "/app/website/client/src/pages/groups"
+      ],
+      "files_to_sample": [
+       "website/client/src/components/"
+      ],
+      "rubric_prompt": "GOAL: Judge the social pages: Party, Guild, and Challenge views.\n\nEVIDENCE: Frontend source files for the party / guild / challenge pages.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. Party page shows the member list with each member's avatar and basic stats.\n2. Party page displays the current quest progress with a progress bar and a chat panel.\n3. Guild page lists guild metadata (name, description, member count) and a chat panel.\n4. Challenge page lists available challenges with their rewards and an entry-point detail view.\n5. Chat input is functional (ENTER to send, message list updates after submit).\n6. Member / guild / challenge actions (invite, leave, join) are exposed via clear buttons.\n\nSCORING ANCHORS:\n- 0 (none): No social pages.\n- 2 (weak): Only a chat box, no member list or quest progress.\n- 4 (good): Party + Guild present; Challenge or progress bar missing.\n- 7 (excellent): All six criteria satisfied with complete social UI.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "PartyPage",
+        "weight": 3,
+        "description": "Party page completeness"
+       },
+       {
+        "dimension": "GuildPage",
+        "weight": 2,
+        "description": "Guild page functionality"
+       },
+       {
+        "dimension": "ChallengePage",
+        "weight": 2,
+        "description": "Challenge page display"
+       }
+      ],
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendSocial",
+    "method": "llm-judge",
+    "maxScore": 7,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_FRONTEND_SHOPS",
+   "description": "Frontend shop pages evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/client/src/components/shops",
+       "/app/website/client/src/components/shops/market",
+       "/app/website/client/src/components/shops/quests",
+       "/app/website/client/src/components/shops/seasonal",
+       "/app/website/client/src/components/shops/customizations",
+       "/app/website/client/src/pages/shops"
+      ],
+      "files_to_sample": [
+       "website/client/src/components/shops/"
+      ],
+      "rubric_prompt": "GOAL: Judge the shop frontend pages.\n\nEVIDENCE: Frontend source files for the shop pages (market, quest shop, seasonal, time-traveler, background, customizations).\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Market shop page shows class-specific gear, health potions, and the magic wardrobe section.\n2. Quest shop page lists quest scrolls with descriptions and prices.\n3. A purchase confirmation modal appears on item click and shows the price.\n4. The shop UI supports at least four shop types (e.g. Market, Quest, Seasonal, Time-Travelers).\n5. Items already owned are visually distinguished from purchasable items.\n6. Purchases update the user's gold/gem counter without a full page reload.\n\nSCORING ANCHORS:\n- 0 (none): No shop pages.\n- 3 (weak): Single shop with item list and no confirmation modal.\n- 5 (good): Multiple shops + confirmation modal; missing 1-2 shop types.\n- 8 (excellent): All six criteria satisfied with a polished shop experience.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "MarketShop",
+        "weight": 2,
+        "description": "Market shop display"
+       },
+       {
+        "dimension": "QuestShop",
+        "weight": 2,
+        "description": "Quest shop display"
+       },
+       {
+        "dimension": "PurchaseFlow",
+        "weight": 2,
+        "description": "Purchase flow and confirmation"
+       },
+       {
+        "dimension": "ShopVariety",
+        "weight": 2,
+        "description": "Support for multiple shop types"
+       }
+      ],
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendShops",
+    "method": "llm-judge",
+    "maxScore": 8,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_API_ERROR_HANDLING",
+   "description": "API error handling consistency evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/server/middlewares/errorHandler.js",
+       "/app/website/server/middlewares",
+       "/app/website/server/libs/errors.js",
+       "/app/website/server/libs/apiError.js",
+       "/app/website/server/libs"
+      ],
+      "files_to_sample": [
+       "/app/"
+      ],
+      "rubric_prompt": "GOAL: Judge the consistency of API error handling.\n\nEVIDENCE: Error middleware, custom error classes, route handlers, sample 4xx/5xx JSON responses.\n\nSCORE RANGE: 0-9 integer.\n\nCRITERIA:\n1. Every error response uses the same envelope shape: {success: false, error: <type>, message: <str>}.\n2. Custom error classes are defined for at least NotAuthorized, NotFound, BadRequest, and Forbidden.\n3. A global Express error middleware maps thrown errors to the envelope; no controller responds with raw error text.\n4. HTTP status codes are used correctly (400, 401, 403, 404, 409, 422, 429, 500).\n5. Validation errors include the offending field name(s).\n6. Stack traces are never returned in non-development environments.\n7. Errors include a stable machine-readable `error` token (e.g. NotAuthorized) that clients can branch on.\n\nSCORING ANCHORS:\n- 0 (none): Errors return raw Error.toString() or HTML.\n- 3 (weak): JSON envelope used inconsistently; status codes mixed up.\n- 6 (good): Consistent envelope + custom classes + global middleware; some status codes off.\n- 9 (excellent): All seven criteria satisfied with a clean, consistent error contract.\n\nOUTPUT: JSON object {\"score\": <int 0..9>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "ErrorFormat",
+        "weight": 3,
+        "description": "Unified error response format"
+       },
+       {
+        "dimension": "CustomErrors",
+        "weight": 2,
+        "description": "Custom error classes"
+       },
+       {
+        "dimension": "GlobalHandler",
+        "weight": 2,
+        "description": "Global error middleware"
+       },
+       {
+        "dimension": "StatusCodes",
+        "weight": 2,
+        "description": "HTTP status code correctness"
+       }
+      ],
+      "score_range": [
+       0,
+       9
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "ErrorHandling",
+    "method": "llm-judge",
+    "maxScore": 9,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_SCORING_ENGINE_IMPL",
+   "description": "Task Scoring Engine implementation quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/common/script/ops/scoreTask.js",
+       "/app/website/common/script/ops",
+       "/app/website/common/script/fns",
+       "/app/website/common/script/libs/statHelpers.js",
+       "/app/website/server/libs/taskScoring.js"
+      ],
+      "files_to_sample": [
+       "/app/"
+      ],
+      "rubric_prompt": "GOAL: Judge the implementation quality of the task scoring engine (recommended function naming: `scoreTask`; equivalently-named functions are acceptable).\n\nEVIDENCE: the task-scoring function source file(s) (recommended name `scoreTask`; equivalent names accepted) plus any helpers it calls (stat calculators, drop helpers).\n\nSCORE RANGE: 0-9 integer.\n\nCRITERIA:\n1. Diminishing returns formula delta = 0.9747^value (or close equivalent) is implemented for negative habits and overdue dailies.\n2. HP loss uses CON-based defence reduction (e.g. damage *= (1 - CON/100)).\n3. EXP gain uses INT-based bonus (gain *= 1 + INT/100 or equivalent).\n4. GP gain uses PER and a streak bonus.\n5. Critical-hit chance is modelled and based on STR (or equivalent).\n6. MP regeneration is tied to task priority.\n7. Boss damage is accumulated into quest.progress.up rather than dealt immediately.\n8. Random drops (eggs, hatching potions, food) are awarded probabilistically based on level.\n\nSCORING ANCHORS:\n- 0 (none): no task-scoring function (e.g., `scoreTask` or equivalent) is implemented, or it only adjusts a numeric score with no formulas.\n- 3 (weak): Basic +/- HP/EXP/GP changes with no diminishing returns and no stat scaling.\n- 6 (good): Most formulas (delta, HP, EXP, GP) present; crits / MP / drops missing.\n- 9 (excellent): All eight criteria satisfied with edge-case handling (negative HP cap, max stats).\n\nOUTPUT: JSON object {\"score\": <int 0..9>, \"reason\": \"<short justification with file/symbol citations>\"}.",
+      "criteria": [
+       {
+        "dimension": "DeltaFormula",
+        "weight": 2,
+        "description": "0.9747^value delta formula"
+       },
+       {
+        "dimension": "StatBonuses",
+        "weight": 3,
+        "description": "Four attribute bonuses and critical hits"
+       },
+       {
+        "dimension": "QuestAndDrops",
+        "weight": 2,
+        "description": "Quest progress and item drops"
+       },
+       {
+        "dimension": "EdgeCases",
+        "weight": 2,
+        "description": "Boundary handling (HP clamping, MP cap, level up)"
+       }
+      ],
+      "score_range": [
+       0,
+       9
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "ScoringEngine",
+    "method": "llm-judge",
+    "maxScore": 9,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_CRON_IMPL",
+   "description": "Cron system implementation quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/server/libs/cron.js",
+       "/app/website/server/controllers/api-v3/cron.js",
+       "/app/website/common/script/cron.js",
+       "/app/website/server/models/user/schema.js",
+       "/app/website/server/libs/preening.js"
+      ],
+      "files_to_sample": [
+       "/app/"
+      ],
+      "rubric_prompt": "GOAL: Judge the implementation quality of the daily cron system.\n\nEVIDENCE: Cron source file(s) plus user model fields it touches (lastCron, cronCount, cronSignature).\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. Daily HP damage is computed from missed dailies, with checklist-partial-completion mitigating the penalty.\n2. Streak management: completed dailies increment streak, missed dailies reset to 0; Wizard's Frost protects streak on selected dailies.\n3. Habit counters reset on the configured frequency (daily / weekly / monthly).\n4. Buffs reset to default values per cron run.\n5. Subscription monthly perks (mystery items, gems) are processed for active subscribers.\n6. cronSignature (or equivalent) prevents concurrent cron runs for the same user.\n7. Multi-day skips are compressed (running cron once should account for all missed days, not loop a job per day).\n8. cron run failure is logged and recoverable (no permanent corruption on partial run).\n\nSCORING ANCHORS:\n- 0 (none): No cron implementation.\n- 4 (weak): Basic HP deduction for missed dailies; no streak/buff/subscription handling.\n- 7 (good): Streak + HP + buffs implemented; missing concurrency guard or multi-day compression.\n- 10 (excellent): All eight criteria satisfied with subscription, concurrency, and recovery.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "DailyDamage",
+        "weight": 3,
+        "description": "Daily HP damage calculation"
+       },
+       {
+        "dimension": "StreakAndBuffs",
+        "weight": 3,
+        "description": "Streak and Buff reset"
+       },
+       {
+        "dimension": "SubscriptionPerks",
+        "weight": 2,
+        "description": "Subscription monthly processing"
+       },
+       {
+        "dimension": "ConcurrencyControl",
+        "weight": 2,
+        "description": "cronSignature concurrency control"
+       }
+      ],
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "CronImplementation",
+    "method": "llm-judge",
+    "maxScore": 10,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_QUEST_SYSTEM_IMPL",
+   "description": "Quest system implementation quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/server/controllers/api-v3/quests.js",
+       "/app/website/common/script/content/quests",
+       "/app/website/common/script/ops/buy/buyQuestGold.js",
+       "/app/website/common/script/ops/buy/buyQuestGem.js",
+       "/app/website/server/libs/group.js",
+       "/app/website/server/models/group.js"
+      ],
+      "files_to_sample": [
+       "/app/"
+      ],
+      "rubric_prompt": "GOAL: Judge the implementation quality of the Quest system (boss + collection variants).\n\nEVIDENCE: Quest source files, group / party model, quest scroll handling, cron integration with quest progress.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. Boss quests accumulate damage from member positive scoring and apply it to boss HP at cron time.\n2. Collection quests randomly drop quest items as members complete tasks.\n3. Quest lifecycle states are explicit: invite -> accept/reject -> force-start -> active -> complete/abort/cancel.\n4. Quest scrolls are decremented from the inviter's inventory on invite and refunded on cancel.\n5. Quest rewards (XP, GP, items, drops) are distributed to all participants on completion.\n6. Boss rage attacks deal extra damage when triggered (configurable threshold).\n7. Concurrent quests for the same party are prevented at the model layer.\n\nSCORING ANCHORS:\n- 0 (none): No quest system; only quest scroll items in inventory.\n- 3 (weak): Quests can be created and completed but no boss/collection distinction; no lifecycle enforcement.\n- 6 (good): Both quest types and lifecycle work; reward distribution or scroll refund missing.\n- 10 (excellent): All seven criteria satisfied with concurrency and rage handling.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "BossQuest",
+        "weight": 3,
+        "description": "Boss Quest damage and HP mechanics"
+       },
+       {
+        "dimension": "CollectionQuest",
+        "weight": 2,
+        "description": "Collection Quest collection mechanics"
+       },
+       {
+        "dimension": "Lifecycle",
+        "weight": 3,
+        "description": "Complete Quest lifecycle"
+       },
+       {
+        "dimension": "ScrollManagement",
+        "weight": 2,
+        "description": "Quest scroll consumption and return"
+       }
+      ],
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "QuestSystem",
+    "method": "llm-judge",
+    "maxScore": 10,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_DATA_MODEL_QUALITY",
+   "description": "Data model design quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "website/server/models/"
+      ],
+      "rubric_prompt": "GOAL: Judge the design quality of the MongoDB / MongoDB data model (Mongoose recommended; native driver / Prisma / TypeGoose also acceptable).\n\nEVIDENCE: Mongoose schemas (or equivalent ODM models, e.g., Prisma / TypeGoose) under models/ for User, Task, Group, Challenge, etc.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. User model is fully nested with auth, stats, items, preferences, party, achievements, and history sub-documents.\n2. Task model uses a single polymorphic schema for Habit/Daily/Todo/Reward distinguished by a `type` discriminator field.\n3. Group model includes a quest sub-state-machine (inviting / active / pending / completed).\n4. Schema validation is used (required, enum, min, max) on critical fields.\n5. References vs embedding are chosen sensibly (small frequently-read children embedded, large or independently-queried children referenced).\n6. Indexes are declared on hot query paths (userId, type, completed, dueDate).\n7. No sensitive fields (raw password, raw API token) are stored without hashing.\n\nSCORING ANCHORS:\n- 0 (none): No schemas; data stored as raw objects.\n- 4 (weak): Basic schemas without validation or polymorphism.\n- 7 (good): Polymorphic Task + nested User + validation; indexes or sensitive-field handling weak.\n- 10 (excellent): All seven criteria satisfied with idiomatic Mongoose modelling.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "UserSchema",
+        "weight": 3,
+        "description": "User document nested structure completeness"
+       },
+       {
+        "dimension": "TaskPolymorphism",
+        "weight": 3,
+        "description": "Task polymorphic design"
+       },
+       {
+        "dimension": "Validation",
+        "weight": 2,
+        "description": "Field validation rules"
+       },
+       {
+        "dimension": "Relationships",
+        "weight": 2,
+        "description": "Relationship design"
+       }
+      ],
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "DataModelQuality",
+    "method": "llm-judge",
+    "maxScore": 10,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_AUTH_SECURITY",
+   "description": "Authentication and security implementation quality evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "website/server/middlewares/auth.js",
+       "website/server/middlewares/rateLimiter.js",
+       "website/server/middlewares/ensureAccessRight.js",
+       "website/server/libs/password.js",
+       "website/server/libs/auth/utils.js",
+       "website/server/controllers/api-v3/auth.js"
+      ],
+      "rubric_prompt": "GOAL: Judge the implementation quality of authentication and security.\n\nEVIDENCE: Auth middleware, login / register routes, password hashing helpers, permission middleware, rate-limit middleware, input sanitization.\n\nSCORE RANGE: 0-9 integer.\n\nCRITERIA:\n1. API requests authenticate via x-api-user + x-api-key headers (or an equivalent header pair) validated against the user record.\n2. Passwords are stored as bcrypt (cost >= 10) hashes; no plaintext or weak hashes.\n3. Permission middleware checks fine-grained `permissions` object fields per route, not just isAdmin.\n4. Rate limiting is applied to authentication endpoints and to expensive write endpoints.\n5. User-supplied content (task notes, profile bio, chat messages) is sanitized to strip dangerous HTML / script.\n6. Session tokens / API keys can be rotated by the user without re-creating the account.\n7. Password reset tokens are single-use and time-bounded.\n\nSCORING ANCHORS:\n- 0 (none): No auth or only a clear-text userId in headers.\n- 3 (weak): Basic API-key auth + bcrypt; no permissions, no rate limit.\n- 6 (good): API key + bcrypt + permissions + sanitization; rate limit weak or rotation missing.\n- 9 (excellent): All seven criteria satisfied with hardened auth + rate limit + sanitization.\n\nOUTPUT: JSON object {\"score\": <int 0..9>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "APIKeyAuth",
+        "weight": 2,
+        "description": "API Key authentication implementation"
+       },
+       {
+        "dimension": "PasswordHashing",
+        "weight": 2,
+        "description": "bcrypt password hashing"
+       },
+       {
+        "dimension": "PermissionMiddleware",
+        "weight": 3,
+        "description": "Permission check middleware"
+       },
+       {
+        "dimension": "RateLimiting",
+        "weight": 2,
+        "description": "Rate limiting mechanism"
+       }
+      ],
+      "score_range": [
+       0,
+       9
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "AuthSecurity",
+    "method": "llm-judge",
+    "maxScore": 9,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_CONTENT_API_COMPLETENESS",
+   "description": "Content API data completeness evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "focus_paths": [
+       "/app/website/server/controllers/api-v3/content.js",
+       "/app/website/common/script/content",
+       "/app/website/common/script/content/gear",
+       "/app/website/common/script/content/quests",
+       "/app/website/common/script/content/eggs.js",
+       "/app/website/common/script/content/hatching-potions.js",
+       "/app/website/common/script/content/food.js",
+       "/app/website/common/script/content/spells.js",
+       "/app/website/common/script/content/backgrounds.js",
+       "/app/website/common/script/content/achievements.js"
+      ],
+      "files_to_sample": [
+       "/app/"
+      ],
+      "api_probe_url": "{{API_V3_PREFIX}}/content",
+      "rubric_prompt": "GOAL: Judge the completeness of the Content API ({{API_V3_PREFIX}}/content) data payload.\n\nEVIDENCE: Sample JSON response from {{API_V3_PREFIX}}/content plus the source files that compose the content object.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. Gear definitions include stats (str/con/int/per), prices, and required class.\n2. Quest definitions include boss / collection metadata and reward configurations.\n3. Egg, hatching potion, and food definitions each have name, description, and value.\n4. Spell definitions include cost, level, and effect descriptors.\n5. Background definitions are returned with image / description metadata.\n6. Achievement definitions are returned with their unlock conditions.\n7. Subscription tier definitions are returned with prices and perks.\n8. Customization options (skin, hair, body) are returned.\n9. The payload is shaped consistently (each section is a {key: object} map keyed by stable IDs).\n\nSCORING ANCHORS:\n- 0 (none): {{API_V3_PREFIX}}/content returns an empty object or 404.\n- 4 (weak): Only gear and quests present; other categories missing.\n- 7 (good): Most categories present; one or two (subscriptions / customizations) missing.\n- 10 (excellent): All nine criteria satisfied; payload is complete and consistently shaped.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "GearContent",
+        "weight": 3,
+        "description": "Equipment content data"
+       },
+       {
+        "dimension": "QuestContent",
+        "weight": 3,
+        "description": "Quest content data"
+       },
+       {
+        "dimension": "ItemContent",
+        "weight": 2,
+        "description": "Egg/potion/food data"
+       },
+       {
+        "dimension": "OtherContent",
+        "weight": 2,
+        "description": "Other content (spell/background/achievement)"
+       }
+      ],
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "ContentAPICompleteness",
+    "method": "llm-judge",
+    "maxScore": 10,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_PAYMENT_INTEGRATION",
+   "description": "Payment integration architecture evaluation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "website/server/controllers/top-level/payments/",
+       "website/server/libs/payments/"
+      ],
+      "rubric_prompt": "GOAL: Judge the architectural quality of payment-gateway integration (Stripe / PayPal / Amazon / IAP).\n\nEVIDENCE: Payment route handlers, gateway adapter modules, webhook handlers, subscription state machine.\n\nSCORE RANGE: 0-4 integer.\n\nCRITERIA:\n1. A common gateway abstraction routes calls through a single interface (e.g. payments.charge, payments.subscribe).\n2. Webhook signature verification is implemented for every gateway (Stripe-Signature, PayPal IPN, etc.).\n3. Subscription state transitions (created -> active -> past_due -> cancelled, with renew / downgrade) are tracked explicitly on the user record.\n4. iOS / Android In-App Purchase receipts are validated through a real validator framework, not trusted blindly from the client.\n\nSCORING ANCHORS:\n- 0 (none): No payment integration, or only a single gateway hard-coded with no webhook verification.\n- 1 (poor): One gateway works but no signature verification.\n- 2 (acceptable): Two gateways with signature verification; subscription states partial.\n- 4 (excellent): All four criteria satisfied with multi-gateway abstraction, webhook security, full subscription states, and IAP validation.\n\nOUTPUT: JSON object {\"score\": <int 0..4>, \"reason\": \"<short justification>\"}.",
+      "criteria": [
+       {
+        "dimension": "PaymentGateways",
+        "weight": 2,
+        "description": "Multiple payment gateway routing"
+       },
+       {
+        "dimension": "WebhookSecurity",
+        "weight": 1,
+        "description": "Webhook signature verification"
+       },
+       {
+        "dimension": "SubscriptionManagement",
+        "weight": 1,
+        "description": "Subscription status management"
+       }
+      ],
+      "score_range": [
+       0,
+       4
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "PaymentIntegration",
+    "method": "llm-judge",
+    "maxScore": 4,
+    "rubricFile": "inline"
+   },
+   "complexity_tier": "workflow_automator"
+  }
+ ]
+}

@@ -1,0 +1,114 @@
+{
+  "total_maxScore": 462,
+  "total_nodes": 139,
+  "categories": {
+    "ArchitectureQuality": {
+      "node_count": 5,
+      "maxScore": 23
+    },
+    "AuditLog": {
+      "node_count": 2,
+      "maxScore": 5
+    },
+    "Authentication": {
+      "node_count": 6,
+      "maxScore": 23
+    },
+    "CRUD": {
+      "node_count": 15,
+      "maxScore": 44
+    },
+    "CacheSystem": {
+      "node_count": 3,
+      "maxScore": 10
+    },
+    "ChartData": {
+      "node_count": 4,
+      "maxScore": 16
+    },
+    "Configuration": {
+      "node_count": 1,
+      "maxScore": 3
+    },
+    "DashboardFeatures": {
+      "node_count": 8,
+      "maxScore": 32
+    },
+    "DashboardRBAC": {
+      "node_count": 3,
+      "maxScore": 10
+    },
+    "DataModel": {
+      "node_count": 11,
+      "maxScore": 29
+    },
+    "DatabaseDiscovery": {
+      "node_count": 6,
+      "maxScore": 19
+    },
+    "DatasetManagement": {
+      "node_count": 4,
+      "maxScore": 14
+    },
+    "Deployment": {
+      "node_count": 4,
+      "maxScore": 6
+    },
+    "EdgeCases": {
+      "node_count": 12,
+      "maxScore": 38
+    },
+    "Favorites": {
+      "node_count": 2,
+      "maxScore": 6
+    },
+    "ImportExport": {
+      "node_count": 5,
+      "maxScore": 17
+    },
+    "Permission": {
+      "node_count": 13,
+      "maxScore": 41
+    },
+    "RLS": {
+      "node_count": 8,
+      "maxScore": 32
+    },
+    "ReportAlert": {
+      "node_count": 8,
+      "maxScore": 28
+    },
+    "SQLExecution": {
+      "node_count": 14,
+      "maxScore": 51
+    },
+    "TaggingSystem": {
+      "node_count": 2,
+      "maxScore": 6
+    },
+    "UserManagement": {
+      "node_count": 3,
+      "maxScore": 9
+    }
+  },
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 46,
+      "maxScore": 128
+    },
+    "marketplace_rbac": {
+      "node_count": 30,
+      "maxScore": 103
+    },
+    "workflow_automator": {
+      "node_count": 63,
+      "maxScore": 231
+    }
+  },
+  "quality_gates": {
+    "source_project_min_score_pct": 95,
+    "cursor_answer_max_score_pct": 30,
+    "category_min_score_pct": 70,
+    "deep_nodes_min_weight_pct": 60
+  }
+}

@@ -5,8 +5,8 @@
 The first benchmark designed to probe the limits of autonomous coding agents on **long-horizon, full-stack enterprise SaaS engineering**.
 
 [![arXiv](https://img.shields.io/badge/arXiv-2605.17526-b31b1b.svg)](https://arxiv.org/abs/2605.17526)
-[![Code](https://img.shields.io/badge/Code-Coming%20Soon-lightgrey.svg)](#)
-[![HF Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-Coming%20Soon-yellow.svg)](#)
+[![Code](https://img.shields.io/badge/Code-Available-brightgreen.svg)](https://github.com/ShadeCloak/SaaSBench/tree/main/eval)
+[![HF Dataset](https://img.shields.io/badge/%F0%9F%A4%97%20Dataset-SaaSBench-yellow.svg)](https://huggingface.co/datasets/SaaSBench/SaaSBench)
 [![DockerHub](https://img.shields.io/badge/DockerHub-shadetocloak-2496ED?logo=docker&logoColor=white)](https://hub.docker.com/r/shadetocloak)
 
 </div>
@@ -25,13 +25,24 @@ To fill this gap, we introduce **SaaSBench**, the first benchmark designed to ex
 
 ---
 
+## Getting Started
+
+
+```bash
+cd eval
+pip install huggingface_hub
+python _harness/fetch_task_inputs.py   # step 0: download task inputs from HF
+```
+
+---
+
 ## Timeline
 
 | Date | Milestone |
 |------|-----------|
 | 2026-05 | Paper released on arXiv |
-| Coming Soon | Code release on GitHub |
-| Coming Soon | Evaluation dataset released on HuggingFace |
+| 2026-07 | Evaluation dataset released on [HuggingFace](https://huggingface.co/datasets/SaaSBench/SaaSBench) |
+| 2026-07 | Evaluation code released on [GitHub](https://github.com/ShadeCloak/SaaSBench/tree/main/eval) |
 
 ---
 

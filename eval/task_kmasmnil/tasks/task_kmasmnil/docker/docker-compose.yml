@@ -1,0 +1,62 @@
+name: task_kmasmnil
+
+services:
+  app:
+    image: shadetocloak/task_kmasmnil-app:${IMAGE_TAG:-baseline}
+    container_name: ${APP_CONTAINER:-xm_app}
+    ports:
+      - "8024:8024"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - xm_network
+    restart: "no"
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: ${DB_CONTAINER:-xm_db}
+    ports:
+      - "5447:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-app_kmasmnil}
+      POSTGRES_USER: ${POSTGRES_USER:-appkmasmnil}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app123kmasmnil}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appkmasmnil} -d ${POSTGRES_DB:-app_kmasmnil}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - xm_network
+    restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER:-xm_redis}
+    ports:
+      - "6398:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - xm_network
+    restart: "no"
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  xm_network:
+    driver: bridge

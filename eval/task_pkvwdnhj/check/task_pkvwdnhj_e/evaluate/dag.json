@@ -1,0 +1,5411 @@
+{
+ "meta": {
+  "task_id": "task_pkvwdnhj",
+  "total_nodes": 81,
+  "source_prd": "task/task.md",
+  "generated_at": "2026-03-05T12:00:00Z",
+  "execution_mode": "custom_test_functions",
+  "execution_note": "All nodes are executed via per-category test functions in tests/test_*.py. primitive_chain definitions serve as declarative specifications only and are not executed at runtime."
+ },
+ "nodes": [
+  {
+   "id": "DEPLOY_HEALTH",
+   "description": "App is reachable on port 8010; GET /api/health returns {\"data\": true}",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/health",
+      "timeout": 15
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "HealthCheck",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "logs": true
+   }
+  },
+  {
+   "id": "DEPLOY_DB_TABLES",
+   "description": "All core database tables exist: subscribers, lists, subscriber_lists, campaigns, campaign_lists, campaign_views, templates, media, campaign_media, links, link_clicks, bounces, settings, roles, users, sessions",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "subscribers",
+       "lists",
+       "subscriber_lists",
+       "campaigns",
+       "campaign_lists",
+       "campaign_views",
+       "templates",
+       "media",
+       "campaign_media",
+       "links",
+       "link_clicks",
+       "bounces",
+       "settings",
+       "roles",
+       "users",
+       "sessions"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "TableExistence",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DEPLOY_DB_EXTENSION",
+   "description": "pgcrypto extension is enabled",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT 1 FROM pg_extension WHERE extname = 'pgcrypto'",
+      "expected_result": {
+       "?column?": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Extensions",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DB_COLUMNS_SUBSCRIBERS",
+   "description": "The subscribers table has every required field: id, uuid, email, name, attribs, status, created_at, updated_at",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "subscribers",
+      "expected_columns": [
+       "id",
+       "uuid",
+       "email",
+       "name",
+       "attribs",
+       "status",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "SubscriberSchema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DB_COLUMNS_CAMPAIGNS",
+   "description": "The campaigns table has every required field",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "campaigns",
+      "expected_columns": [
+       "id",
+       "uuid",
+       "name",
+       "subject",
+       "from_email",
+       "body",
+       "content_type",
+       "status",
+       "type",
+       "messenger",
+       "template_id",
+       "to_send",
+       "sent",
+       "max_subscriber_id",
+       "last_subscriber_id",
+       "archive",
+       "archive_slug",
+       "send_at",
+       "tags",
+       "headers",
+       "attribs",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "CampaignSchema",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DB_ENUMS_VERIFY",
+   "description": "All enum types exist with correct values: subscriber_status(enabled,disabled,blocklisted), campaign_status(draft,running,scheduled,paused,cancelled,finished), bounce_type(soft,hard,complaint), content_type(richtext,html,plain,markdown,visual)",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT string_agg(enumlabel, ',' ORDER BY enumsortorder) AS vals FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = 'subscriber_status'",
+      "expected_result": {
+       "vals": "enabled,disabled,blocklisted"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT string_agg(enumlabel, ',' ORDER BY enumsortorder) AS vals FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = 'campaign_status'",
+      "expected_result": {
+       "vals": "draft,running,scheduled,paused,cancelled,finished"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT string_agg(enumlabel, ',' ORDER BY enumsortorder) AS vals FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = 'bounce_type'",
+      "expected_result": {
+       "vals": "soft,hard,complaint"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT string_agg(enumlabel, ',' ORDER BY enumsortorder) AS vals FROM pg_enum JOIN pg_type ON pg_enum.enumtypid = pg_type.oid WHERE pg_type.typname = 'content_type'",
+      "expected_result": {
+       "vals": "richtext,html,plain,markdown,visual"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "EnumDefinitions",
+    "method": "weighted",
+    "maxScore": 6
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DB_MATVIEWS",
+   "description": "Materialised views exist: mat_dashboard_counts, mat_dashboard_charts, mat_list_subscriber_stats",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM pg_matviews WHERE matviewname IN ('mat_dashboard_counts', 'mat_dashboard_charts', 'mat_list_subscriber_stats')",
+      "expected_result": {
+       "cnt": 3
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "MaterializedViews",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "DB_SETTINGS_DEFAULTS",
+   "description": "The settings table is seeded with 60+ defaults including app.site_name, app.from_email, app.concurrency=10, app.batch_size=1000, bounce policy, etc.",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM settings",
+      "expected_result": {
+       "cnt": {
+        "$gte": 60
+       }
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT value::text AS v FROM settings WHERE key = 'app.concurrency'",
+      "expected_result": {
+       "v": "10"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT value::text AS v FROM settings WHERE key = 'app.batch_size'",
+      "expected_result": {
+       "v": "1000"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "SettingsInit",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "AUTH_FIRST_SETUP",
+   "description": "First-time visit creates the admin user (username min=3, password min=8); on success it redirects to the admin page",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/login",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded"
+      },
+      "body": "email={{admin_email}}&username={{admin_username}}&password={{admin_password}}&password2={{admin_password}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       302,
+       303
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT username, status, type FROM users WHERE username = '{{admin_username}}'",
+      "expected_result": {
+       "username": "{{admin_username}}",
+       "status": "enabled",
+       "type": "user"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "FirstSetup",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true,
+    "logs": true
+   }
+  },
+  {
+   "id": "AUTH_LOGIN_SESSION",
+   "description": "Password login returns a session cookie (name 'session', HTTP-only) and persists the session in the database",
+   "prereqs": [
+    "AUTH_FIRST_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "form",
+      "login_path": "/admin/login",
+      "username": "{{admin_username}}",
+      "password": "{{admin_password}}"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM sessions WHERE id IS NOT NULL",
+      "expected_result": {
+       "cnt": {
+        "$gte": 1
+       }
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "SessionLogin",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "logs": true
+   }
+  },
+  {
+   "id": "AUTH_API_TOKEN_CREATE",
+   "description": "Creating an API user auto-generates a 32-character token (stored as the password in plaintext) and sets email to username@api",
+   "prereqs": [
+    "AUTH_LOGIN_SESSION"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/users",
+      "body": {
+       "username": "{{api_admin_username}}",
+       "name": "Eval API",
+       "type": "api",
+       "status": "enabled",
+       "user_role_id": 1
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.type",
+        "expected": "api"
+       },
+       {
+        "path": "$.data.username",
+        "expected": "{{api_admin_username}}"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT LENGTH(password) AS pw_len, type FROM users WHERE username = '{{api_admin_username}}'",
+      "expected_result": {
+       "type": "api"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "APIToken",
+    "method": "binary",
+    "maxScore": 6
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "AUTH_BASIC_AUTH",
+   "description": "API users access protected endpoints via HTTP Basic Auth (username:token)",
+   "prereqs": [
+    "AUTH_API_TOKEN_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "basic_auth",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/subscribers",
+      "timeout": 5
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.results",
+        "expected": "array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "BasicAuth",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "logs": true
+   }
+  },
+  {
+   "id": "CRUD_SUBSCRIBER",
+   "description": "Full subscriber CRUD flow: create -> read -> update -> delete",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/subscribers",
+      "create_body": {
+       "email": "crud-test@example.com",
+       "name": "CRUD Test",
+       "status": "enabled",
+       "attribs": {
+        "city": "Beijing"
+       }
+      },
+      "update_body": {
+       "email": "crud-test@example.com",
+       "name": "Updated CRUD Test",
+       "status": "enabled"
+      },
+      "token": "{{admin_token}}",
+      "expected_create_status": 200,
+      "expected_read_fields": [
+       "id",
+       "uuid",
+       "email",
+       "name",
+       "attribs",
+       "status",
+       "created_at",
+       "updated_at"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_DUPLICATE_EMAIL",
+   "description": "Creating a subscriber with a duplicate email returns HTTP 409 (case-insensitive)",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "dup-test@example.com",
+       "name": "First"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "DUP-TEST@EXAMPLE.COM",
+       "name": "Duplicate"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 409
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "EmailUniqueness",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_NAME_DEFAULT",
+   "description": "When a subscriber's name is empty, the local-part of the email is Title-Cased and used as the name (john.doe@x.com -> 'John Doe')",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "simple@example.com",
+       "name": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.name",
+        "expected": "Simple"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "NameDefault",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_BLOCKLIST",
+   "description": "Manually blocklisting a subscriber sets status=blocklisted and flips every subscriber_lists.status to unsubscribed",
+   "prereqs": [
+    "CRUD_SUBSCRIBER",
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "BlocklistTestList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "blocklist-test@example.com",
+       "name": "Blocklist Test",
+       "lists": [
+        "{{list_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/subscribers/{{sub_id}}/blocklist"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT s.status AS sub_status, sl.status AS list_status FROM subscribers s JOIN subscriber_lists sl ON s.id = sl.subscriber_id WHERE s.email = 'blocklist-test@example.com'",
+      "expected_result": {
+       "sub_status": "blocklisted",
+       "list_status": "unsubscribed"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "Blocklist",
+    "method": "binary",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_PAGINATION",
+   "description": "Subscriber pagination: default per_page=20, page starts at 1, empty pages return 200 with an empty results array",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/subscribers?page=1&per_page=5"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.results",
+        "expected": "array"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers",
+      "expected_result": {
+       "cnt": {
+        "$gte": 0
+       }
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "Pagination",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_SEARCH",
+   "description": "Subscriber search regex-matches both name and email, case-insensitively",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "searchable-user@example.com",
+       "name": "Searchable User"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/subscribers?search=SEARCHABLE"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.total",
+        "expected": 1,
+        "tolerance": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "Search",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "CRUD_LIST",
+   "description": "Full list CRUD flow: create -> read -> update -> delete",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/lists",
+      "create_body": {
+       "name": "CRUD Test List",
+       "type": "public",
+       "optin": "single",
+       "tags": [
+        "test"
+       ]
+      },
+      "update_body": {
+       "name": "Updated CRUD Test List"
+      },
+      "token": "{{admin_token}}",
+      "expected_create_status": 200,
+      "expected_read_fields": [
+       "id",
+       "uuid",
+       "name",
+       "type",
+       "optin",
+       "status",
+       "tags",
+       "created_at",
+       "updated_at"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ListManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_LIST_SUBSCRIBER_STATS",
+   "description": "List queries return aggregated subscriber_count and subscriber_statuses stats",
+   "prereqs": [
+    "CRUD_LIST",
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "StatsTestList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "stats-sub1@example.com",
+       "name": "Stats1",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "preconfirm_subscriptions": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscriber_lists sl JOIN lists l ON sl.list_id=l.id WHERE l.name='StatsTestList' AND sl.status='confirmed'",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ListManagement",
+    "subcategory": "SubscriberStats",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_LIST_DELETE_CASCADE",
+   "description": "Deleting a list cascades to remove its subscriber_lists rows",
+   "prereqs": [
+    "CRUD_LIST",
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "CascadeDeleteList",
+       "type": "private",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "cascade-del@example.com",
+       "name": "Cascade",
+       "lists": [
+        "{{list_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/lists/{{list_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscriber_lists WHERE list_id = {{list_id}}",
+      "expected_result": {
+       "cnt": 0
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ListManagement",
+    "subcategory": "CascadeDelete",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "CRUD_CAMPAIGN",
+   "description": "Full campaign CRUD flow: create (in draft) -> read -> update -> delete",
+   "prereqs": [
+    "AUTH_BASIC_AUTH",
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/campaigns",
+      "create_body": {
+       "name": "CRUD Test Campaign",
+       "subject": "Test Subject",
+       "body": "<p>Hello</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      },
+      "update_body": {
+       "name": "Updated Campaign",
+       "subject": "Updated Subject",
+       "body": "<p>Updated</p>",
+       "lists": [
+        "{{list_id}}"
+       ]
+      },
+      "token": "{{admin_token}}",
+      "expected_create_status": 200,
+      "expected_read_fields": [
+       "id",
+       "uuid",
+       "name",
+       "subject",
+       "status",
+       "type",
+       "content_type",
+       "created_at"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_CAMPAIGN_STATUS_DRAFT_TO_RUNNING",
+   "description": "Transitioning a campaign from draft to running computes to_send and max_subscriber_id",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "CampStatusList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "camp-status@example.com",
+       "name": "CampStatus",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "preconfirm_subscriptions": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "StatusTestCamp",
+       "subject": "Test",
+       "body": "<p>Hi</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.status",
+        "expected": "running"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusTransition",
+    "method": "binary",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_CAMPAIGN_STATUS_RUNNING_TO_PAUSED",
+   "description": "A running campaign can be paused (-> paused)",
+   "prereqs": [
+    "BIZ_CAMPAIGN_STATUS_DRAFT_TO_RUNNING"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "PauseTestList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "pause-sub@test.com",
+       "name": "PauseSub",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "preconfirm_subscriptions": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "PausableCamp",
+       "subject": "Test",
+       "body": "<p>Hi</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "paused"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.status",
+        "expected": "paused"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusTransition",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_STATUS_PAUSED_TO_CANCELLED",
+   "description": "A paused campaign can be cancelled (-> cancelled)",
+   "prereqs": [
+    "BIZ_CAMPAIGN_STATUS_RUNNING_TO_PAUSED"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "PCancelList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "PCancelCamp",
+       "subject": "Test",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "paused"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "cancelled"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.status",
+        "expected": "cancelled"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusTransition",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_FINISHED_IMMUTABLE",
+   "description": "A finished campaign is immutable (terminal state); attempting to change its status returns 400",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "INSERT INTO campaigns (uuid, name, subject, from_email, body, content_type, status, type, messenger, headers, attribs, archive_meta) VALUES (gen_random_uuid(), 'FinishedCamp', 'Test', 'test@t.com', '<p>x</p>', 'richtext', 'finished', 'regular', 'email', '[]', '{}', '{}') RETURNING id",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "draft"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusImmutable",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_SCHEDULED_NO_DIRECT_RUNNING",
+   "description": "A scheduled campaign cannot transition directly to running; it must go back to draft first",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "ScheduledCamp",
+       "subject": "Sched",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular",
+       "send_at": "2099-12-31T23:59:59Z"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "scheduled"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusTransitionRestriction",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_EDIT_RESTRICTION",
+   "description": "A running campaign is not editable (only draft/paused/scheduled are); requests return 400 and data is unchanged",
+   "prereqs": [
+    "BIZ_CAMPAIGN_STATUS_DRAFT_TO_RUNNING"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "EditRestList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "EditRestCamp",
+       "subject": "Test",
+       "body": "<p>Hi</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}",
+      "body": {
+       "name": "ShouldFail",
+       "subject": "Fail",
+       "body": "<p>x</p>",
+       "lists": [
+        "{{list_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "EditRestriction",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_VALIDATION_EMPTY_LISTS",
+   "description": "Creating a campaign with an empty `lists` array returns 400",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "NoListCamp",
+       "subject": "Test",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "Validation",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_CAMPAIGN_DEFAULT_FROM_EMAIL",
+   "description": "When a campaign's from_email is empty, the app.from_email default is used",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "DefaultFromCamp",
+       "subject": "Test",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular",
+       "from_email": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.from_email",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "DefaultFromEmail",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "CRUD_TEMPLATE",
+   "description": "Full template CRUD flow",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/templates",
+      "create_body": {
+       "name": "CRUD Test Template",
+       "type": "campaign",
+       "subject": "Test {{ .Subscriber.Name }}",
+       "body": "<html><body>{{ template \"content\" . }}</body></html>"
+      },
+      "update_body": {
+       "name": "Updated Template",
+       "subject": "Updated {{ .Subscriber.Name }}",
+       "body": "<html><body>{{ template \"content\" . }}</body></html>"
+      },
+      "token": "{{admin_token}}",
+      "expected_create_status": 200,
+      "expected_read_fields": [
+       "id",
+       "name",
+       "type",
+       "subject",
+       "body",
+       "is_default",
+       "created_at"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TemplateManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_TEMPLATE_DEFAULT_SWAP",
+   "description": "Setting a template as default atomically clears the previous default; exactly one default exists at a time",
+   "prereqs": [
+    "CRUD_TEMPLATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/templates",
+      "body": {
+       "name": "Default1",
+       "type": "campaign",
+       "subject": "S1",
+       "body": "<html>{{ template \"content\" . }}</html>"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/templates/{{tpl_id}}/default"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/templates",
+      "body": {
+       "name": "Default2",
+       "type": "campaign",
+       "subject": "S2",
+       "body": "<html>{{ template \"content\" . }}</html>"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/templates/{{tpl_id2}}/default"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM templates WHERE is_default = true",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TemplateManagement",
+    "subcategory": "DefaultSwap",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_TEMPLATE_CONTENT_PLACEHOLDER",
+   "description": "Campaign-type templates must contain the {{ template \"content\" . }} placeholder; absence returns 400",
+   "prereqs": [
+    "CRUD_TEMPLATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/templates",
+      "body": {
+       "name": "NoContent",
+       "type": "campaign",
+       "subject": "Test",
+       "body": "<html><body>No placeholder</body></html>"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TemplateManagement",
+    "subcategory": "ContentPlaceholder",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_TEMPLATE_DELETE_PROTECTION",
+   "description": "The default template cannot be deleted; attempts return 400",
+   "prereqs": [
+    "CRUD_TEMPLATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT id FROM templates WHERE is_default = true LIMIT 1",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/templates/{{default_tpl_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TemplateManagement",
+    "subcategory": "DeleteProtection",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "CRUD_MEDIA",
+   "description": "Media upload -> list -> delete. Image uploads auto-generate thumbnails and the meta field includes width/height",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/media",
+      "headers": {
+       "Content-Type": "multipart/form-data"
+      },
+      "body": {
+       "file": "test_image.png"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.filename",
+        "expected": "not_empty"
+       },
+       {
+        "path": "$.data.thumb_url",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/media"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/media/{{media_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "MediaManagement",
+    "subcategory": "UploadQueryDelete",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_BOUNCE_WEBHOOK_RECORD",
+   "description": "Bounces are recorded via the internal webhook; GET /api/bounces returns rows joined with email/subscriber_uuid",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "bounce-test@example.com",
+       "name": "BounceTest"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "INSERT INTO bounces (subscriber_id, type, source, meta, created_at) SELECT id, 'soft', 'eval-test', '{}'::jsonb, NOW() FROM subscribers WHERE email='bounce-test@example.com'",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/bounces"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.total",
+        "expected": 1,
+        "tolerance": 5
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BounceProcessing",
+    "subcategory": "WebhookRecord",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_BOUNCE_HARD_THRESHOLD_BLOCKLIST",
+   "description": "Hard bounce default is count=1 action=blocklist: the first hard bounce triggers blocklist (COUNT+1 >= threshold)",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "hard-bounce@example.com",
+       "name": "HardBounce"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "INSERT INTO bounces (subscriber_id, type, source, meta) SELECT id, 'hard', 'eval-test', '{}'::jsonb FROM subscribers WHERE email='hard-bounce@example.com'",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM bounces WHERE type='hard'",
+      "expected_result": {
+       "cnt": {
+        "$gte": 1
+       }
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BounceProcessing",
+    "subcategory": "HardBounceThreshold",
+    "method": "binary",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_BOUNCE_SOFT_NO_ACTION",
+   "description": "Soft bounce default is count=2 action=none: after a single soft bounce the subscriber's status is unchanged",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "soft-bounce@example.com",
+       "name": "SoftBounce"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "INSERT INTO bounces (subscriber_id, type, source, meta) SELECT id, 'soft', 'eval-test', '{}'::jsonb FROM subscribers WHERE email='soft-bounce@example.com'",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT status FROM subscribers WHERE email='soft-bounce@example.com'",
+      "expected_result": {
+       "status": "enabled"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BounceProcessing",
+    "subcategory": "SoftBounceNoAction",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "API_SETTINGS_GET",
+   "description": "GET /api/settings returns the full settings object as flat dot-separated keys (e.g. app.site_name)",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/settings"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "response": "{{from_P04}}",
+      "required_fields": [
+       "app.site_name",
+       "app.root_url",
+       "app.from_email",
+       "app.concurrency",
+       "app.batch_size",
+       "privacy.individual_tracking",
+       "upload.provider"
+      ],
+      "field_types": {}
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "GetAll",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "API_SETTINGS_UPDATE",
+   "description": "PUT /api/settings updates settings in bulk; a subsequent GET verifies the new values",
+   "prereqs": [
+    "API_SETTINGS_GET"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/settings"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "UPDATE settings SET value='\"EvalTestSite\"'::jsonb WHERE key='app.site_name'",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT value::text AS v FROM settings WHERE key='app.site_name'",
+      "expected_result": {
+       "v": "\"EvalTestSite\""
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "Update",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "API_DASHBOARD_COUNTS",
+   "description": "GET /api/dashboard/counts returns the materialised-view-aggregated dashboard counters",
+   "prereqs": [
+    "CRUD_SUBSCRIBER",
+    "CRUD_LIST",
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/dashboard/counts"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "response": "{{from_P04}}",
+      "required_fields": [
+       "data"
+      ],
+      "field_types": {}
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Dashboard",
+    "subcategory": "Counts",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "API_DASHBOARD_CHARTS",
+   "description": "GET /api/dashboard/charts returns time-series chart data",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM pg_matviews WHERE matviewname='mat_dashboard_charts'",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "REFRESH MATERIALIZED VIEW mat_dashboard_charts",
+      "expected_result": {}
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Dashboard",
+    "subcategory": "Charts",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "CRUD_USER",
+   "description": "Full user CRUD flow: create (type=user) -> read -> update -> delete",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/users",
+      "body": {
+       "username": "cruduser",
+       "email": "crud@test.com",
+       "name": "CRUD User",
+       "type": "user",
+       "password": "TestPass123",
+       "password_login": true,
+       "status": "enabled",
+       "user_role_id": 1
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.username",
+        "expected": "cruduser"
+       },
+       {
+        "path": "$.data.type",
+        "expected": "user"
+       },
+       {
+        "path": "$.data.status",
+        "expected": "enabled"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/users/{{user_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/users/{{user_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_USER_DELETE_SUPER_ADMIN_PROTECTION",
+   "description": "The last enabled super-admin user cannot be deleted",
+   "prereqs": [
+    "CRUD_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT id FROM users WHERE user_role_id = 1 AND status = 'enabled' AND type = 'user' LIMIT 1",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/users/{{super_admin_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "SuperAdminProtection",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "CRUD_ROLE",
+   "description": "Full role CRUD: create user-role -> read -> update -> delete",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/roles/users",
+      "body": {
+       "name": "EvalTestRole",
+       "permissions": [
+        "subscribers:get",
+        "lists:get_all"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.name",
+        "expected": "EvalTestRole"
+       },
+       {
+        "path": "$.data.type",
+        "expected": "user"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/roles/users"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/roles/{{role_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "RoleCRUD",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_SETUP_LIMITED_USER",
+   "description": "Provisions a limited role and API user for RBAC tests",
+   "prereqs": [
+    "AUTH_BASIC_AUTH",
+    "CRUD_ROLE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/roles/users",
+      "body": {
+       "name": "LimitedRole",
+       "permissions": [
+        "subscribers:get",
+        "lists:get_all"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/users",
+      "body": {
+       "username": "{{limited_username}}",
+       "name": "Limited API",
+       "type": "api",
+       "status": "enabled",
+       "user_role_id": "{{limited_role_id}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.type",
+        "expected": "api"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "Setup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_SUBSCRIBER_MANAGE_DENY",
+   "description": "A limited user (no subscribers:manage permission) cannot create subscribers; the response is 403 or 404",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "limited"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "POST /api/subscribers",
+      "expected_result": "denied",
+      "acceptable_statuses": [
+       403,
+       404
+      ],
+      "body": {
+       "email": "rbac-test@example.com",
+       "name": "RBAC"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "SubscriberManageDeny",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_SUBSCRIBER_MANAGE_ALLOW",
+   "description": "An admin (with subscribers:manage permission) can create subscribers",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "rbac-allow@example.com",
+       "name": "RBAC Allow"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "SubscriberManageAllow",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_SETTINGS_DENY",
+   "description": "A limited user (no settings:get permission) cannot view settings; the response is 403 or 404",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "limited"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "GET /api/settings",
+      "expected_result": "denied",
+      "acceptable_statuses": [
+       403,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "SettingsDeny",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_SETTINGS_ALLOW",
+   "description": "An admin can view settings",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/settings"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "SettingsAllow",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_CAMPAIGN_MANAGE_DENY",
+   "description": "A limited user (no campaigns:manage permission) cannot create campaigns; the response is 403 or 404",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "limited"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "action": "POST /api/campaigns",
+      "expected_result": "denied",
+      "acceptable_statuses": [
+       403,
+       404
+      ],
+      "body": {
+       "name": "DenyCamp",
+       "subject": "X",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        1
+       ],
+       "type": "regular"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "CampaignManageDeny",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "RBAC_CAMPAIGN_MANAGE_ALLOW",
+   "description": "An admin can create campaigns",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER",
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "AllowCamp",
+       "subject": "Allow",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "CampaignManageAllow",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "API_PUBLIC_LISTS",
+   "description": "GET /api/public/lists returns only public + active lists (uuid and name fields)",
+   "prereqs": [
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "PubList42",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/public/lists"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM lists WHERE type='public' AND status='active'",
+      "expected_result": {
+       "cnt": {
+        "$gte": 1
+       }
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PublicSubscription",
+    "subcategory": "PublicLists",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "API_PUBLIC_HEALTH",
+   "description": "GET /health public health-check returns 200",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/health"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PublicSubscription",
+    "subcategory": "HealthCheck",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "API_CONFIG",
+   "description": "GET /api/config returns the frontend config containing root_url, messengers, langs, etc.",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/config"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "response": "{{from_P04}}",
+      "required_fields": [
+       "data.root_url",
+       "data.from_email",
+       "data.langs",
+       "data.version"
+      ],
+      "field_types": {}
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "ConfigEndpoint",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "API_ABOUT",
+   "description": "GET /api/about returns system info: version, go_version, database, host",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/about"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "response": "{{from_P04}}",
+      "required_fields": [
+       "data.version",
+       "data.go_version",
+       "data.database",
+       "data.host"
+      ],
+      "field_types": {}
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "AboutEndpoint",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "API_LOGS",
+   "description": "GET /api/logs returns an array of strings (ring-buffer log)",
+   "prereqs": [
+    "AUTH_BASIC_AUTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/logs"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": "array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "Logs",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_MAINTENANCE_DELETE_BLOCKLISTED",
+   "description": "DELETE /api/maintenance/subscribers/blocklisted removes every blocklisted subscriber",
+   "prereqs": [
+    "BIZ_SUBSCRIBER_BLOCKLIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers WHERE status = 'blocklisted'",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/maintenance/subscribers/blocklisted"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers WHERE status = 'blocklisted'",
+      "expected_result": {
+       "cnt": 0
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Maintenance",
+    "subcategory": "DeleteBlocklisted",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_EXPORT_CSV",
+   "description": "GET /api/subscribers/export returns text/csv with 7 columns: uuid,email,name,attributes,status,created_at,updated_at",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/subscribers/export"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$._headers.content-type",
+        "expected": "text/csv"
+       },
+       {
+        "path": "$._headers.content-disposition",
+        "expected": "contains:subscribers.csv"
+       },
+       {
+        "path": "$._body_first_line",
+        "expected": "contains:uuid,email,name,attributes,status,created_at,updated_at"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "CSVExport",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_IMPORT_CSV",
+   "description": "POST /api/import/subscribers uploads a CSV to import subscribers; verifies both import status and actual creations",
+   "prereqs": [
+    "CRUD_SUBSCRIBER",
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/import/subscribers"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "INSERT INTO subscribers (uuid, email, name, attribs, status) VALUES (gen_random_uuid(), 'import-csv1@test.com', 'Import1', '{}'::jsonb, 'enabled'), (gen_random_uuid(), 'import-csv2@test.com', 'Import2', '{}'::jsonb, 'enabled')",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers WHERE email IN ('import-csv1@test.com','import-csv2@test.com')",
+      "expected_result": {
+       "cnt": 2
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "CSVImport",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_TX_SEND_DEFAULT",
+   "description": "POST /api/tx (transactional email) with subscriber_mode=default sends to existing subscribers",
+   "prereqs": [
+    "CRUD_SUBSCRIBER",
+    "CRUD_TEMPLATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "tx-test@example.com",
+       "name": "TX Test"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT id FROM templates WHERE type = 'tx' LIMIT 1",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/tx",
+      "body": {
+       "subscriber_mode": "default",
+       "subscriber_emails": [
+        "tx-test@example.com"
+       ],
+       "template_id": "{{tx_tpl_id}}",
+       "data": {
+        "order_id": "12345"
+       },
+       "content_type": "richtext"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TransactionalEmail",
+    "subcategory": "DefaultMode",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "logs": true
+   }
+  },
+  {
+   "id": "BIZ_CAMPAIGN_OPTIN_SUBSCRIBER_FILTER",
+   "description": "On send, a regular campaign over a double-optin list only targets confirmed subscribers; to_send counts only the confirmed status",
+   "prereqs": [
+    "CRUD_CAMPAIGN",
+    "CRUD_LIST",
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "DoubleOptinList",
+       "type": "public",
+       "optin": "double"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "optin-unconfirmed@example.com",
+       "name": "Unconfirmed",
+       "lists": [
+        "{{dbl_list_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "optin-confirmed@example.com",
+       "name": "Confirmed",
+       "lists": [
+        "{{dbl_list_id}}"
+       ],
+       "preconfirm_subscriptions": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "OptinFilterCamp",
+       "subject": "Test",
+       "body": "<p>Hi</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{dbl_list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT status FROM campaigns WHERE name='OptinFilterCamp'",
+      "expected_result": {
+       "status": "running"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "OptinFilter",
+    "method": "binary",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "EDGE_LIST_NAME_EMPTY",
+   "description": "Creating a list with an empty name returns 400",
+   "prereqs": [
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ListValidation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "EDGE_USER_PASSWORD_TOO_SHORT",
+   "description": "Creating a user with a password shorter than 8 chars returns 400",
+   "prereqs": [
+    "CRUD_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/users",
+      "body": {
+       "username": "shortpw",
+       "email": "short@test.com",
+       "name": "Short PW",
+       "type": "user",
+       "password": "12345",
+       "password_login": true,
+       "status": "enabled",
+       "user_role_id": 1
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "PasswordValidation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "EDGE_CAMPAIGN_SEND_AT_PAST",
+   "description": "Creating a campaign with send_at in the past must be rejected or ignored",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "PastSendAt",
+       "subject": "Test",
+       "body": "<p>x</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular",
+       "send_at": "2020-01-01T00:00:00Z"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "SendAtValidation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "EDGE_ROLE_DUPLICATE_NAME",
+   "description": "Roles of the same type cannot share a name (UNIQUE INDEX idx_roles_name). The duplicate is rejected; listmonk surfaces the constraint violation. Unlike the subscriber email path (which catches subscribers_email_key -> 409), the roles path does not special-case the pq error, so the reference returns 500 with a 'already exists' constraint message (KB only guarantees the uniqueness constraint, not a specific 4xx code).",
+   "prereqs": [
+    "CRUD_ROLE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/roles/users",
+      "body": {
+       "name": "DupRoleName",
+       "permissions": [
+        "subscribers:get"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/roles/users",
+      "body": {
+       "name": "DupRoleName",
+       "permissions": [
+        "lists:get_all"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       409,
+       500
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "contains:exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "contains:exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "RoleUniqueness",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "ARCH_CODE_STRUCTURE",
+   "description": "Code architecture quality: clear layering (handler/core/models/queries), named SQL queries, and configuration management",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R01",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the overall code architecture of this Go newsletter / mailing-list backend.\n\nEVIDENCE: cmd/, internal/, queries.sql or queries/*.sql, config loader, error helpers.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. Code is split into clear layers: HTTP handlers, core/business logic, models, queries.\n2. Database queries are kept in named SQL files (e.g. queries.sql) loaded at startup, not inline strings scattered through Go code.\n3. Configuration is loaded from TOML and overridable by environment variables through a single Config struct.\n4. Model definitions live under their own package (no anonymous structs in handlers).\n5. Error handling uses a unified helper that maps internal errors to HTTP responses consistently.\n6. The folder layout is idiomatic Go (cmd/server for the entry point, internal/ for non-public packages).\n7. No circular imports between layers.\n\nSCORING ANCHORS:\n- 0 (none): All code in main.go with inline SQL.\n- 4 (weak): Some layering but SQL strings embedded in handlers; no central config.\n- 7 (acceptable): Three-layer split + named queries; minor gaps in error handling.\n- 10 (excellent): All seven criteria satisfied with idiomatic Go layout.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "CodeStructure",
+    "method": "llm-judge",
+    "maxScore": 10
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "ARCH_FRONTEND_QUALITY",
+   "description": "Frontend UI quality: Vue.js SPA navigation structure, Vue UI component library usage (Buefy recommended), dashboard layout.",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_SESSION"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       301,
+       302
+      ]
+     }
+    },
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 2000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/admin"
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R02",
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "GOAL: Judge the frontend admin UI quality (Vue.js SPA + sidebar + dashboard + a Vue UI component library).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of the admin home page after a real authenticated load.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. The page is a Vue.js SPA (mount point + Vue runtime visible in scripts).\n2. A persistent left sidebar nav lists Subscribers, Lists, Campaigns, Templates, Media, Settings.\n3. A dashboard page is the default landing area and shows recent activity / stats.\n4. UI uses a consistent Vue component library (the recommended pattern is Buefy on top of Bulma, with recognisable class names like .button, .field, .table.is-striped, or b-* prefixed components; alternatives such as Vuetify, Element Plus, Naive UI, or PrimeVue with their own recognisable component class names are equally acceptable).\n5. Layout is responsive (CSS media queries; sidebar collapses at narrow widths).\n6. Header includes user menu and an action area for global controls.\n7. The page renders without obvious layout breakage at desktop width.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or only shows raw text.\n- 4 (weak): SPA visible but sidebar / dashboard missing; ad hoc styling.\n- 7 (acceptable): Sidebar + dashboard + a recognisable Vue UI component library; missing responsive or header polish.\n- 10 (excellent): All seven criteria satisfied with a polished admin SPA.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       10
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendQuality",
+    "method": "llm-judge",
+    "maxScore": 10
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "screenshots": true
+   }
+  },
+  {
+   "id": "BIZ_CAMPAIGN_RUNNING_TO_CANCELLED",
+   "description": "A running campaign can transition directly to cancelled; cancelled is terminal and immutable",
+   "prereqs": [
+    "BIZ_CAMPAIGN_STATUS_DRAFT_TO_RUNNING"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "CancelTestList",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "CancellableCamp",
+       "subject": "Test",
+       "body": "<p>Hi</p>",
+       "content_type": "richtext",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "type": "regular"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "running"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "cancelled"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.status",
+        "expected": "cancelled"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/campaigns/{{camp_id}}/status",
+      "body": {
+       "status": "draft"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "StatusMachine",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "apiResponse": true
+   }
+  },
+  {
+   "id": "AUTH_LOGOUT",
+   "description": "POST /api/logout invalidates the current session; the original session can no longer access protected endpoints",
+   "prereqs": [
+    "AUTH_LOGIN_SESSION"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/subscribers"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.results",
+        "expected": "array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "SessionManagement",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "evidence": {
+    "apiResponse": true
+   }
+  },
+  {
+   "id": "BIZ_MAINTENANCE_DELETE_ORPHAN_SUBSCRIBERS",
+   "description": "DELETE /api/maintenance/subscribers/orphan removes orphan subscribers (not in any list)",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "orphan@test.com",
+       "name": "Orphan",
+       "status": "enabled",
+       "lists": []
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers WHERE email = 'orphan@test.com'",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/maintenance/subscribers/orphan"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM subscribers WHERE email = 'orphan@test.com'",
+      "expected_result": {
+       "cnt": 0
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Maintenance",
+    "subcategory": "OrphanCleanup",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true
+   }
+  },
+  {
+   "id": "BIZ_SUBSCRIBER_LIST_MANAGEMENT",
+   "description": "PUT /api/subscribers/lists bulk-manages subscriber-list relationships: add, remove, unsubscribe",
+   "prereqs": [
+    "CRUD_SUBSCRIBER",
+    "CRUD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "ListMgmtTest",
+       "type": "public",
+       "optin": "single"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "listmgmt@test.com",
+       "name": "ListMgmt"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/subscribers/lists",
+      "body": {
+       "ids": [
+        "{{sub_id}}"
+       ],
+       "action": "add",
+       "target_list_ids": [
+        "{{list_id}}"
+       ],
+       "status": "confirmed"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT status FROM subscriber_lists WHERE subscriber_id = (SELECT id FROM subscribers WHERE email='listmgmt@test.com') AND list_id = (SELECT id FROM lists WHERE name='ListMgmtTest')",
+      "expected_result": {
+       "status": "confirmed"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "ListRelation",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "dbQueries": true,
+    "apiResponse": true
+   }
+  },
+  {
+   "id": "LLM_SUBSCRIBER_API_QUALITY",
+   "description": "Subscriber-management API design quality: RESTful conventions, error handling, email normalisation, bulk-operation support",
+   "prereqs": [
+    "CRUD_SUBSCRIBER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R03",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the design quality of the Subscribers API (uniqueness + JSONB attribs + bulk + pagination + import/export).\n\nEVIDENCE: handlers/subscribers.go (or equivalent), corresponding SQL queries, request/response payload samples.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Email uniqueness is case-insensitive (LOWER(email) index or equivalent enforcement).\n2. The attribs JSONB field is validated for shape on create/update; invalid JSON is rejected with 422.\n3. Bulk operations (blocklist, delete, list-add, list-remove) accept a list of subscriber IDs and act atomically.\n4. List endpoints support pagination (page + per_page) and search (query parameter).\n5. CSV import accepts a streamed file, validates each row, and reports row-level errors back to the caller.\n6. CSV export streams the full subscriber list without loading it all into memory.\n7. The API follows REST conventions (GET list, POST create, PUT update, DELETE delete).\n\nSCORING ANCHORS:\n- 0 (none): No subscriber API or CRUD only with no constraints.\n- 3 (weak): Basic CRUD with case-sensitive email; no bulk; no import/export.\n- 6 (good): Most criteria satisfied; minor leaks (JSONB validation thin, no streaming export).\n- 8 (excellent): All seven criteria satisfied with a complete subscribers API.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriberManagement",
+    "subcategory": "APIQuality",
+    "method": "llm-judge",
+    "maxScore": 8
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_CAMPAIGN_WORKFLOW",
+   "description": "Campaign state-machine implementation quality: draft -> running -> paused -> cancelled/finished transition rules, edit restrictions, to_send computation",
+   "prereqs": [
+    "CRUD_CAMPAIGN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R04",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the Campaign state machine (draft -> running -> paused -> cancelled/finished) and edit-locking semantics.\n\nEVIDENCE: handlers/campaigns.go (or equivalent), state-transition helpers, to_send / max_subscriber_id calculation.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Allowed transitions are enforced strictly: draft -> running/scheduled, running -> paused/cancelled, scheduled -> running/cancelled, paused -> running/cancelled.\n2. Terminal states (finished, cancelled) are immutable: subsequent state-change requests return 409 / 422.\n3. Editing campaign content is rejected once the campaign is running (only draft / scheduled allow edits).\n4. to_send and max_subscriber_id are computed at start time (snapshot of audience) and stored, not recomputed per send batch.\n5. Campaign start filters subscribers to the confirmed status (or whichever the type requires) and joins selected lists.\n6. Cancellation drains in-flight sends gracefully without re-queuing.\n7. State transitions are logged for audit (campaign_id, old_state, new_state, actor, timestamp).\n\nSCORING ANCHORS:\n- 0 (none): No state machine; campaigns are just rows with a status string.\n- 3 (weak): Statuses exist but transitions not enforced; running edits allowed.\n- 6 (good): Transitions enforced; to_send computed but not snapshotted.\n- 8 (excellent): All seven criteria satisfied with a fully audited state machine.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CampaignManagement",
+    "subcategory": "WorkflowQuality",
+    "method": "llm-judge",
+    "maxScore": 8
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_TEMPLATE_SYSTEM",
+   "description": "Template-system implementation quality: Go template rendering, content placeholder validation, default-template management",
+   "prereqs": [
+    "CRUD_TEMPLATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R05",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the template system (Go html/template + a template helper library + content-placeholder enforcement + default-template uniqueness + tx templates).\n\nEVIDENCE: templates handler, template-rendering helpers, default-template CRUD code, tx template flow.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. Rendering uses Go html/template with a template function helper library registered (the recommended pattern is Sprig; any equivalent Go template function library is acceptable).\n2. Campaign templates are validated to contain a {{ template \"content\" . }} placeholder; otherwise creation/update is rejected.\n3. Setting a template as default atomically clears the previous default so exactly one campaign-template default exists.\n4. The same uniqueness invariant applies independently to tx (transactional) templates.\n5. Template preview uses sample subscriber/campaign data so authors see realistic output without sending a real email.\n6. tx templates are managed in a separate code path from campaign templates with their own validation.\n7. Template render errors are surfaced to the UI with the failing line number / function.\n\nSCORING ANCHORS:\n- 0 (none): No template system; raw HTML stored verbatim.\n- 3 (weak): Templates render but no placeholder enforcement and no default-uniqueness.\n- 5 (good): Most criteria satisfied; tx templates not separated.\n- 7 (excellent): All seven criteria satisfied with a polished template system.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TemplateManagement",
+    "subcategory": "SystemQuality",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_BOUNCE_HANDLING",
+   "description": "Bounce-handling implementation quality: threshold policy (soft/hard/complaint), action execution (blocklist/unsubscribe/delete), webhook security",
+   "prereqs": [
+    "BIZ_BOUNCE_WEBHOOK_RECORD"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R06",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the bounce-handling implementation (per-type thresholds + actions + webhook security).\n\nEVIDENCE: bounces handler, webhook endpoints (SES, SendGrid, Postmark, Mailgun), threshold/action logic, blocklist update path.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. Three bounce types (soft, hard, complaint) each have independent thresholds and actions configurable in settings.\n2. The 'blocklist' action only updates subscribers.status — it does NOT modify subscriber_lists rows.\n3. Subscribers already in 'blocklisted' status are skipped on new bounce events (no double-counting).\n4. Webhook endpoints verify signatures or shared secrets per provider before recording bounces.\n5. Each provider's payload format is parsed by a dedicated parser (no mixing of provider logic).\n6. Bounce counts are decremented or reset when a subscriber is restored.\n7. Webhook endpoints are rate-limited or accept only POST from known IPs (when configured).\n\nSCORING ANCHORS:\n- 0 (none): No bounce handling; bounces ignored.\n- 3 (weak): Single bounce counter; no threshold/action per type; no webhook signing.\n- 5 (good): Per-type thresholds + actions + webhook for one provider; signing thin.\n- 7 (excellent): All seven criteria satisfied with multi-provider webhook security.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BounceProcessing",
+    "subcategory": "HandlingQuality",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_RBAC_DESIGN",
+   "description": "RBAC design quality: two-level role hierarchy, list-level permissions, super-admin protection",
+   "prereqs": [
+    "RBAC_SETUP_LIMITED_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R07",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the RBAC design (two-level roles + ~28 permission points + super-admin protection).\n\nEVIDENCE: roles handler, permission constants, list-role table, admin-protection logic.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Two-level role hierarchy is implemented: user roles (global) + list roles (per-list).\n2. Around 28 permission points are defined as constants and cover all CRUD operations.\n3. The _all suffix vs non-_all permissions distinguish 'access all lists' vs 'access only assigned lists' and are enforced at the data-access layer.\n4. The super-admin (role_id = 1) cannot be deleted or have its critical permissions removed.\n5. API users authenticated via BasicAuth inherit a role and its permissions are checked exactly like UI users.\n6. Permission checks happen in middleware, not scattered throughout handlers.\n7. There are tests covering the deny path for at least each permission category.\n\nSCORING ANCHORS:\n- 0 (none): isAdmin boolean only.\n- 3 (weak): Some permissions exist but no two-level hierarchy and no super-admin protection.\n- 6 (good): Two-level + permissions + super-admin protection; minor coverage gaps.\n- 8 (excellent): All seven criteria satisfied with a complete RBAC system.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "DesignQuality",
+    "method": "llm-judge",
+    "maxScore": 8
+   },
+   "complexity_tier": "marketplace_rbac",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_PUBLIC_PAGES",
+   "description": "Public subscriber-page UX quality: subscribe form, double-opt-in flow, unsubscribe management, archive page",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_TOKEN_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/lists",
+      "body": {
+       "name": "PublicPagesList",
+       "type": "public",
+       "optin": "double"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/subscribers",
+      "body": {
+       "email": "public-pages@example.com",
+       "name": "Public Pages",
+       "status": "enabled",
+       "lists": [
+        "{{list_id}}"
+       ],
+       "preconfirm_subscriptions": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/campaigns",
+      "body": {
+       "name": "PublicPagesCampaign",
+       "subject": "Archive Sample",
+       "body": "<p>Sample</p>",
+       "content_type": "richtext",
+       "type": "regular",
+       "archive": true,
+       "lists": [
+        "{{list_id}}"
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 1500,
+      "timeout_ms": 20000,
+      "urls": [
+       "{{base_url}}/subscription/form",
+       "{{base_url}}/subscription/optin/{{sub_uuid}}",
+       "{{base_url}}/subscription/{{camp_uuid}}/{{sub_uuid}}",
+       "{{base_url}}/archive"
+      ]
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R08",
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "GOAL: Judge the UX of the public-facing subscriber pages (subscribe / confirm / unsubscribe / preferences / archive).\n\nEVIDENCE: Rendered DOM (post-server-rendering) of /subscription/form, /subscription/optin/<id>, /subscription/<uuid>/manage, /archive.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. The subscription form lists public-visible lists with checkboxes.\n2. Anti-spam protection is present (CAPTCHA or honeypot field).\n3. Double opt-in confirmation page exists and confirms the subscription on click.\n4. The manage-preferences page lets the subscriber update lists / attribs and unsubscribe.\n5. The archive page lists past completed campaigns with view links.\n6. Pages are styled (no raw unstyled HTML) and use a consistent layout.\n7. Pages localise text via the configured language file.\n\nSCORING ANCHORS:\n- 0 (none): No public pages.\n- 3 (weak): Subscribe form only; no confirm / manage / archive.\n- 5 (good): Most pages present; no CAPTCHA / honeypot; styling thin.\n- 7 (excellent): All seven criteria satisfied with polished public pages.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PublicSubscription",
+    "subcategory": "PageQuality",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {
+    "screenshots": true
+   }
+  },
+  {
+   "id": "LLM_SETTINGS_COMPLETENESS",
+   "description": "System-settings completeness: 60+ keys covered, grouping, SMTP test, dynamic reload",
+   "prereqs": [
+    "API_SETTINGS_GET"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R09",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the system settings implementation (60+ keys + grouping + SMTP test + dynamic reload).\n\nEVIDENCE: settings handler, settings schema/constants, /api/admin/reload endpoint, SMTP test endpoint.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. The settings store covers >= 60 keys spanning app / privacy / security / upload / smtp / bounce / appearance / maintenance.\n2. GET /settings returns all settings; PUT /settings accepts a partial map and updates atomically.\n3. A POST /settings/smtp/test endpoint sends a real test email using the supplied SMTP block.\n4. POST /api/admin/reload reloads runtime configuration without restarting the process.\n5. Setting changes that affect already-running components (workers, mail) are picked up promptly via the reload mechanism.\n6. Settings are grouped (in the API and UI) by category for navigation.\n7. Sensitive settings (smtp passwords, secret keys) are write-only via API: GET responses scrub them.\n\nSCORING ANCHORS:\n- 0 (none): No settings API; configuration only via env / file.\n- 3 (weak): GET/PUT settings exist but only a handful of keys; no reload.\n- 5 (good): >= 40 keys + reload + SMTP test; grouping or scrub thin.\n- 7 (excellent): All seven criteria satisfied with a complete settings system.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Settings",
+    "subcategory": "Completeness",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_ERROR_HANDLING",
+   "description": "Global error handling and input validation quality: unified error format, boundary conditions, security",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R10",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge global error handling, input validation, and SQL-injection / concurrency safety.\n\nEVIDENCE: Error helper code, validation middleware, query construction sites, admin-deletion guard.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. All API errors return a uniform {\"message\": \"...\"} JSON envelope with the appropriate HTTP status.\n2. Input validation covers length / format / type constraints for every write endpoint.\n3. SQL queries are parameterised; no Sprintf'd values into SQL strings.\n4. Concurrency-sensitive operations (e.g. deleting the last super-admin) are guarded with explicit checks inside transactions.\n5. Timeouts and retries are configurable for outbound calls (SMTP, webhooks, bounce providers).\n6. No stack traces leak to the client in production.\n7. Server logs structured records for every error (level, request id, user, resource, message).\n\nSCORING ANCHORS:\n- 0 (none): Errors return raw Go error strings; no validation; SQL by Sprintf.\n- 3 (weak): Some validation; envelope inconsistent; concurrency guards missing.\n- 5 (good): Validation + envelope + parameterised SQL; logging thin.\n- 7 (excellent): All seven criteria satisfied with a tight error / validation / safety posture.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       7
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "ErrorHandling",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  },
+  {
+   "id": "LLM_EMAIL_ENGINE",
+   "description": "Mail-sending engine architecture quality: SMTP connection pool, concurrency control, batch sending, sliding-window throttle",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R11",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "./"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric_prompt": "GOAL: Judge the mail-sending engine architecture (SMTP pool + concurrency + batch + sliding-window throttle).\n\nEVIDENCE: Mail engine source, SMTP pool definition, batch and concurrency configuration, message_rate enforcement, max_send_errors handling.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Multiple SMTP servers can be configured and the engine balances send across them via a pool.\n2. batch_size (default 1000) and concurrency (default 10) parameters control how many subscribers are processed per cycle and in parallel.\n3. message_rate (msgs/sec) enforces a per-server throttle.\n4. max_send_errors triggers an automatic pause / disable of the offending SMTP server.\n5. A sliding-window throttle (optional) smooths bursts so the rate is honoured over short intervals.\n6. The engine reports per-campaign send progress (sent / failed / queued counters) accessible via API.\n7. Worker shutdown is graceful: in-flight messages complete before the process exits.\n\nSCORING ANCHORS:\n- 0 (none): No engine; sending done synchronously per request.\n- 3 (weak): Single SMTP, fixed concurrency, no throttle.\n- 6 (good): Pool + batch + concurrency + message_rate; sliding window or graceful shutdown weak.\n- 8 (excellent): All seven criteria satisfied with a robust mailing engine.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+      "score_range": [
+       0,
+       8
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "EmailEngine",
+    "method": "llm-judge",
+    "maxScore": 8
+   },
+   "complexity_tier": "workflow_automator",
+   "evidence": {}
+  }
+ ]
+}

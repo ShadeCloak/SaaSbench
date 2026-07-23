@@ -1,0 +1,42 @@
+name: task_uybznoms
+
+services:
+  app:
+    image: shadetocloak/task_uybznoms-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: app_uybznoms
+    ports:
+      - "8006:8002"
+    volumes:
+      - ./workspace:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    restart: "no"
+  db:
+    image: postgis/postgis:15-3.4
+    container_name: db_uybznoms
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: app_uybznoms
+      POSTGRES_USER: appuybznoms
+      POSTGRES_PASSWORD: app123uybznoms
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuybznoms -d app_uybznoms"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: "no"
+volumes:
+  pg_data:

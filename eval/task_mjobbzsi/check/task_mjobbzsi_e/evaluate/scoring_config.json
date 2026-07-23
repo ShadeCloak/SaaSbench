@@ -1,0 +1,93 @@
+{
+  "task_id": "task_mjobbzsi",
+  "normalization": "0-100",
+  "total_raw_score": 297,
+  "categories": {
+    "ArchitectureQuality": {"maxScore": 31, "node_count": 5, "description": "Architecture quality: Redux composition pattern, XMPP message handling, error handling, state management, WebRTC media pipeline (LLM-judge)"},
+    "XMPPSignaling": {"maxScore": 30, "node_count": 5, "description": "XMPP WebSocket/BOSH connection, authentication, MUC join and other signalling-protocol behaviour"},
+    "RBAC": {"maxScore": 32, "node_count": 10, "description": "Role-permission matrix: moderator/participant/visitor allow/deny verification (P14)"},
+    "UIQuality": {"maxScore": 31, "node_count": 5, "description": "UI quality: conference page, prejoin page, chat experience, accessibility, responsive layout (LLM-judge)"},
+    "IFrameAPI": {"maxScore": 22, "node_count": 5, "description": "IFrame External API: script load, constructor, command/event definitions, postMessage communication"},
+    "ConferenceFlow": {"maxScore": 19, "node_count": 5, "description": "Conference lifecycle: room load -> prejoin -> join -> toolbar -> hangup"},
+    "ModerationControl": {"maxScore": 19, "node_count": 4, "description": "Moderator control: lobby, AV moderation, security dialog"},
+    "Configuration": {"maxScore": 13, "node_count": 3, "description": "config.js runtime value verification: resolution, codec order, start-muted threshold"},
+    "ChatSystem": {"maxScore": 12, "node_count": 2, "description": "Chat system: open panel -> send message -> verify delivery + tabs"},
+    "PollsSystem": {"maxScore": 10, "node_count": 1, "description": "Polls system: create -> vote -> verify result shows '1 (100%)'"},
+    "EdgeCases": {"maxScore": 10, "node_count": 2, "description": "Edge cases: toolbar auto-hide 4s, keyboard shortcuts"},
+    "Deployment": {"maxScore": 8, "node_count": 4, "description": "Deployment: port reachable, build success, feature module / language file counts"},
+    "Recording": {"maxScore": 4, "node_count": 1, "description": "Recording: recording button and dialog UI"},
+    "SharedVideo": {"maxScore": 4, "node_count": 1, "description": "Shared video: URL input dialog"},
+    "HandRaise": {"maxScore": 4, "node_count": 1, "description": "Raise hand: button toggle + icon appears"},
+    "BreakoutRooms": {"maxScore": 4, "node_count": 1, "description": "Breakout rooms: UI inside participants pane"},
+    "FollowMe": {"maxScore": 4, "node_count": 1, "description": "Follow Me: option inside settings panel"},
+    "VirtualBackground": {"maxScore": 4, "node_count": 1, "description": "Virtual background: dialog UI"},
+    "SpeakerStats": {"maxScore": 4, "node_count": 1, "description": "Speaker stats: panel UI"},
+    "Settings": {"maxScore": 4, "node_count": 1, "description": "Settings dialog: tab structure"},
+    "VideoLayout": {"maxScore": 4, "node_count": 1, "description": "Video layout: tile-view toggle"},
+    "Whiteboard": {"maxScore": 3, "node_count": 1, "description": "Whiteboard: feature availability"},
+    "Subtitles": {"maxScore": 3, "node_count": 1, "description": "Subtitles / CC: button presence"},
+    "E2EE": {"maxScore": 3, "node_count": 1, "description": "End-to-end encryption: E2EE toggle in the security dialog"},
+    "Reactions": {"maxScore": 3, "node_count": 1, "description": "Reactions: button presence"},
+    "Invite": {"maxScore": 3, "node_count": 1, "description": "Invite dialog: URL and copy button"},
+    "ParticipantsPane": {"maxScore": 3, "node_count": 1, "description": "Participants pane: open and list display"},
+    "EmbedMeeting": {"maxScore": 3, "node_count": 1, "description": "Embed meeting: iframe-code dialog"},
+    "ConnectionStats": {"maxScore": 3, "node_count": 1, "description": "Connection indicator: UI element presence"}
+  },
+  "scoring_method_distribution": {
+    "binary": {"score": 218, "pct": 73.4, "description": "All primitives must pass for full credit, otherwise 0"},
+    "weighted": {"score": 17, "pct": 5.7, "description": "Score scales with the proportion of primitives that pass"},
+    "llm-judge": {"score": 62, "pct": 20.9, "description": "Evidence is sent to an LLM rubric for scoring"}
+  },
+  "depth_distribution": {
+    "shallow": {"score": 21, "pct": 7.1, "description": "Existence checks (P01 / P03 / P04 + P15)"},
+    "deep": {"score": 214, "pct": 72.1, "description": "Runtime behaviour assertions (P07 / P14 / P21 / multi-step P18 + P19)"},
+    "llm_judge": {"score": 62, "pct": 20.9, "description": "Subjective evaluation (P17 screenshot / code review)"}
+  },
+  "complexity_distribution": {
+    "linear_crud": 10,
+    "workflow_automator": 29,
+    "marketplace_rbac": 12,
+    "high_concurrency": 17
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core feature chain: deploy -> config -> XMPP connect -> join conference -> chat -> polls",
+      "nodes": [
+        "DEPLOY_PORT_ACCESSIBLE", "DEPLOY_BUILD_SUCCESS", "CONFIG_JS_RUNTIME",
+        "XMPP_WS_CONNECT", "XMPP_ANON_AUTH_FLOW", "XMPP_MUC_JOIN",
+        "CONF_ROOM_HTML", "CONF_PREJOIN_SCREEN", "CONF_JOIN_AND_TOOLBAR",
+        "CHAT_OPEN_SEND_VERIFY", "CHAT_PANEL_TABS", "POLLS_CREATE_VOTE_VERIFY"
+      ],
+      "total_score": 77
+    },
+    "advanced_workflows": {
+      "description": "Advanced feature chain: RBAC + lobby + security + architecture + UI quality",
+      "nodes": [
+        "RBAC_MOD_CAN_KICK", "RBAC_PARTICIPANT_CANNOT_KICK",
+        "RBAC_MOD_CAN_MUTE_REMOTE", "RBAC_PARTICIPANT_CANNOT_MUTE_REMOTE",
+        "RBAC_MOD_CAN_SET_PASSWORD", "RBAC_PARTICIPANT_CANNOT_SET_PASSWORD",
+        "RBAC_MOD_CAN_RECORD", "RBAC_PARTICIPANT_CANNOT_RECORD",
+        "RBAC_VISITOR_LIMITED_TOOLBAR", "RBAC_MOD_FULL_TOOLBAR",
+        "LOBBY_ENABLE_VERIFY", "MOD_SECURITY_DIALOG", "E2EE_TOGGLE",
+        "CONF_HANGUP_FLOW",
+        "ARCH_XMPP_MESSAGE_HANDLING", "ARCH_WEBRTC_MEDIA_DESIGN",
+        "UI_CHAT_EXPERIENCE", "UI_ACCESSIBILITY"
+      ],
+      "total_score": 82
+    }
+  },
+  "primitive_usage_summary": {
+    "P01_file_exists": 3,
+    "P02_file_content_match": 3,
+    "P03_file_count": 3,
+    "P04_http_request": 4,
+    "P07_json_value_assert": 11,
+    "P12_docker_exec": 7,
+    "P14_permission_check": 15,
+    "P15_status_code_assert": 3,
+    "P17_llm_judge": 10,
+    "P18_browser_interaction": 28,
+    "P19_dom_assertion": 29,
+    "P21_websocket_connect": 6
+  }
+}

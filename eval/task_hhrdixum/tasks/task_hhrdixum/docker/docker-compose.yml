@@ -1,0 +1,193 @@
+# task_hhrdixum — Inventory Management & Light-MRP development stack
+#
+# This stack uses the pre-frozen Docker Hub image
+# `shadetocloak/task_hhrdixum-app:latest`, which already contains the system
+# packages and Python site-packages required by the inventory application
+# (Django 5 LTS, DRF, django-mptt, django-q2, django-allauth, django-money,
+# etc.). The agent only needs to populate /app (= ./workspace on the host)
+# with the source code and start the application server.
+#
+# Three services:
+#   * app    — Python 3.12 + Node.js 20 application container (workspace mounted from host)
+#   * db     — PostgreSQL 16 (>= task.md § 2.1 minimum of PG 13)
+#   * cache  — Redis 7 (cache + django-q2 broker)
+#
+# Host port mapping (per task.md § 8.4):
+#   App        8014 -> 8000
+#   PostgreSQL 5439 -> 5432
+#   Redis      6380 -> 6379
+#
+# Volume model (per task.md § 8.5):
+#   * ./workspace is bind-mounted to /app — the agent writes ALL of its source
+#     code, configuration, AND persistent data (data/static/media/logs/plugins
+#     subdirs) under /app, exactly as task.md § 8.5 requires.
+#   * The two named volumes pg-data and redis-data persist DB and cache data
+#     OUTSIDE the bind-mounted /app tree, so they survive `docker compose down`.
+#   * No nested mount: /app is *only* a host bind-mount; sub-directories under
+#     /app are plain directories the agent must create within ./workspace.
+#
+# Usage:
+#   docker compose up -d            # pull & start
+#   docker compose logs -f app      # follow app logs
+#   docker compose exec app bash    # shell into app container
+#   docker compose down -v          # stop & wipe volumes (clean slate)
+name: task_hhrdixum
+
+x-app-env: &app-env
+  # Database — agent code MUST honour these names (per task.md § 8.3)
+  APP_DB_ENGINE: postgresql
+  APP_DB_NAME: ${APP_DB_NAME:-app_hhrdixum}
+  APP_DB_USER: ${APP_DB_USER:-apphhrdixum}
+  APP_DB_PASSWORD: ${APP_DB_PASSWORD:-app123hhrdixum}
+  APP_DB_HOST: db
+  APP_DB_PORT: 5432
+  DATABASE_URL: postgres://${APP_DB_USER:-apphhrdixum}:${APP_DB_PASSWORD:-app123hhrdixum}@db:5432/${APP_DB_NAME:-app_hhrdixum}
+  # Cache & background broker
+  APP_CACHE_ENABLED: "True"
+  APP_CACHE_HOST: cache
+  APP_CACHE_PORT: 6379
+  REDIS_URL: redis://cache:6379/0
+  # Background workers (django-q2)
+  APP_BACKGROUND_WORKERS: 4
+  # General
+  APP_DEBUG: ${APP_DEBUG:-True}
+  APP_SECRET_KEY: ${APP_SECRET_KEY:-changeme-replace-me-with-a-50char-random-string-xxxxxxxxxx}
+  APP_ALLOWED_HOSTS: "*"
+  APP_CORS_ALLOW_ALL: ${APP_CORS_ALLOW_ALL:-True}
+  APP_CORS_ORIGIN_WHITELIST: ${APP_CORS_ORIGIN_WHITELIST:-http://localhost:8014}
+  APP_TIMEZONE: ${APP_TIMEZONE:-UTC}
+  APP_LANGUAGE: ${APP_LANGUAGE:-en}
+  APP_BASE_URL: ${APP_BASE_URL:-http://localhost:8014}
+  APP_PLUGINS_ENABLED: "True"
+  # Email (default: console backend so no real SMTP needed)
+  APP_EMAIL_BACKEND: ${APP_EMAIL_BACKEND:-django.core.mail.backends.console.EmailBackend}
+  # Pricing & background defaults
+  APP_DEFAULT_CURRENCY: ${APP_DEFAULT_CURRENCY:-USD}
+  # Django settings module (agent-implementable)
+  DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-app.settings}
+  # Misc
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+
+services:
+  app:
+    image: shadetocloak/task_hhrdixum-app:${IMAGE_TAG:-baseline}
+    # Local-build fallback: uncomment if you need to rebuild the image from
+    # the local Dockerfile (e.g. you've changed system packages). The frozen
+    # Docker Hub image is the default.
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: task_hhrdixum-app
+    ports:
+      - "8014:8000"
+    environment:
+      <<: *app-env
+    # Single bind-mount of the workspace — all of /app (source code AND data
+    # subdirs the agent creates) is host-visible at ./workspace/.
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    # Default command: run the agent's entrypoint script if present, otherwise
+    # idle so the operator can `docker compose exec app bash` and bootstrap.
+    # The path of the entrypoint script can be overridden via APP_START_SCRIPT
+    # (default: /app/bin/start.sh — task.md § 8.8 lists this as a *recommended*
+    # entrypoint, not a hard requirement; the operator may point this at any
+    # script the agent provides).
+    command:
+      - bash
+      - -lc
+      - |
+        echo '[app] container ready. Workspace at /app';
+        START_SCRIPT="${APP_START_SCRIPT:-/app/bin/start.sh}";
+        if [ -f "$$START_SCRIPT" ]; then
+          echo "[app] executing $$START_SCRIPT";
+          exec bash "$$START_SCRIPT";
+        else
+          echo "[app] no $$START_SCRIPT — sleeping; exec into the container with: docker compose exec app bash";
+          tail -f /dev/null;
+        fi
+    stdin_open: true
+    tty: true
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+    # weak healthcheck: a live container is considered healthy.
+    # Readiness of business services is handled by the prepare/test scripts respectively.
+    # In model mode, PID 1 = sleep infinity keeps _wait_compose_ready from hanging.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    restart: "no"
+    networks:
+      default:
+        aliases:
+          - app
+
+  db:
+    image: postgres:16-bookworm
+    container_name: task_hhrdixum-db
+    ports:
+      - "5439:5432"
+    environment:
+      POSTGRES_DB: ${APP_DB_NAME:-app_hhrdixum}
+      POSTGRES_USER: ${APP_DB_USER:-apphhrdixum}
+      POSTGRES_PASSWORD: ${APP_DB_PASSWORD:-app123hhrdixum}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${APP_DB_USER:-apphhrdixum} -d ${APP_DB_NAME:-app_hhrdixum}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+    networks:
+      default:
+        aliases:
+          - db
+          - postgres
+
+  cache:
+    image: redis:7-alpine
+    container_name: task_hhrdixum-cache
+    ports:
+      - "6380:6379"
+    command:
+      - redis-server
+      - --appendonly
+      - "yes"
+      - --maxmemory
+      - "512mb"
+      - --maxmemory-policy
+      - "allkeys-lru"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    restart: "no"
+    networks:
+      default:
+        aliases:
+          - cache
+          - redis
+
+volumes:
+  pg-data:
+  redis-data:
+
+networks:
+  default:
+    name: task_hhrdixum-net
+    driver: bridge

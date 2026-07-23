@@ -1,0 +1,60 @@
+# =============================================================================
+# Docker Compose overlay — inject portable claude runtime into every task.
+# =============================================================================
+#
+# Usage (set by run_benchmark_claude.py before invoking prepare_workspace.sh):
+#
+#   export COMPOSE_FILE="<task>/docker/docker-compose.yml:tasks/_overlays/docker-compose.claude.yml"
+#   export SAASBENCH_CLAUDE_RUNTIME_DIR=/home/<user>/.saasbench/claude-runtime
+#   docker compose up -d
+#
+# What this overlay does:
+#   - Bind-mounts the host's portable claude runtime (~/.saasbench/claude-runtime/
+#     by default) into the `app` container at /opt/claude (read-only).
+#   - Prepends /opt/claude/bin to PATH so `claude`, `node`, `rg` are picked up
+#     before any task-specific binaries.
+#   - Sets NODE_PATH so claude code finds its own node_modules.
+#
+# What this overlay does NOT do:
+#   - Inject ANTHROPIC_API_KEY / ANTHROPIC_BASE_URL — those are passed via
+#     `docker exec -e` at run-claude time so secrets never persist in compose
+#     state (visible to `docker compose config`) or in container env files.
+#   - Modify `command`, `entrypoint`, `working_dir`, `ports`, `depends_on`,
+#     `healthcheck`, or any other service field. This is a strict additive
+#     overlay.
+#
+# Why all 30 tasks share one file:
+#   Every task's docker-compose.yml defines its main service as `app` (the
+#   container_name varies but the *service* key is consistent). Compose's
+#   multi-`-f` mechanism merges by service key, so this single overlay covers
+#   every task.
+#
+# Why volumes/environment use array vs dict:
+#   - volumes is a list and merges by *append*, so we add /opt/claude
+#     without disturbing the existing ./workspace:/app bind-mount.
+#   - environment is a map here so PATH/NODE_PATH cleanly override anything
+#     coming from env_file (compose precedence: environment > env_file).
+#
+# Hard constraint compliance (zza/claude-run branch):
+#   - No existing image is modified (we only mount in extra files at runtime).
+#   - No existing docker-compose.yml is edited (this is a separate overlay).
+#   - No existing prepare_workspace.sh is edited (COMPOSE_FILE is exported by
+#     the parent process and prepare's `docker compose up -d` picks it up).
+# =============================================================================
+
+services:
+  app:
+    volumes:
+      # Host path is required (not relative). Compose evaluates relative
+      # volume paths against the *first* compose file's directory, which would
+      # be the task's docker/ — wrong for our shared runtime. Using an
+      # absolute path via env var sidesteps that.
+      - ${SAASBENCH_CLAUDE_RUNTIME_DIR}:/opt/claude:ro
+
+    # IMPORTANT: keep this a *map* (not a list). compose merges maps key-by-
+    # key, so PATH/NODE_PATH just overlay any existing values. With list
+    # syntax, duplicates would accumulate and `docker exec env` becomes a
+    # debugging nightmare.
+    environment:
+      PATH: /opt/claude/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      NODE_PATH: /opt/claude/lib/node_modules

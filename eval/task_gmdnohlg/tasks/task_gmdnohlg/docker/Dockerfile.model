@@ -1,0 +1,27 @@
+# =============================================================================
+# Dockerfile.model template — generic PHP development environment.
+# Provides PHP CLI + ~10 common extensions + Composer pre-installed so that
+# the model under test can scaffold any PHP application from scratch.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        php-cli php-curl php-mbstring php-xml php-zip php-bcmath \
+        php-mysql php-pgsql php-sqlite3 php-redis \
+        php-intl php-gd php-imap php-soap php-xsl \
+        composer \
+ && rm -rf /var/lib/apt/lists/* \
+ && php --version && composer --version
+
+# Optional: configure a regional Composer mirror for faster install.
+# Override or skip via build arg COMPOSER_MIRROR (set to empty to disable).
+ARG COMPOSER_MIRROR=https://mirrors.aliyun.com/composer/
+RUN [ -n "$COMPOSER_MIRROR" ] && composer config -g repo.packagist composer "$COMPOSER_MIRROR" || true
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

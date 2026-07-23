@@ -1,0 +1,1400 @@
+{
+  "meta": {
+    "task_id": "task_iyjruvfz",
+    "total_maxScore": 404,
+    "total_nodes": 268,
+    "normalization": "0-100",
+    "complexity_tier_primary": "high_concurrency",
+    "complexity_tier_secondary": "marketplace_rbac",
+    "generated_at": "2026-04-19",
+    "source_dag": "evaluate/dag.json",
+    "categories_count": 23
+  },
+  "categories": {
+    "API_v1": {
+      "maxScore": 26,
+      "node_count": 22,
+      "subcategories": {
+        "BookingList_v1": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EventTypeList_v1": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ApiKeyList_v1": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ScheduleList_v1": {
+          "maxScore": 3,
+          "node_count": 2
+        },
+        "MembershipList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TeamList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WebhookList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AvailabilityList_v1": {
+          "maxScore": 2,
+          "node_count": 2
+        },
+        "BookingPatch_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyDelete_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AttendeeList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "BookingReferenceList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ConnectedCalendarList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EventTypeCustomInputList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "DestinationCalendarList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "InviteList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "PaymentList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SelectedCalendarList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SlotsList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "UserList_v1": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "API_v2": {
+      "maxScore": 65,
+      "node_count": 46,
+      "subcategories": {
+        "BookingList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EventTypeList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "SlotsList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "TeamList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ScheduleList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "PlatformOAuthClientList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "WebhookList_v2": {
+          "maxScore": 3,
+          "node_count": 2
+        },
+        "MembershipList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "DestinationCalendarList_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "VersionHeader_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ErrorEnvelope_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "BookingMarkAbsent_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "SlotsGet_v2": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "BookingPatch_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EventTypeDelete_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "TeamPatch_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ApiKeyDelete_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WebhookPatch_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "WebhookDelete_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "MembershipPatch_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "MembershipDelete_v2": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "SchedulePut_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AppList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "BillingList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ConferencingList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "CredentialList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EventTypeWebhookList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "OutOfOfficeList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "OrganizationList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ProfileList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "RoleList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "RouterList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "RoutingFormList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SelectedCalendarList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "StripeList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TimezoneList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TokenList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "VerifiedResourceList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WorkflowList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AuthList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EmailList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "DeploymentList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AtomsList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "BookingSeatList_v2": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "API_v2_EE": {
+      "maxScore": 8,
+      "node_count": 8,
+      "subcategories": {
+        "EEBooking_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EECalendar_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EEEventType_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EEEventTypePrivateLink_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EEGcal_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EEMe_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EEProvider_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "EESchedule_EE": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "ArchitectureQuality": {
+      "maxScore": 8,
+      "node_count": 4,
+      "subcategories": {
+        "MonorepoLayout": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "SchemaQuality": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ApiLayering": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "AsyncTaskDecouple": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "Authentication": {
+      "maxScore": 31,
+      "node_count": 15,
+      "subcategories": {
+        "NextAuthCSRF": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "NextAuthProviders": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Login": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "LoginFailure": {
+          "maxScore": 4,
+          "node_count": 2
+        },
+        "ApiKeyValid": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "ApiKeyInvalid": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ApiKeyStorage": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "PlatformOAuth": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "GenericOAuth": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "PKCE": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "MagicLink": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "TwoFactor": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SessionCookie": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyPrefix": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_Booking": {
+      "maxScore": 30,
+      "node_count": 13,
+      "subcategories": {
+        "UidGeneration": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "TimezoneFormat": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Idempotency": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "IdempotencyConflict": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "StateTransition": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "Reschedule": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "ConfirmFlow": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "InstantMeeting": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RecurringAtomic": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "MultiSeat": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "DefaultLocale": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AuditTrail": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RequiredFieldsValidation": {
+          "maxScore": 3,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_DataIntegrity": {
+      "maxScore": 3,
+      "node_count": 1,
+      "subcategories": {
+        "UserCascadeDelete": {
+          "maxScore": 3,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_EventType": {
+      "maxScore": 3,
+      "node_count": 1,
+      "subcategories": {
+        "PatchHostsReplace": {
+          "maxScore": 3,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_Scheduling": {
+      "maxScore": 20,
+      "node_count": 10,
+      "subcategories": {
+        "MinNotice": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RoundRobin": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "RRWeight": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Collective": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "OOO": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "BookingLimits": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "DestinationCalendar": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Holiday": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TravelSchedule": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RRReset": {
+          "maxScore": 3,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_Webhook": {
+      "maxScore": 11,
+      "node_count": 5,
+      "subcategories": {
+        "Signature": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "NoSecretFallback": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RetryPolicy": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Timeout": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AsyncDeliveryNonBlocking": {
+          "maxScore": 3,
+          "node_count": 1
+        }
+      }
+    },
+    "BusinessLogic_Workflow": {
+      "maxScore": 5,
+      "node_count": 3,
+      "subcategories": {
+        "TriggerParallel": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ReminderCleanup": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "TemplateVars": {
+          "maxScore": 2,
+          "node_count": 1
+        }
+      }
+    },
+    "CronJobs": {
+      "maxScore": 16,
+      "node_count": 11,
+      "subcategories": {
+        "AuthRequired": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "AuthValid": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EndpointInventory": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "VercelConfig": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TaskerStorage": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WorkflowsDispatch": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "WebhookPickup": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "BookingReminder": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "CalendarSubscriptions": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "DowngradeUsers": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SyncAppMeta": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "DataModel": {
+      "maxScore": 55,
+      "node_count": 47,
+      "subcategories": {
+        "CoreTable": {
+          "maxScore": 16,
+          "node_count": 16
+        },
+        "Index": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Idempotency": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Security": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Enum": {
+          "maxScore": 18,
+          "node_count": 16
+        },
+        "View": {
+          "maxScore": 3,
+          "node_count": 3
+        },
+        "BookingIndexes": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "BookingFK": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "BookingFieldsComplete": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "EventTypeFieldsComplete": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "UserFieldsComplete": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EventTypeIndexes": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "UserUnique": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TeamOrgRelation": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TaskerStorage": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "Deployment": {
+      "maxScore": 15,
+      "node_count": 9,
+      "subcategories": {
+        "Database": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "Cache": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "DBExtensions": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Healthcheck": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Routing": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ORMGen": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Secrets": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Migrations": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SeedIdempotency": {
+          "maxScore": 2,
+          "node_count": 1
+        }
+      }
+    },
+    "EdgeCases": {
+      "maxScore": 28,
+      "node_count": 20,
+      "subcategories": {
+        "PastTime": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Conflict": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Timezone": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Validation": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TokenExpired": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "TRPCError": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "HealthcheckFallback": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "MinNoticeFilter": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "OAuthClientPending": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyExpired": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "DSTSpringForward": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "LeapYear": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "MultiTimezoneSlot": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "RecurringCrossYear": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ConcurrentCancelRace": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "WebhookRetryExhausted": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyLastUsed": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "BookingWindow": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ReservedUsername": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ReminderPastDue": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "Frontend": {
+      "maxScore": 8,
+      "node_count": 6,
+      "subcategories": {
+        "LoginUI": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SignupUI": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AppRouter": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EmbedEvent": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ThemePersist": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "I18n": {
+          "maxScore": 2,
+          "node_count": 1
+        }
+      }
+    },
+    "Integration": {
+      "maxScore": 8,
+      "node_count": 5,
+      "subcategories": {
+        "GoogleScope": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Office365Scope": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Encryption": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "DestCalendar": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WatchRetry": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "Internationalization": {
+      "maxScore": 10,
+      "node_count": 8,
+      "subcategories": {
+        "LocaleCount": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "Fallback": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "Namespace": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TranslationCompleteness": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "UserLocalePersist": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "AutoTranslate": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "BookingLocaleDefault": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "DateFormat": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "RBAC": {
+      "maxScore": 25,
+      "node_count": 12,
+      "subcategories": {
+        "MEMBERDeny": {
+          "maxScore": 6,
+          "node_count": 3
+        },
+        "OWNERAllow": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "ADMINAllow": {
+          "maxScore": 4,
+          "node_count": 2
+        },
+        "USERDeny": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "USERAllow": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "PBACDependsOn": {
+          "maxScore": 3,
+          "node_count": 1
+        },
+        "OwnerBypass": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "GlobalAdminBypass": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "PBACScopeFilter": {
+          "maxScore": 2,
+          "node_count": 1
+        }
+      }
+    },
+    "SecurityCrypto": {
+      "maxScore": 8,
+      "node_count": 5,
+      "subcategories": {
+        "KeyLength": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "HashAlgo": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "WebhookHMAC": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "PKCELength": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "NoLeakageOnError": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    },
+    "Setup": {
+      "maxScore": 13,
+      "node_count": 10,
+      "subcategories": {
+        "SeedAdmin": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SeedOwner": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "SeedMember": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TeamWithRoles": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "EventTypeForBooking": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "PlatformOAuthClient": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "OAuthClientPending": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "WebhookReceiver": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "ApiKeyOwner": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "TestBooking": {
+          "maxScore": 2,
+          "node_count": 1
+        }
+      }
+    },
+    "Teardown": {
+      "maxScore": 0,
+      "node_count": 1,
+      "subcategories": {
+        "ResetDB": {
+          "maxScore": 0,
+          "node_count": 1
+        }
+      }
+    },
+    "tRPC": {
+      "maxScore": 8,
+      "node_count": 6,
+      "subcategories": {
+        "publicViewer/timezones": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "publicViewer/event": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "loggedInViewerRouter/me": {
+          "maxScore": 1,
+          "node_count": 1
+        },
+        "bookings/get": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "eventTypes/list": {
+          "maxScore": 2,
+          "node_count": 1
+        },
+        "slots/getSchedule": {
+          "maxScore": 1,
+          "node_count": 1
+        }
+      }
+    }
+  },
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 147,
+      "maxScore": 197
+    },
+    "high_concurrency": {
+      "node_count": 43,
+      "maxScore": 66
+    },
+    "workflow_automator": {
+      "node_count": 38,
+      "maxScore": 72
+    },
+    "marketplace_rbac": {
+      "node_count": 40,
+      "maxScore": 69
+    }
+  },
+  "depth_distribution": {
+    "shallow": {
+      "pts": 49,
+      "pct": 12.1
+    },
+    "deep": {
+      "pts": 347,
+      "pct": 85.9
+    },
+    "llm_judge": {
+      "pts": 8,
+      "pct": 2.0
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy → DB schema → authentication → basic CRUD → create/cancel booking + basic i18n",
+      "node_ids": [
+        "API_V1_BOOKING_LIST",
+        "API_V1_EVENTTYPE_LIST",
+        "API_V1_USER_LIST_EXTRA",
+        "API_V2_BOOKING_LIST_ENVELOPE",
+        "API_V2_EVENTTYPE_LIST_ENVELOPE",
+        "API_V2_SLOTS_LIST_ENVELOPE",
+        "API_V2_TEAM_LIST_ENVELOPE",
+        "AUTH_API_KEY_HASHED_NOT_RAW_IN_DB",
+        "AUTH_API_KEY_VERIFY_VALID",
+        "AUTH_LOGIN_CREDENTIALS_SUCCESS",
+        "AUTH_NEXTAUTH_CSRF_ENDPOINT",
+        "AUTH_NEXTAUTH_PROVIDERS",
+        "AUTH_NEXTAUTH_SESSION_COOKIE_PROPS",
+        "BIZ_BOOKING_CANCEL_STATE_TRANSITION",
+        "BIZ_BOOKING_CREATE_UID_SHORT_UUID",
+        "BIZ_BOOKING_DEFAULT_LOCALE_EN",
+        "BIZ_BOOKING_RESCHEDULE_NEW_UID",
+        "BIZ_BOOKING_TIMES_UTC_ISO",
+        "CRON_AUTH_LOCATION_HEADER_OR_QUERY",
+        "DATA_TABLE_ACCESSTOKEN",
+        "DATA_TABLE_APIKEY",
+        "DATA_TABLE_BOOKING",
+        "DATA_TABLE_EVENTTYPE",
+        "DATA_TABLE_INSTANTMEETINGTOKEN",
+        "DATA_TABLE_MEMBERSHIP",
+        "DATA_TABLE_OAUTHCLIENT",
+        "DATA_TABLE_PLATFORMOAUTHCLIENT",
+        "DATA_TABLE_REFRESHTOKEN",
+        "DATA_TABLE_ROLE",
+        "DATA_TABLE_ROLEPERMISSION",
+        "DATA_TABLE_TEAM",
+        "DATA_TABLE_USERS",
+        "DATA_TABLE_WEBHOOK",
+        "DATA_TABLE_WORKFLOW",
+        "DATA_TABLE_WORKFLOWREMINDER",
+        "FRONT_AUTH_LOGIN_PAGE",
+        "FRONT_SIGNUP_PAGE",
+        "I18N_44_LOCALES_DIR",
+        "I18N_FALLBACK_TO_EN",
+        "SETUP_EVENT_TYPE_FOR_BOOKING",
+        "SETUP_TEST_BOOKING",
+        "SETUP_USER_ADMIN",
+        "SETUP_USER_MEMBER",
+        "SETUP_USER_OWNER"
+      ],
+      "node_count": 44,
+      "maxScore": 67,
+      "interpretation": "Happy Path pass rate < 60% → even the baseline application was not stood up"
+    },
+    "advanced_workflows": {
+      "description": "Advanced capabilities: RBAC bidirectional / scheduling / Workflow / Webhook / EdgeCase / architecture / integration / security / EE / OAuth / cron business logic",
+      "node_ids": [
+        "API_V1_API_KEY_DELETE",
+        "API_V1_BOOKING_PATCH",
+        "API_V2_API_KEY_DELETE",
+        "API_V2_BOOKING_MARK_ABSENT",
+        "API_V2_BOOKING_RESCHEDULE_VIA_PATCH",
+        "API_V2_EE_EEBOOKING_LIST",
+        "API_V2_EE_EECALENDAR_LIST",
+        "API_V2_EE_EEEVENTTYPEPRIVATELINK_LIST",
+        "API_V2_EE_EEEVENTTYPE_LIST",
+        "API_V2_EE_EEGCAL_LIST",
+        "API_V2_EE_EEME_LIST",
+        "API_V2_EE_EEPROVIDER_LIST",
+        "API_V2_EE_EESCHEDULE_LIST",
+        "API_V2_EVENTTYPE_DELETE",
+        "API_V2_MEMBERSHIP_DELETE_REMOVES_USER",
+        "API_V2_MEMBERSHIP_PATCH_ROLE",
+        "API_V2_TEAM_PATCH_NAME",
+        "API_V2_USER_DELETE_CASCADE",
+        "API_V2_WEBHOOK_PATCH_TRIGGERS",
+        "ARCH_API_LAYERED_DESIGN",
+        "ARCH_MONOREPO_LAYOUT_QUALITY",
+        "ARCH_PRISMA_SCHEMA_NORMALIZATION",
+        "ARCH_TASKER_TRIGGER_DEV_DECOUPLE",
+        "AUTH_2FA_TOTP_VERIFY",
+        "AUTH_API_KEY_VERIFY_INVALID_REJECTED",
+        "AUTH_GENERIC_OAUTH_TOKEN_30D",
+        "AUTH_LOGIN_CREDENTIALS_USER_NOT_EXIST",
+        "AUTH_LOGIN_CREDENTIALS_WRONG_PASSWORD",
+        "AUTH_PASSWORD_RESET_TOKEN_EXPIRY",
+        "AUTH_PLATFORM_OAUTH_PKCE_S256",
+        "AUTH_PLATFORM_OAUTH_TOKEN_EXCHANGE",
+        "BIZ_BOOKING_AUDIT_TRAIL",
+        "BIZ_BOOKING_IDEMPOTENCY_KEY_CONFLICT",
+        "BIZ_BOOKING_IDEMPOTENCY_KEY_REPLAY",
+        "BIZ_BOOKING_INSTANT_AWAITING_HOST",
+        "BIZ_BOOKING_MULTI_SEAT_RELEASE",
+        "BIZ_BOOKING_RECURRING_TRANSACTION_ATOMIC",
+        "BIZ_BOOKING_REQUIRECONFIRMATION_PENDING",
+        "BIZ_BOOKING_REQUIRED_FIELDS_MISSING_REJECTED",
+        "BIZ_EVENTTYPE_PATCH_HOSTS_REPLACE_SEMANTICS",
+        "BIZ_PBAC_SCOPE_FILTER_LIST",
+        "BIZ_SCHED_BOOKING_LIMITS_PER_DAY",
+        "BIZ_SCHED_COLLECTIVE_INTERSECT",
+        "BIZ_SCHED_DESTINATION_CALENDAR_PRIORITY",
+        "BIZ_SCHED_HOLIDAY_BLOCKS_SLOT",
+        "BIZ_SCHED_MIN_BOOKING_NOTICE_DEFAULT_120",
+        "BIZ_SCHED_OOO_REROUTE",
+        "BIZ_SCHED_RR_HOST_WEIGHT_DEFAULT_100",
+        "BIZ_SCHED_RR_LUCKY_USER_WEIGHTED",
+        "BIZ_SCHED_RR_RESET_INTERVAL_MONTH",
+        "BIZ_SCHED_TRAVEL_SCHEDULE_TZ_OVERRIDE",
+        "BIZ_WEBHOOK_ASYNC_QUEUE_VS_SYNC",
+        "BIZ_WEBHOOK_NO_SECRET_HEADER_VALUE",
+        "BIZ_WEBHOOK_RETRY_MAX_ATTEMPTS_3",
+        "BIZ_WEBHOOK_SIGNATURE_HMAC_SHA256",
+        "BIZ_WEBHOOK_TIMEOUT_30S",
+        "BIZ_WORKFLOW_EMAIL_HOST_TEMPLATE_VARS",
+        "BIZ_WORKFLOW_REMINDER_CANCEL_ON_BOOKING_CANCEL",
+        "DATA_TASKER_SCHEMA_PRESENT",
+        "BIZ_WORKFLOW_TRIGGER_PARALLEL",
+        "CRON_BOOKING_REMINDER_PROCESSES_DUE",
+        "CRON_CALENDAR_SUBSCRIPTIONS_RENEW_CHANNEL",
+        "CRON_DOWNGRADE_USERS_TRIAL_EXPIRED",
+        "CRON_SYNC_APP_META_UPSERTS",
+        "CRON_WEBHOOK_TRIGGERS_PICKUP",
+        "CRON_WORKFLOWS_DISPATCH_DUE_REMINDERS",
+        "EDGE_API_KEY_EXPIRED_REJECTED",
+        "EDGE_API_KEY_LAST_USED_UPDATE",
+        "EDGE_API_V2_OAUTH_TOKEN_EXPIRED_498",
+        "EDGE_BOOKING_DST_SPRING_FORWARD",
+        "EDGE_BOOKING_LEAP_YEAR_FEB29",
+        "EDGE_BOOKING_MISSING_REQUIRED_ATTENDEE",
+        "EDGE_BOOKING_OUTSIDE_BOOKING_WINDOW",
+        "EDGE_BOOKING_OVERLAP_CONFLICT",
+        "EDGE_BOOKING_PAST_TIME_REJECTED",
+        "EDGE_BOOKING_SHORT_NOTICE_REJECTED",
+        "EDGE_CONCURRENT_CANCEL_RACE",
+        "EDGE_HEALTHZ_404_FALLBACK",
+        "EDGE_INVALID_TIMEZONE_REJECTED",
+        "EDGE_MULTI_TZ_HOST_BOOKER_MISMATCH",
+        "EDGE_PLATFORM_OAUTH_CLIENT_PENDING_REJECT",
+        "EDGE_RECURRING_CROSS_YEAR",
+        "EDGE_TRPC_NOT_FOUND_FORMAT",
+        "EDGE_USERNAME_RESERVED_REJECTED",
+        "EDGE_WEBHOOK_SCHEDULED_RETRY_EXHAUSTED",
+        "EDGE_WORKFLOW_REMINDER_PAST_DUE_DELIVERED",
+        "I18N_AUTO_TRANSLATE_TABLES",
+        "I18N_TRANSLATIONS_COMPLETENESS",
+        "I18N_USER_LOCALE_PERSIST",
+        "INT_CREDENTIAL_AES_256_CBC",
+        "INT_DESTINATION_CALENDAR_TABLE",
+        "INT_GOOGLE_OAUTH_SCOPE_LIST",
+        "INT_OFFICE365_OAUTH_SCOPE_LIST",
+        "INT_SELECTED_CALENDAR_WATCH_RETRY",
+        "RBAC_ADMIN_CAN_CREATE_TEAM_EVENTTYPE",
+        "RBAC_ADMIN_CAN_INVITE",
+        "RBAC_GLOBAL_ADMIN_OVERRIDES_MEMBERSHIP",
+        "RBAC_MEMBER_CANNOT_CREATE_TEAM_EVENTTYPE",
+        "RBAC_MEMBER_CANNOT_DELETE_TEAM",
+        "RBAC_MEMBER_CANNOT_INVITE",
+        "RBAC_OWNER_CAN_DELETE_TEAM",
+        "RBAC_PBAC_DEPENDS_ON_AUTO_GRANT",
+        "RBAC_PBAC_OWNER_BYPASS",
+        "RBAC_USER_CANNOT_DELETE_OTHER_BOOKING",
+        "RBAC_USER_CAN_DELETE_OWN_BOOKING",
+        "SEC_APP_ENCRYPTION_KEY_LENGTH_32",
+        "SEC_CRON_KEY_NOT_LOGGED",
+        "SEC_HASH_API_KEY_SHA256",
+        "SEC_PKCE_S256_VERIFIER_MIN_LENGTH",
+        "SEC_WEBHOOK_HMAC_VERIFY",
+        "TEARDOWN_RESET_DB"
+      ],
+      "node_count": 111,
+      "maxScore": 192,
+      "interpretation": "Advanced pass rate < 60% → application built but business rules are wrong"
+    },
+    "medium_workflows": {
+      "description": "Medium business logic: regular CRUD endpoint extensions / DataModel field refinement / Frontend routing / general EdgeCase",
+      "node_ids": [
+        "API_V1_APIKEY_LIST",
+        "API_V1_ATTENDEE_LIST_EXTRA",
+        "API_V1_AVAILABILITY_LIST",
+        "API_V1_BOOKINGREFERENCE_LIST_EXTRA",
+        "API_V1_CONNECTEDCALENDAR_LIST_EXTRA",
+        "API_V1_DESTINATIONCALENDAR_LIST_EXTRA",
+        "API_V1_EVENTTYPECUSTOMINPUT_LIST_EXTRA",
+        "API_V1_MEMBERSHIP_LIST",
+        "API_V1_PAYMENT_LIST_EXTRA",
+        "API_V1_SCHEDULE_LIST",
+        "API_V1_SCHEDULE_LIST_EXTRA",
+        "API_V1_SELECTEDCALENDAR_LIST_EXTRA",
+        "API_V1_SLOTS_LIST_EXTRA",
+        "API_V1_TEAM_LIST",
+        "API_V1_WEBHOOK_LIST",
+        "API_V2_APIKEY_LIST_EXTRA",
+        "API_V2_APP_LIST_EXTRA",
+        "API_V2_ATOMS_LIST_EXTRA",
+        "API_V2_AUTH_LIST_EXTRA",
+        "API_V2_BILLING_LIST_EXTRA",
+        "API_V2_BOOKINGSEAT_LIST_EXTRA",
+        "API_V2_CONFERENCING_LIST_EXTRA",
+        "API_V2_CREDENTIAL_LIST_EXTRA",
+        "API_V2_DEPLOYMENT_LIST_EXTRA",
+        "API_V2_DESTINATIONCALENDAR_LIST_ENVELOPE",
+        "API_V2_EMAIL_LIST_EXTRA",
+        "API_V2_ERROR_ENVELOPE_SHAPE",
+        "API_V2_EVENTTYPEWEBHOOK_LIST_EXTRA",
+        "API_V2_MEMBERSHIP_LIST_ENVELOPE",
+        "API_V2_ORGANIZATION_LIST_EXTRA",
+        "API_V2_OUTOFOFFICE_LIST_EXTRA",
+        "API_V2_PLATFORMOAUTHCLIENT_LIST_ENVELOPE",
+        "API_V2_PROFILE_LIST_EXTRA",
+        "API_V2_ROLE_LIST_EXTRA",
+        "API_V2_ROUTER_LIST_EXTRA",
+        "API_V2_ROUTINGFORM_LIST_EXTRA",
+        "API_V2_SCHEDULE_LIST_ENVELOPE",
+        "API_V2_SCHEDULE_PUT",
+        "API_V2_SELECTEDCALENDAR_LIST_EXTRA",
+        "API_V2_SLOTS_GET_GROUPED_BY_DATE",
+        "API_V2_STRIPE_LIST_EXTRA",
+        "API_V2_TIMEZONE_LIST_EXTRA",
+        "API_V2_TOKEN_LIST_EXTRA",
+        "API_V2_VERIFIEDRESOURCE_LIST_EXTRA",
+        "API_V2_VERSION_HEADER_MISSING",
+        "API_V2_WEBHOOK_DELETE",
+        "API_V2_WEBHOOK_LIST_ENVELOPE",
+        "API_V2_WEBHOOK_LIST_EXTRA",
+        "API_V2_WORKFLOW_LIST_EXTRA",
+        "AUTH_API_KEY_PREFIX_FROM_ENV",
+        "CRON_15_ENDPOINTS_EXIST",
+        "CRON_AUTH_VALID_KEY_PASSES",
+        "CRON_TASKER_DISPATCHER_TABLE",
+        "CRON_VERCEL_SCHEDULE_FILE_EXISTS",
+        "DATA_APIKEY_HASHED_UNIQUE",
+        "DATA_BOOKING_ALL_FIELDS_60",
+        "DATA_BOOKING_FK_USER_CASCADE",
+        "DATA_BOOKING_IDEMPOTENCY_UNIQUE",
+        "DATA_BOOKING_INDEXES_COMPOSITE",
+        "DATA_BOOKING_UNIQUE_UID",
+        "DATA_ENUM_ASSIGNMENTREASONENUM",
+        "DATA_ENUM_BILLINGPERIOD",
+        "DATA_ENUM_BOOKING_STATUS",
+        "DATA_ENUM_CREATIONSOURCE",
+        "DATA_ENUM_EVENTTYPEAUTOTRANSLATEDFIELD",
+        "DATA_ENUM_IDENTITYPROVIDER",
+        "DATA_ENUM_OAUTHCLIENTSTATUS",
+        "DATA_ENUM_MEMBERSHIPROLE",
+        "DATA_ENUM_PERIODTYPE",
+        "DATA_ENUM_ATTRIBUTETYPE",
+        "DATA_ENUM_SCHEDULING_TYPE",
+        "DATA_ENUM_USERPERMISSIONROLE",
+        "DATA_ENUM_ROLETYPE",
+        "DATA_ENUM_WATCHLISTTYPE",
+        "DATA_ENUM_WEBHOOK_TRIGGER_EVENTS_21",
+        "DATA_ENUM_WORKFLOWACTIONS",
+        "DATA_EVENTTYPE_ALL_FIELDS_90",
+        "DATA_EVENTTYPE_INDEXES",
+        "DATA_TEAM_ORG_RELATION",
+        "DATA_USER_ALL_FIELDS_100",
+        "DATA_USER_UNIQUE_EMAIL_USERNAME",
+        "DATA_VIEW_BOOKINGTIMESTATUS",
+        "DATA_VIEW_BOOKINGTIMESTATUSDENORMALIZED",
+        "DATA_VIEW_ROUTINGFORMRESPONSEDENORMALIZED",
+        "DEPLOY_DB_READY",
+        "DEPLOY_DB_SEED_IDEMPOTENT",
+        "DEPLOY_ENV_SECRETS_REQUIRED",
+        "DEPLOY_HEALTHZ_ENDPOINT",
+        "DEPLOY_LANDING_PAGE",
+        "DEPLOY_MIGRATIONS_APPLIED",
+        "DEPLOY_PG_EXTENSIONS",
+        "DEPLOY_PRISMA_GENERATED",
+        "DEPLOY_REDIS_READY",
+        "FRONT_EMBED_DIMENSION_EVENT",
+        "FRONT_GETTING_STARTED_OPTIONAL_CATCH_ALL",
+        "FRONT_I18N_FALLBACK_CHAIN",
+        "FRONT_THEME_USER_DB_PERSIST",
+        "I18N_BOOKING_LOCALE_DEFAULT_EN",
+        "I18N_DATE_FORMAT_PER_LOCALE",
+        "I18N_SINGLE_NAMESPACE",
+        "SETUP_API_KEY_FOR_OWNER",
+        "SETUP_OAUTH_CLIENT_PENDING",
+        "SETUP_PLATFORM_OAUTH_CLIENT",
+        "SETUP_TEAM_FOR_RBAC",
+        "SETUP_WEBHOOK_RECEIVER_MOCK",
+        "TRPC_BOOKINGS_GET",
+        "TRPC_EVENTTYPES_LIST",
+        "TRPC_LOGGEDINVIEWERROUTER_ME",
+        "TRPC_PUBLICVIEWER_EVENT",
+        "TRPC_PUBLICVIEWER_TIMEZONES",
+        "TRPC_SLOTS_GETSCHEDULE"
+      ],
+      "node_count": 113,
+      "maxScore": 145,
+      "interpretation": "Medium pass rate reflects 'end-to-end coverage', between happy and advanced"
+    }
+  },
+  "trajectory_coverage_pct": 100.0,
+  "constraint_validation": {
+    "shallow_le_30pct": true,
+    "deep_ge_60pct": true,
+    "llm_judge_le_10pct": true,
+    "all_passed": true
+  }
+}

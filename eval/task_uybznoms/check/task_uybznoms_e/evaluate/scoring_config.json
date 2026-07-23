@@ -1,0 +1,263 @@
+{
+  "categories": {
+    "Authentication": {
+      "maxScore": 40,
+      "node_count": 13
+    },
+    "AccessControl": {
+      "maxScore": 38,
+      "node_count": 11
+    },
+    "QueryEngine": {
+      "maxScore": 37,
+      "node_count": 10
+    },
+    "GraphQL": {
+      "maxScore": 31,
+      "node_count": 10
+    },
+    "DataModel": {
+      "maxScore": 30,
+      "node_count": 8
+    },
+    "Versioning": {
+      "maxScore": 30,
+      "node_count": 7
+    },
+    "CollectionCRUD": {
+      "maxScore": 29,
+      "node_count": 11
+    },
+    "FieldTypes": {
+      "maxScore": 27,
+      "node_count": 8
+    },
+    "HookSystem": {
+      "maxScore": 20,
+      "node_count": 5
+    },
+    "Localization": {
+      "maxScore": 14,
+      "node_count": 4
+    },
+    "Upload": {
+      "maxScore": 10,
+      "node_count": 3
+    },
+    "DocumentLocking": {
+      "maxScore": 10,
+      "node_count": 3
+    },
+    "Trash": {
+      "maxScore": 9,
+      "node_count": 3
+    },
+    "GlobalAPI": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "ArchitectureQuality": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "SelectAPI": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "Folders": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "ErrorHandling": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "Deployment": {
+      "maxScore": 5,
+      "node_count": 3
+    },
+    "AdminUI": {
+      "maxScore": 4,
+      "node_count": 2
+    }
+  },
+  "total_maxScore": 368,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 30,
+      "maxScore": 81
+    },
+    "workflow_automator": {
+      "node_count": 70,
+      "maxScore": 249
+    },
+    "marketplace_rbac": {
+      "node_count": 11,
+      "maxScore": 38
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 104,
+    "weighted": 5,
+    "llm-judge": 2
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core journey: deploy->auth->CRUD->globals->admin UI",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DB_CONNECTION",
+        "DB_TABLES_COLLECTIONS",
+        "AUTH_FIRST_USER_REGISTER",
+        "AUTH_LOGIN_SUCCESS",
+        "AUTH_ME_ENDPOINT",
+        "CRUD_CREATE_201",
+        "CRUD_FIND_PAGINATED",
+        "CRUD_FINDBYID",
+        "CRUD_UPDATE_PATCH",
+        "CRUD_DELETE_BYID",
+        "CRUD_COUNT",
+        "GLOBAL_READ",
+        "GLOBAL_UPDATE",
+        "ADMIN_ACCESSIBLE"
+      ],
+      "maxScore": 46
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC, versioning, hooks, GraphQL, i18n, geo, uploads, trash",
+      "node_ids": [
+        "AUTH_ACCOUNT_LOCK",
+        "AUTH_API_KEY",
+        "AUTH_PASSWORD_HASH_PBKDF2",
+        "ACCESS_READ_DENIED_FIELD",
+        "ACCESS_QUERY_DENIED_FIELD_400",
+        "ACCESS_FIELD_UPDATE_DENIED",
+        "ACCESS_HIDDEN_WHERE_FILTER",
+        "VERSION_DRAFT_CREATE",
+        "VERSION_PUBLISH",
+        "VERSION_RESTORE",
+        "VERSION_AUTOSAVE",
+        "VERSION_MAX_PER_DOC",
+        "HOOK_BEFORE_CHANGE_MODIFY",
+        "HOOK_FALSY_RETURN_PRESERVES",
+        "HOOK_TX_ROLLBACK",
+        "QUERY_GEO_NEAR",
+        "QUERY_DEPTH",
+        "QUERY_AND_OR",
+        "GQL_TX_INDEPENDENCE",
+        "GQL_INTROSPECTION_DISABLED",
+        "LOCALE_FIELD_STORE",
+        "LOCALE_ALL_MODE",
+        "LOCALE_FALLBACK",
+        "FIELD_BLOCKS_CRUD",
+        "FIELD_RELATIONSHIP_POPULATE",
+        "UPLOAD_CREATE_FILE",
+        "UPLOAD_IMAGE_SIZES",
+        "TRASH_SOFT_DELETE",
+        "TRASH_RESTORE",
+        "LOCK_PREVENTS_UPDATE",
+        "ARCH_CODE_STRUCTURE"
+      ],
+      "maxScore": 137
+    },
+    "mid_level": {
+      "description": "Mid-level features: QueryEngine, FieldTypes, HookSystem, Localization, SelectAPI, part of Versioning, part of GraphQL, CRUD extensions, etc.",
+      "node_ids": [
+        "ACCESS_BYID_ALLOWED",
+        "ACCESS_BYID_WHERE_403",
+        "ACCESS_COLLECTION_ALLOW_ADMIN",
+        "ACCESS_COLLECTION_DENY_403",
+        "ACCESS_OVERRIDE_TRUE",
+        "ACCESS_QUERY_ALLOWED_FIELD",
+        "ACCESS_READ_ALLOWED_FIELD",
+        "ADMIN_FIRST_USER_PAGE",
+        "ARCH_TYPE_SAFETY",
+        "AUTH_FIRST_USER_DUPLICATE_403",
+        "AUTH_FORGOT_PASSWORD",
+        "AUTH_JWT_PAYLOAD_FIELDS",
+        "AUTH_LOGIN_FAIL_401",
+        "AUTH_LOGOUT",
+        "AUTH_REFRESH_INVALID_403",
+        "AUTH_REFRESH_TOKEN",
+        "CRUD_BULK_DELETE",
+        "CRUD_BULK_UPDATE",
+        "CRUD_DUPLICATE",
+        "CRUD_INVALID_JSON_400",
+        "CRUD_PAGINATION_LIMITS",
+        "DB_ENUM_NAMING",
+        "DB_INTERNAL_TABLES",
+        "DB_TABLE_ARRAY_STRUCTURE",
+        "DB_TABLE_AUTH_COLUMNS",
+        "DB_TABLE_BLOCKS_STRUCTURE",
+        "DB_TABLE_LOCALIZED_STRUCTURE",
+        "DB_TABLE_VERSION_STRUCTURE",
+        "DEPLOY_PACKAGE_JSON",
+        "ERROR_FORMAT_REST",
+        "ERROR_VALIDATION_400",
+        "FIELD_ARRAY_CRUD",
+        "FIELD_GROUP_PATCH_REPLACE",
+        "FIELD_POINT_GEO",
+        "FIELD_RELATIONSHIP_NULL",
+        "FIELD_RICHTEXT_JSON",
+        "FIELD_TEXT_DEFAULT",
+        "FOLDER_CASCADE_DELETE",
+        "FOLDER_CRUD_POPULATE",
+        "GQL_BATCH_QUERY",
+        "GQL_COUNT_QUERY",
+        "GQL_ERROR_FORMAT",
+        "GQL_LOCALE_PARAM",
+        "GQL_MUTATION_CREATE",
+        "GQL_QUERY_FIND",
+        "GQL_QUERY_SINGLE",
+        "GQL_WHERE_SORT",
+        "HOOK_AFTER_CHANGE_RECEIVES_DOC",
+        "HOOK_AFTER_READ_MODIFY",
+        "LOCALE_DB_STRUCTURE",
+        "LOCK_EXPIRATION",
+        "LOCK_OVERRIDE",
+        "QUERY_EQUALS_NOT_EQUALS",
+        "QUERY_EXISTS",
+        "QUERY_GT_LT_GTE_LTE",
+        "QUERY_IN_NOT_IN",
+        "QUERY_LIKE_CONTAINS",
+        "QUERY_RELATIONSHIP_FILTER",
+        "QUERY_SORT",
+        "SELECT_EXCLUDE",
+        "SELECT_FIELDS",
+        "TRASH_WITHOUT_PARAM",
+        "UPLOAD_SERVE_FILE",
+        "VERSION_LATEST_SNAPSHOT",
+        "VERSION_LIST"
+      ],
+      "maxScore": 185
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 111,
+    "has_cycle": false,
+    "root_nodes": 4,
+    "leaf_nodes": 91,
+    "dangling_prereqs": 0,
+    "topological_sort_feasible": true,
+    "score_distribution": {
+      "shallow_pct": 4.9,
+      "deep_pct": 92.9,
+      "llm_pct": 2.2
+    },
+    "status_only_overscored": [],
+    "missing_p13_context": [
+      "AUTH_FIRST_USER_REGISTER",
+      "AUTH_FIRST_USER_DUPLICATE_403",
+      "AUTH_LOGIN_SUCCESS",
+      "AUTH_LOGIN_FAIL_401",
+      "AUTH_REFRESH_INVALID_403",
+      "AUTH_FORGOT_PASSWORD",
+      "AUTH_PASSWORD_HASH_PBKDF2",
+      "LOCALE_DB_STRUCTURE",
+      "ERROR_FORMAT_REST"
+    ],
+    "test_coverage_gaps": [],
+    "task_md_gaps": []
+  }
+}

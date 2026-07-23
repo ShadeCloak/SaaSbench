@@ -1,0 +1,129 @@
+version: "3.8"
+name: task_jzssnoqp
+
+services:
+  app:
+    container_name: jzssnoqp-app
+    image: shadetocloak/task_jzssnoqp-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    # DNS pinned to public resolvers so git-source dependencies declared in
+    # the Gemfile can be reliably fetched under restrictive networks.
+    dns:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    ports:
+      - "8018:8018"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - RAILS_ENV=development
+      - NODE_ENV=development
+    volumes:
+      - ./workspace:/app
+      - bundle_cache:/usr/local/bundle
+      - node_modules_cache:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm/store
+    stdin_open: true
+    tty: true
+    command: ["bash", "-c", "tail -f /dev/null"]
+    # Lightweight healthcheck: container liveness is treated as ready.
+    # Application-level readiness is verified by the prepare/test scripts.
+    # In model mode, PID 1 = sleep infinity, so _wait_compose_ready does not block.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app_network
+
+  db:
+    container_name: jzssnoqp-db
+    image: pgvector/pgvector:pg16
+    command: postgres -c shared_preload_libraries=pg_stat_statements
+    ports:
+      - "5443:5432"
+    environment:
+      POSTGRES_USER: appjzssnoqp
+      POSTGRES_PASSWORD: app123jzssnoqp
+      POSTGRES_DB: app_jzssnoqp
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appjzssnoqp -d app_jzssnoqp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - app_network
+
+  worker:
+    container_name: jzssnoqp-worker
+    image: shadetocloak/task_jzssnoqp-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      - PROCESS_TYPE=worker
+      - RAILS_ENV=development
+      - NODE_ENV=development
+    volumes:
+      - ./workspace:/app
+      - bundle_cache:/usr/local/bundle
+      - node_modules_cache:/app/node_modules
+      - pnpm_store:/root/.local/share/pnpm/store
+    command: ["bash", "-c", "tail -f /dev/null"]
+    # Lightweight healthcheck: container liveness is treated as ready.
+    # Application-level readiness is verified by the prepare/test scripts.
+    # In model mode, PID 1 = sleep infinity, so _wait_compose_ready does not block.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    networks:
+      - app_network
+
+  redis:
+    container_name: jzssnoqp-redis
+    image: redis:7-alpine
+    ports:
+      - "6382:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app_network
+
+volumes:
+  postgres_data:
+  redis_data:
+  bundle_cache:
+  node_modules_cache:
+  pnpm_store:
+
+networks:
+  app_network:
+    driver: bridge

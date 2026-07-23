@@ -1,0 +1,401 @@
+{
+  "meta": {
+    "task_id": "task_lgzivily",
+    "generated_from_dag": "evaluate/dag.json",
+    "normalization": "0-100",
+    "total_maxScore": 575,
+    "total_nodes": 189
+  },
+  "categories": {
+    "API_FHIR": {
+      "maxScore": 78,
+      "node_count": 28,
+      "weight_pct": 13.6,
+      "subcategories": {
+        "Capability": 3,
+        "PatientResource": 4,
+        "PractitionerResource": 1,
+        "EncounterResource": 2,
+        "AllergyResource": 1,
+        "ObservationResource": 1,
+        "CoverageResource": 1,
+        "ConditionResource": 1,
+        "ProcedureResource": 1,
+        "ImmunizationResource": 1,
+        "MedicationResource": 1,
+        "DocumentReferenceResource": 1,
+        "CarePlanResource": 1,
+        "GoalResource": 1,
+        "LocationResource": 1,
+        "OrganizationResource": 1,
+        "ProvenanceResource": 1,
+        "BulkExport": 2,
+        "DocRefOperation": 1,
+        "DiscoveryOperations": 1,
+        "Pagination": 1
+      }
+    },
+    "API_Standard": {
+      "maxScore": 94,
+      "node_count": 36,
+      "weight_pct": 16.3,
+      "subcategories": {
+        "PatientCRUD": 6,
+        "EncounterCRUD": 4,
+        "AppointmentCRUD": 3,
+        "PractitionerCRUD": 2,
+        "FacilityCRUD": 2,
+        "InsuranceCRUD": 2,
+        "AllergyCRUD": 1,
+        "MedicationCRUD": 1,
+        "ImmunizationCRUD": 1,
+        "PrescriptionCRUD": 6,
+        "WrapperContract": 1,
+        "SoapNoteCRUD": 1,
+        "VitalCRUD": 2,
+        "BackgroundService": 2,
+        "Misc": 1,
+        "DocumentCRUD": 1
+      }
+    },
+    "Architecture": {
+      "maxScore": 77,
+      "node_count": 13,
+      "weight_pct": 13.4,
+      "subcategories": {
+        "PSR4Layout": 1,
+        "ServiceLayerPattern": 1,
+        "DependencyInjection": 1,
+        "FHIRStructure": 1,
+        "SecurityBaseline": 1,
+        "APIErrorFriendliness": 1,
+        "RESTfulDesign": 1,
+        "FHIRDocumentation": 1,
+        "AuditLogQuality": 1,
+        "CodeMaintainability": 1,
+        "DocumentationCompleteness": 1,
+        "SMARTLaunchUX": 1,
+        "MigrationQuality": 1
+      }
+    },
+    "AuditCompliance": {
+      "maxScore": 13,
+      "node_count": 5,
+      "weight_pct": 2.3,
+      "subcategories": {
+        "PHIWrite": 1,
+        "FieldLevelAudit": 1,
+        "OAuth2Audit": 1,
+        "BruteForceTracking": 1,
+        "DBLog": 1
+      }
+    },
+    "Authentication": {
+      "maxScore": 46,
+      "node_count": 15,
+      "weight_pct": 8.0,
+      "subcategories": {
+        "Discovery": 2,
+        "JWKS": 1,
+        "ClientRegistration": 2,
+        "AuthorizationCodeGrant": 2,
+        "RefreshTokenRotation": 2,
+        "ClientCredentialsJWT": 2,
+        "TokenIntrospection": 2,
+        "BearerValidation": 1,
+        "SessionLogin": 1
+      }
+    },
+    "BusinessLogic": {
+      "maxScore": 49,
+      "node_count": 19,
+      "weight_pct": 8.5,
+      "subcategories": {
+        "FeeSchedule": 2,
+        "ClaimLifecycle": 2,
+        "PatientBalance": 1,
+        "X12EDI": 1,
+        "EligibilityCache": 1,
+        "ControlledSubstance": 1,
+        "DupPatient": 1,
+        "FormIndex": 1,
+        "InsuranceTiers": 1,
+        "AuditDefaults": 1,
+        "EncounterUniqueness": 1,
+        "UUID": 1,
+        "ApptStatusSeed": 2,
+        "BackgroundServicesSeed": 1,
+        "CodeTypes": 1,
+        "Pagination": 1
+      }
+    },
+    "CLI": {
+      "maxScore": 12,
+      "node_count": 5,
+      "weight_pct": 2.1,
+      "subcategories": {
+        "Install": 1,
+        "ConsoleEntry": 1,
+        "StaticAnalysis": 1,
+        "IsolatedTests": 1,
+        "FrontendBuild": 1
+      }
+    },
+    "DataModel": {
+      "maxScore": 82,
+      "node_count": 26,
+      "weight_pct": 14.3,
+      "subcategories": {
+        "Patient & Demographics": 1,
+        "Encounter & Forms": 2,
+        "Users & Access Control": 4,
+        "OAuth2 & API": 3,
+        "Facility": 1,
+        "Appointments & Scheduling": 2,
+        "Billing & Claims": 2,
+        "Insurance": 2,
+        "Prescriptions & Medications": 1,
+        "Lists & Allergies & Problems": 1,
+        "Immunizations": 1,
+        "Lab & Procedures": 1,
+        "Documents & Templates": 1,
+        "Audit & HIPAA": 1,
+        "Background Services": 1,
+        "Interop / FHIR": 1,
+        "SchemaCompletenessBulk": 1
+      }
+    },
+    "Deployment": {
+      "maxScore": 6,
+      "node_count": 5,
+      "weight_pct": 1.0,
+      "subcategories": {
+        "Accessibility": 1,
+        "Dependencies": 2,
+        "OAuth2KeyMaterial": 1,
+        "DatabaseConnectivity": 1
+      }
+    },
+    "EdgeCases": {
+      "maxScore": 17,
+      "node_count": 10,
+      "weight_pct": 3.0,
+      "subcategories": {
+        "HipaaDelete": 1,
+        "FhirError": 2,
+        "DuplicateKey": 1,
+        "OAuth2InvalidClient": 1,
+        "EmptyBody": 1,
+        "FhirPagination": 1,
+        "ScopeNarrowing": 1,
+        "PartialUpdate": 1,
+        "InsuranceTypeEnum": 1
+      }
+    },
+    "Frontend": {
+      "maxScore": 51,
+      "node_count": 10,
+      "weight_pct": 8.9,
+      "subcategories": {
+        "EntryPoint": 1,
+        "LoginPage": 2,
+        "StaticAssets": 1,
+        "I18n": 1,
+        "DashboardLayout": 1,
+        "PatientFileLayout": 1,
+        "CalendarRender": 1,
+        "FeeSheetUI": 1,
+        "Responsive": 1
+      }
+    },
+    "RBAC": {
+      "maxScore": 50,
+      "node_count": 17,
+      "weight_pct": 8.7,
+      "subcategories": {
+        "UserAdminAccess": 2,
+        "PatientDemographics": 2,
+        "BillingReportAccess": 2,
+        "SensitiveRecords": 2,
+        "ModuleACL": 2,
+        "EmergencyLogin": 1,
+        "FacilityIsolation": 2,
+        "OAuth2ScopeEnforcement": 2,
+        "OAuth2PatientScope": 2
+      }
+    }
+  },
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 74,
+      "maxScore": 193
+    },
+    "marketplace_rbac": {
+      "node_count": 50,
+      "maxScore": 148
+    },
+    "workflow_automator": {
+      "node_count": 63,
+      "maxScore": 226
+    },
+    "high_concurrency": {
+      "node_count": 2,
+      "maxScore": 8
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": {
+      "node_count": 141,
+      "maxScore": 366
+    },
+    "weighted": {
+      "node_count": 30,
+      "maxScore": 88
+    },
+    "llm-judge": {
+      "node_count": 18,
+      "maxScore": 121
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core flow: deploy → migrate → discover → register OAuth client → obtain access_token → create+read core resources → confirm FHIR metadata",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DB_CONNECT",
+        "DATA_PATIENT_DATA",
+        "DATA_USERS",
+        "DATA_FACILITY",
+        "DATA_FORM_ENCOUNTER",
+        "DATA_OAUTH_CLIENTS",
+        "AUTH_SMART_CONFIG",
+        "AUTH_OPENID_CONFIG",
+        "AUTH_JWKS",
+        "AUTH_CLIENT_REGISTRATION",
+        "AUTH_AUTHORIZATION_CODE_PKCE",
+        "API_PATIENT_CREATE",
+        "API_PATIENT_GET_ONE",
+        "API_PATIENT_LIST",
+        "API_FACILITY_CREATE",
+        "API_PRACTITIONER_CREATE",
+        "API_ENCOUNTER_CREATE",
+        "API_APPOINTMENT_CREATE",
+        "FHIR_METADATA_CAPABILITY",
+        "FHIR_PATIENT_GET_ONE",
+        "BIZ_UUID_AUTO_POPULATE_PATIENT",
+        "BIZ_FORM_REGISTERED_IN_FORMS_TABLE"
+      ],
+      "node_count": 23,
+      "maxScore": 78
+    },
+    "advanced_workflows": {
+      "description": "High-difficulty: PKCE/replay protection, refresh rotation, fee schedule layered override, claim state machine, Bulk FHIR export polling, RBAC bidirectional, sensitive records, emergency audit, architecture quality",
+      "node_ids": [
+        "AUTH_AUTHORIZATION_CODE_PKCE_INVALID_VERIFIER",
+        "AUTH_REFRESH_TOKEN_ROTATION",
+        "AUTH_REFRESH_TOKEN_REUSE_REJECTED",
+        "AUTH_CLIENT_CREDENTIALS_JWT",
+        "AUTH_CLIENT_CREDENTIALS_JWT_REPLAY",
+        "AUTH_TOKEN_INTROSPECT_ACTIVE",
+        "AUTH_TOKEN_INTROSPECT_BAD_CLIENT",
+        "AUTH_INVALID_BEARER_REJECTED",
+        "BIZ_FEE_SCHEDULE_DEFAULT",
+        "BIZ_FEE_SCHEDULE_FACILITY_OVERRIDE",
+        "BIZ_CLAIM_TRANSITION_READY_TO_SUBMITTED",
+        "BIZ_PATIENT_BALANCE_BASIC",
+        "BIZ_X12_ISA13_SEQUENCE_INCREMENT",
+        "BIZ_ELIGIBILITY_30_DAY_CACHE",
+        "BIZ_PRESCRIPTION_EPCS_REQUIRED",
+        "BIZ_DUP_PATIENT_SOFT_WARNING",
+        "BIZ_INSURANCE_3_TIER_CAP",
+        "BIZ_HATEOAS_PAGINATION_LINKS",
+        "BIZ_BG_SERVICES_5_ROWS_SEED",
+        "BIZ_APPTSTAT_18_OPTIONS_SEED",
+        "RBAC_FRONT_OFFICE_DENY_ADMIN_USERS",
+        "RBAC_ADMIN_ALLOW_USERS",
+        "RBAC_RECEPTIONIST_DENY_DEMOGRAPHICS",
+        "RBAC_PHYS_ALLOW_DEMOGRAPHICS",
+        "RBAC_FRONT_DENY_SENSITIVE_PATIENT",
+        "RBAC_PHYS_ALLOW_SENSITIVE_PATIENT",
+        "RBAC_EMERGENCY_LOGIN_AUDIT_TRAIL",
+        "RBAC_FACILITY_ISOLATION_WHEN_ON",
+        "RBAC_OAUTH2_SCOPE_ENFORCED",
+        "RBAC_PATIENT_SCOPE_CONFINED_TO_LAUNCHED_PATIENT",
+        "FHIR_BULK_EXPORT_INIT",
+        "FHIR_BULK_EXPORT_POLL_COMPLETION",
+        "FHIR_DOCREF_CCDA",
+        "FHIR_PROVENANCE_AUTO_GENERATED",
+        "AUDIT_PATIENT_CREATE_WRITES_AUDIT",
+        "AUDIT_DETAILS_FIELD_LEVEL",
+        "AUDIT_FAILED_LOGIN_TRACKED",
+        "EDGE_PATIENT_DELETE_NOT_ALLOWED",
+        "EDGE_FHIR_OPERATION_OUTCOME_ON_404",
+        "EDGE_OAUTH2_INVALID_CLIENT_400",
+        "EDGE_PUT_PARTIAL_UPDATE",
+        "ARCH_PSR4_NAMESPACE",
+        "ARCH_BASE_SERVICE_PATTERN",
+        "ARCH_DI_INSTEAD_OF_GLOBALS",
+        "ARCH_FHIR_CAPABILITY_DESIGN",
+        "ARCH_SECURITY_HARDENING"
+      ],
+      "node_count": 46,
+      "maxScore": 134
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 189,
+    "has_cycle": false,
+    "topological_sort_feasible": true,
+    "root_nodes_count": 14,
+    "leaf_nodes_count": 135,
+    "dangling_prereqs_count": 0,
+    "dangling_prereqs_sample": [],
+    "test_coverage_business_rules_check": {
+      "total_rules_in_test_coverage": 124,
+      "covered_count": 19,
+      "uncovered_count": 105,
+      "uncovered_sample": [
+        {
+          "rule": "POST /apis/{site}/api/patient failure case: reject creation when required fields are missing",
+          "test_method": "testInvalidPost"
+        },
+        {
+          "rule": "PUT /apis/{site}/api/patient/:puuid success case: returns 200 and updates patient_data",
+          "test_method": "testPut"
+        },
+        {
+          "rule": "PUT patient failure case: an invalid field value returns an error response with validationErrors",
+          "test_method": "testInvalidPut"
+        },
+        {
+          "rule": "GET /apis/{site}/api/patient/:puuid queried with an invalid PID: returns 404 / empty response",
+          "test_method": "testGetOneInvalidPid"
+        },
+        {
+          "rule": "GET /apis/{site}/api/patient/:puuid success path: returns the full fields of a single patient",
+          "test_method": "testGetOne"
+        },
+        {
+          "rule": "GET /apis/{site}/api/patient list: returns all entries of the patient_data table",
+          "test_method": "testGetAll"
+        },
+        {
+          "rule": "EncounterService::getOneByPidEid uniquely locates by (pid, encounter_id)",
+          "test_method": "testGetOne"
+        },
+        {
+          "rule": "EncounterService::search supports restricting the result set by a bound patient UUID",
+          "test_method": "testSearchWithBoundPatientUUID"
+        },
+        {
+          "rule": "AppointmentService::validate success case: a valid appointment passes validation",
+          "test_method": "testValidateSuccess"
+        },
+        {
+          "rule": "AppointmentService::validate failure: missing required fields throw an error directly",
+          "test_method": "testValidateFailureMissingRequiredFields"
+        }
+      ]
+    }
+  }
+}

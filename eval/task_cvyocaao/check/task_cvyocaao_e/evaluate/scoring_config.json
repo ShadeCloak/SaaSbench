@@ -1,0 +1,260 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 11,
+      "node_count": 4
+    },
+    "DataModel": {
+      "maxScore": 4,
+      "node_count": 4
+    },
+    "Authentication": {
+      "maxScore": 23,
+      "node_count": 6
+    },
+    "OIDCProtocol": {
+      "maxScore": 21,
+      "node_count": 7
+    },
+    "SAMLProtocol": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "RealmManagement": {
+      "maxScore": 19,
+      "node_count": 5
+    },
+    "UserManagement": {
+      "maxScore": 25,
+      "node_count": 7
+    },
+    "ClientManagement": {
+      "maxScore": 21,
+      "node_count": 5
+    },
+    "RoleGroupManagement": {
+      "maxScore": 17,
+      "node_count": 4
+    },
+    "OrganizationManagement": {
+      "maxScore": 9,
+      "node_count": 3
+    },
+    "BruteForceDetection": {
+      "maxScore": 15,
+      "node_count": 3
+    },
+    "AuthorizationServices": {
+      "maxScore": 21,
+      "node_count": 4
+    },
+    "TokenExchange": {
+      "maxScore": 5,
+      "node_count": 2
+    },
+    "DeviceFlowCIBA": {
+      "maxScore": 5,
+      "node_count": 3
+    },
+    "SessionEvents": {
+      "maxScore": 8,
+      "node_count": 3
+    },
+    "RBAC": {
+      "maxScore": 44,
+      "node_count": 18
+    },
+    "PasswordPolicy": {
+      "maxScore": 16,
+      "node_count": 4
+    },
+    "Frontend": {
+      "maxScore": 19,
+      "node_count": 4
+    },
+    "ArchitectureQuality": {
+      "maxScore": 60,
+      "node_count": 10
+    },
+    "AuthenticationFlows": {
+      "maxScore": 9,
+      "node_count": 2
+    },
+    "ProtocolMappers": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "ClientPolicies": {
+      "maxScore": 3,
+      "node_count": 1
+    },
+    "AccountAPI": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "ImportExport": {
+      "maxScore": 5,
+      "node_count": 1
+    },
+    "KeyManagement": {
+      "maxScore": 4,
+      "node_count": 1
+    },
+    "IdentityProvider": {
+      "maxScore": 5,
+      "node_count": 1
+    }
+  },
+  "total_maxScore": 385,
+  "total_nodes": 107,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 21,
+      "maxScore": 68
+    },
+    "workflow_automator": {
+      "node_count": 57,
+      "maxScore": 227
+    },
+    "marketplace_rbac": {
+      "node_count": 29,
+      "maxScore": 90
+    }
+  },
+  "depth_distribution": {
+    "shallow": {
+      "percentage": 9.1,
+      "maxScore": 35
+    },
+    "deep": {
+      "percentage": 70.4,
+      "maxScore": 271
+    },
+    "llm_judge": {
+      "percentage": 20.5,
+      "maxScore": 79
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core: app accessible, OIDC discovery, admin login, user/client/role/group CRUD, realm setup, basic OIDC flows, token validation, data model",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_OIDC_DISCOVERY",
+        "DEPLOY_GRANT_TYPES",
+        "DEPLOY_DB_TABLES",
+        "AUTH_ADMIN_TOKEN",
+        "AUTH_TOKEN_RESPONSE_FORMAT",
+        "CRUD_USER",
+        "CRUD_CLIENT",
+        "CRUD_ROLE",
+        "CRUD_GROUP",
+        "REALM_CREATE_DEFAULTS",
+        "REALM_DEFAULT_ROLES",
+        "OIDC_JWKS_KEYS",
+        "OIDC_USERINFO",
+        "OIDC_REFRESH_TOKEN",
+        "DB_TABLE_REALM",
+        "DB_TABLE_USER_ENTITY",
+        "DB_TABLE_CLIENT",
+        "DB_TABLE_AUTHZ",
+        "USER_DUPLICATE_USERNAME",
+        "USER_CASE_INSENSITIVE",
+        "RBAC_VALID_TOKEN_RETURNS_200",
+        "RBAC_NO_TOKEN_RETURNS_401"
+      ],
+      "maxScore": 67
+    },
+    "advanced_workflows": {
+      "description": "Advanced: brute force, authz services, token exchange, device flow, CIBA, password policies, advanced RBAC, SAML, organizations, architecture, protocol mappers, import/export",
+      "node_ids": [
+        "AUTH_INVALID_CREDENTIALS",
+        "AUTH_CLIENT_CREDENTIALS",
+        "AUTH_TOKEN_INTROSPECTION",
+        "AUTH_TOKEN_REVOCATION",
+        "OIDC_UMA_DISCOVERY",
+        "OIDC_SESSION_TIMEOUT",
+        "OIDC_ERROR_RESPONSE_FORMAT",
+        "OIDC_PAR_ENDPOINT",
+        "SAML_METADATA",
+        "SAML_ENCRYPTION_DEFAULTS",
+        "REALM_UPDATE_CONFIG",
+        "REALM_SMTP_PASSWORD_MASKED",
+        "REALM_MASTER_UNDELETABLE",
+        "USER_SEARCH_PAGINATION",
+        "USER_ROLE_MAPPING_EFFECTIVE",
+        "USER_TEMP_PASSWORD_BLOCKS_GRANT",
+        "USER_SERVICE_ACCOUNT_FORMAT",
+        "CLIENT_SECRET_ROTATION",
+        "CLIENT_SCOPE_DUPLICATE_NAME",
+        "CLIENT_DEFAULT_OPTIONAL_SCOPES",
+        "ROLE_COMPOSITE",
+        "ROLE_DEFAULT_UNDELETABLE",
+        "ORG_CREATE_WITH_DOMAIN",
+        "ORG_DUPLICATE_NAME",
+        "ORG_MEMBER_MANAGEMENT",
+        "BRUTE_FORCE_LOCKOUT",
+        "BRUTE_FORCE_CLEAR_FAILURES",
+        "BRUTE_FORCE_STATUS_API",
+        "AUTHZ_RESOURCE_SERVER_AUTO_CREATE",
+        "AUTHZ_ROLE_POLICY_PERMIT",
+        "AUTHZ_DECISION_AFFIRMATIVE_VS_UNANIMOUS",
+        "AUTHZ_INVALID_RESOURCE_400",
+        "TOKEN_EXCHANGE_AUTHORIZED",
+        "TOKEN_EXCHANGE_EXPIRED_SUBJECT",
+        "DEVICE_FLOW_CODE",
+        "DEVICE_FLOW_PENDING",
+        "CIBA_DEFAULTS",
+        "SESSION_LIST_LOGOUT",
+        "EVENT_QUERY_DEFAULT_MAX",
+        "EVENT_ADMIN_EVENTS",
+        "RBAC_ADMIN_CAN_CREATE_REALM",
+        "RBAC_ADMIN_CAN_CREATE_USER",
+        "RBAC_ADMIN_CAN_DELETE_REALM",
+        "RBAC_INVALID_TOKEN_REJECTED",
+        "RBAC_CROSS_REALM_ISOLATION",
+        "PWD_POLICY_MIN_LENGTH",
+        "PWD_POLICY_NOT_USERNAME",
+        "PWD_POLICY_COMPOSITE",
+        "FRONTEND_ADMIN_CONSOLE",
+        "FRONTEND_LOGIN_THEME",
+        "ARCH_OIDC_PROTOCOL_QUALITY",
+        "ARCH_MULTI_REALM_DESIGN",
+        "ARCH_AUTH_FLOW_DESIGN",
+        "ARCH_SPI_PLUGIN_SYSTEM",
+        "ARCH_PASSWORD_SECURITY",
+        "ARCH_TOKEN_SECURITY",
+        "ARCH_API_ERROR_QUALITY",
+        "ARCH_DB_MIGRATION_QUALITY",
+        "ARCH_SAML_IMPLEMENTATION",
+        "ARCH_CODE_MAINTAINABILITY",
+        "FRONTEND_ACCOUNT_CONSOLE",
+        "FRONTEND_EMAIL_TEMPLATES",
+        "RBAC_DISABLED_USER_CANNOT_LOGIN",
+        "RBAC_VIEWONLY_CANNOT_CREATE_USER",
+        "RBAC_VIEWONLY_CAN_LIST_USERS",
+        "RBAC_NON_ADMIN_CANNOT_MODIFY_REALM",
+        "RBAC_SERVICE_ACCOUNT_SCOPE_LIMIT",
+        "RBAC_GROUP_ROLE_INHERITANCE",
+        "AUTH_FLOW_LIST_DEFAULT",
+        "AUTH_FLOW_COPY",
+        "PROTOCOL_MAPPER_HARDCODED_CLAIM",
+        "CLIENT_POLICY_REJECT_ROPC",
+        "ACCOUNT_API_GET_PROFILE",
+        "IMPORT_EXPORT_PARTIAL",
+        "KEY_MANAGEMENT_REALM_KEYS",
+        "SCOPE_MAPPING_CLIENT_ROLE",
+        "IDP_CRUD",
+        "CAUSAL_PWD_HISTORY",
+        "CAUSAL_SCOPE_TO_TOKEN_CLAIM",
+        "RBAC_ADMIN_CAN_MODIFY_REALM",
+        "RBAC_ENABLED_USER_CAN_LOGIN",
+        "RBAC_SAME_REALM_ACCESS",
+        "RBAC_SERVICE_ACCOUNT_WITHIN_SCOPE",
+        "RBAC_NO_GROUP_NO_ROLE"
+      ],
+      "maxScore": 318
+    }
+  }
+}

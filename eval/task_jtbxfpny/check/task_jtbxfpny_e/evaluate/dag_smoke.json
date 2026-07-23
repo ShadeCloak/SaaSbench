@@ -1,0 +1,7750 @@
+{
+ "meta": {
+  "task_id": "task_jtbxfpny",
+  "total_nodes": 139,
+  "source_prd": "task/task.md",
+  "generated_at": "2026-03-05T13:23:39Z"
+ },
+ "scoring_config": {
+  "categories": {
+   "ArchitectureQuality": {
+    "maxScore": 23,
+    "node_count": 3
+   },
+   "AuditLog": {
+    "maxScore": 5,
+    "node_count": 2
+   },
+   "Authentication": {
+    "maxScore": 23,
+    "node_count": 5
+   },
+   "CRUD": {
+    "maxScore": 44,
+    "node_count": 15
+   },
+   "CacheSystem": {
+    "maxScore": 10,
+    "node_count": 2
+   },
+   "ChartData": {
+    "maxScore": 16,
+    "node_count": 3
+   },
+   "Configuration": {
+    "maxScore": 3,
+    "node_count": 1
+   },
+   "DashboardFeatures": {
+    "maxScore": 32,
+    "node_count": 6
+   },
+   "DashboardRBAC": {
+    "maxScore": 10,
+    "node_count": 3
+   },
+   "DataModel": {
+    "maxScore": 29,
+    "node_count": 10
+   },
+   "DatabaseDiscovery": {
+    "maxScore": 19,
+    "node_count": 5
+   },
+   "DatasetManagement": {
+    "maxScore": 14,
+    "node_count": 3
+   },
+   "Deployment": {
+    "maxScore": 6,
+    "node_count": 4
+   },
+   "EdgeCases": {
+    "maxScore": 38,
+    "node_count": 11
+   },
+   "Favorites": {
+    "maxScore": 6,
+    "node_count": 2
+   },
+   "ImportExport": {
+    "maxScore": 17,
+    "node_count": 4
+   },
+   "Permission": {
+    "maxScore": 41,
+    "node_count": 12
+   },
+   "RLS": {
+    "maxScore": 32,
+    "node_count": 7
+   },
+   "ReportAlert": {
+    "maxScore": 28,
+    "node_count": 7
+   },
+   "SQLExecution": {
+    "maxScore": 51,
+    "node_count": 12
+   },
+   "TaggingSystem": {
+    "maxScore": 6,
+    "node_count": 2
+   },
+   "UserManagement": {
+    "maxScore": 9,
+    "node_count": 3
+   }
+  },
+  "total_maxScore": 462,
+  "normalization": "0-100",
+  "complexity_distribution": {
+   "linear_crud": {
+    "node_count": 45,
+    "maxScore": 123
+   },
+   "marketplace_rbac": {
+    "node_count": 27,
+    "maxScore": 88
+   },
+   "workflow_automator": {
+    "node_count": 50,
+    "maxScore": 165
+   }
+  },
+  "trajectories": {
+   "happy_path": {
+    "description": "Verification step: CRUD SQL",
+    "node_ids": [
+     "DEPLOY_HEALTH",
+     "DEPLOY_DB_MIGRATIONS",
+     "AUTH_LOGIN_ADMIN",
+     "AUTH_CSRF_TOKEN",
+     "CRUD_DATABASE",
+     "CRUD_CHART",
+     "CRUD_DASHBOARD",
+     "CRUD_DATASET",
+     "SQL_EXECUTE_SYNC"
+    ],
+    "maxScore": 32
+   },
+   "advanced_workflows": {
+    "description": "Verification step: RLS /",
+    "node_ids": [
+     "DEPLOY_DEPS",
+     "DEPLOY_OPENAPI",
+     "DB_CORE_TABLES",
+     "DB_AUTH_TABLES",
+     "DB_REPORT_TABLES",
+     "DB_SUPPORT_TABLES",
+     "DB_COLUMNS_DBS",
+     "DB_COLUMNS_SLICES",
+     "DB_COLUMNS_DASHBOARDS",
+     "DB_COLUMNS_QUERY",
+     "AUTH_ROLES_EXIST",
+     "AUTH_ADMIN_ME",
+     "AUTH_GUEST_TOKEN",
+     "CRUD_SAVED_QUERY",
+     "CRUD_TAG",
+     "CRUD_ANNOTATION_LAYER",
+     "CRUD_ANNOTATION",
+     "CRUD_CSS_TEMPLATE",
+     "CRUD_REPORT_SCHEDULE",
+     "CRUD_RLS",
+     "CRUD_EMBEDDED_DASHBOARD",
+     "SQL_EXECUTE_RESULTS",
+     "SQL_FORMAT",
+     "SQL_CTAS",
+     "SQL_DISALLOWED_FUNCTION",
+     "SQL_JINJA_TEMPLATE",
+     "SQL_ESTIMATE",
+     "RLS_CREATE_REGULAR",
+     "RLS_VALIDATE_MISSING_CLAUSE",
+     "RLS_VALIDATE_MISSING_FILTER_TYPE",
+     "RLS_DB_VERIFY",
+     "RLS_FILTER_BEHAVIOR",
+     "REPORT_CREATE_VALID",
+     "REPORT_INVALID_CRONTAB",
+     "REPORT_DUPLICATE_NAME",
+     "REPORT_LOG_LIST",
+     "REPORT_DB_VERIFY",
+     "RBAC_ADMIN_CAN_LIST_CHARTS",
+     "RBAC_GAMMA_FILTERED_DASHBOARD_LIST",
+     "RBAC_GAMMA_CANNOT_CREATE_DATABASE",
+     "RBAC_ADMIN_CAN_CREATE_DATABASE",
+     "PERM_OWNERSHIP_CHART_DELETE",
+     "PERM_ADMIN_CAN_DELETE_ANY_CHART",
+     "PERM_CSRF_REQUIRED",
+     "PERM_UNPUBLISHED_DASHBOARD_ADMIN",
+     "PERM_GAMMA_NO_SQLLAB",
+     "RBAC_ADMIN_CAN_SQLLAB",
+     "DASHBOARD_COPY",
+     "DASHBOARD_FILTER_STATE_CREATE",
+     "DASHBOARD_FILTER_STATE_READ",
+     "DASHBOARD_PERMALINK",
+     "DASHBOARD_BULK_DELETE",
+     "DASHBOARD_SLUG_ACCESS",
+     "EXPORT_DASHBOARD_ZIP",
+     "EXPORT_CHART_ZIP",
+     "IMPORT_DASHBOARD",
+     "EXPORT_ASSETS_FULL",
+     "EDGE_DELETE_DB_WITH_DATASETS",
+     "EDGE_DELETE_CHART_WITH_REPORT",
+     "EDGE_BULK_DELETE_NOT_FOUND",
+     "EDGE_CHART_NOT_FOUND",
+     "EDGE_CHART_INVALID_OWNERS",
+     "EDGE_DASHBOARD_SLUG_UNIQUE",
+     "EDGE_REPORT_INVALID_CRONTAB",
+     "EDGE_CHART_INVALID_DATASOURCE",
+     "ARCH_API_ERROR_FORMAT",
+     "ARCH_CODE_QUALITY",
+     "FRONTEND_QUALITY",
+     "SQL_EXECUTE_ASYNC",
+     "SQL_ASYNC_POLL_STATUS",
+     "SQL_ASYNC_RESULTS",
+     "RLS_BASE_FILTER_TYPE",
+     "RLS_JINJA_CLAUSE",
+     "USER_CREATE",
+     "USER_LIST_API",
+     "USER_ROLES_API",
+     "DATASET_REFRESH_COLUMNS",
+     "DATASET_GET_WITH_COLUMNS",
+     "DATASET_METRICS_UPDATE",
+     "DB_SCHEMAS_LIST",
+     "DB_TABLES_LIST",
+     "DB_TABLE_METADATA",
+     "DB_TEST_CONNECTION",
+     "DB_VALIDATE_SQL",
+     "TAG_OBJECT_ASSOCIATE",
+     "TAG_GET_TAGGED_OBJECTS",
+     "FAV_CHART_ADD",
+     "FAV_DASHBOARD_ADD",
+     "CHART_DATA_QUERY",
+     "CHART_CACHE_WARMUP",
+     "EXPLORE_FORM_DATA",
+     "AUDIT_LOG_LIST",
+     "AUDIT_RECENT_ACTIVITY",
+     "ALERT_CREATE",
+     "ALERT_INVALID_SQL",
+     "DASHBOARD_SET_ROLES",
+     "DASHBOARD_RBAC_GAMMA_DENIED",
+     "DASHBOARD_RBAC_ADMIN_ALWAYS",
+     "QUERY_HISTORY_LIST",
+     "QUERY_STOP",
+     "SAVED_QUERY_SEARCH",
+     "CHART_RELATED_OWNERS",
+     "DASHBOARD_RELATED_OWNERS",
+     "FEATURE_FLAGS_AVAILABLE",
+     "CACHE_WARM_DASHBOARD",
+     "CACHE_KEY_INVALIDATE",
+     "DB_RLS_TABLES",
+     "DB_EMBEDDED_TABLES",
+     "EDGE_DATASET_DUPLICATE_TABLE",
+     "EDGE_DATABASE_INVALID_URI",
+     "EDGE_SQL_EMPTY_QUERY",
+     "PERM_GAMMA_CANNOT_DELETE_DASHBOARD",
+     "PERM_GAMMA_CANNOT_CREATE_CHART"
+    ],
+    "maxScore": 344
+   }
+  }
+ },
+ "nodes": [
+  {
+   "id": "DEPLOY_HEALTH",
+   "description": "Application health endpoint returns HTTP 200 on the configured port",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/",
+      "timeout": 15
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       301,
+       302,
+       401
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "HealthCheck",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_DEPS",
+   "description": "workspace/requirements.txt exists and lists a web framework plus an ORM dependency",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P01",
+     "inputs": {
+      "path": "requirements.txt",
+      "type": "file"
+     }
+    },
+    {
+     "primitive": "P02",
+     "inputs": {
+      "path": "requirements.txt",
+      "match_type": "contains",
+      "pattern": "flask"
+     }
+    },
+    {
+     "primitive": "P02",
+     "inputs": {
+      "path": "requirements.txt",
+      "match_type": "regex",
+      "pattern": "(?i)(sqlalchemy|alembic)"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Dependencies",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_DB_MIGRATIONS",
+   "description": "Database migration command exits successfully",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "command": "${TARGET_APP_CLI:-app} db upgrade",
+      "expect_exit_code": 0
+     },
+     "primitive": "P12"
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "DatabaseMigrations",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_OPENAPI",
+   "description": "OpenAPI specification endpoint is reachable",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/_openapi"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       301,
+       302,
+       308
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "OpenAPI",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_CORE_TABLES",
+   "description": "Verify db core tables: dbs, slices, dashboards, tables, query, saved_query",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "tables": [
+       "dbs",
+       "slices",
+       "dashboards",
+       "tables",
+       "query",
+       "saved_query"
+      ]
+     },
+     "primitive": "P09"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('dbs','slices','dashboards','tables','query','saved_query')",
+      "expected_result": {
+       "cnt": 6
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "CoreTables",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_AUTH_TABLES",
+   "description": "Verify db auth tables: ab_user, ab_role, ab_permission, ab_view_menu, ab_permission_view, ab_user_role",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P09",
+     "inputs": {
+      "tables": [
+       "ab_user",
+       "ab_role",
+       "ab_permission"
+      ]
+     }
+    },
+    {
+     "primitive": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE 'ab_%'",
+      "expected_result": {
+       "cnt": 12
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "AuthTables",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_REPORT_TABLES",
+   "description": "Verify db report tables: report_schedule, report_recipient, report_execution_log",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P09",
+     "inputs": {
+      "tables": [
+       "report_schedule"
+      ]
+     }
+    },
+    {
+     "primitive": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name LIKE 'report_%'",
+      "expected_result": {
+       "cnt": 4
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "ReportTables",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_SUPPORT_TABLES",
+   "description": "Verify db support tables: tag, tagged_object, key_value, annotation_layer, annotation, css_templates, favstar, logs",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "tables": [
+       "tag",
+       "tagged_object",
+       "key_value",
+       "annotation_layer",
+       "annotation",
+       "css_templates",
+       "favstar",
+       "logs"
+      ]
+     },
+     "primitive": "P09"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('tag','tagged_object','key_value','annotation_layer','annotation','css_templates','favstar','logs')",
+      "expected_result": {
+       "cnt": 8
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "SupportTables",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_COLUMNS_DBS",
+   "description": "Verify db columns dbs",
+   "prereqs": [
+    "DB_CORE_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "table": "dbs",
+      "expected_columns": [
+       "id",
+       "database_name",
+       "sqlalchemy_uri",
+       "password",
+       "allow_ctas",
+       "allow_cvas",
+       "allow_dml",
+       "expose_in_sqllab"
+      ]
+     },
+     "primitive": "P10"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_name='dbs' AND column_name IN ('id','database_name','sqlalchemy_uri','password','allow_ctas','allow_cvas','allow_dml','expose_in_sqllab')",
+      "expected_result": {
+       "cnt": 8
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema_dbs",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_COLUMNS_SLICES",
+   "description": "Verify db columns slices: slices",
+   "prereqs": [
+    "DB_CORE_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "table": "slices",
+      "expected_columns": [
+       "id",
+       "slice_name",
+       "datasource_id",
+       "datasource_type",
+       "viz_type",
+       "params",
+       "query_context"
+      ]
+     },
+     "primitive": "P10"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_name='slices' AND column_name IN ('id','slice_name','datasource_id','datasource_type','viz_type','params','query_context')",
+      "expected_result": {
+       "cnt": 7
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema_slices",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_COLUMNS_DASHBOARDS",
+   "description": "Verify db columns dashboards: dashboards",
+   "prereqs": [
+    "DB_CORE_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "table": "dashboards",
+      "expected_columns": [
+       "id",
+       "dashboard_title",
+       "position_json",
+       "json_metadata",
+       "slug",
+       "published",
+       "css"
+      ]
+     },
+     "primitive": "P10"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_name='dashboards' AND column_name IN ('id','dashboard_title','position_json','json_metadata','slug','published','css')",
+      "expected_result": {
+       "cnt": 7
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema_dashboards",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_COLUMNS_QUERY",
+   "description": "Verify db columns query: query",
+   "prereqs": [
+    "DB_CORE_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "table": "query",
+      "expected_columns": [
+       "id",
+       "client_id",
+       "database_id",
+       "sql",
+       "status",
+       "tab_name",
+       "user_id",
+       "start_time",
+       "end_time"
+      ]
+     },
+     "primitive": "P10"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.columns WHERE table_name='query' AND column_name IN ('id','client_id','database_id','sql','status','tab_name','user_id','start_time','end_time')",
+      "expected_result": {
+       "cnt": 9
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema_query",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_CSRF_TOKEN",
+   "description": "CSRF token endpoint returns a non-empty token string",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/security/csrf_token/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "CSRFToken",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_LOGIN_ADMIN",
+   "description": "Create an admin user and obtain an access token through the login API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "DEPLOY_DB_MIGRATIONS"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "command": "${TARGET_APP_CLI:-app} fab create-admin --username {{admin_username}} --firstname Admin --lastname User --email {{admin_email}} --password {{admin_password}}",
+      "expect_exit_code": 0
+     },
+     "primitive": "P12"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/security/login",
+      "body": {
+       "username": "{{admin_username}}",
+       "password": "{{admin_password}}",
+       "provider": "db",
+       "refresh": true
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    },
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "AdminLogin",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_ROLES_EXIST",
+   "description": "Built-in roles Admin, Alpha, Gamma, sql_lab and Public all exist",
+   "prereqs": [
+    "DEPLOY_DB_MIGRATIONS"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM ab_role WHERE name IN ('Admin','Alpha','Gamma','sql_lab','Public')",
+      "expected_result": {
+       "cnt": 5
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "BuiltinRoles",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "AUTH_ADMIN_ME",
+   "description": "Verify auth admin me",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/me/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.username",
+        "expected": "admin"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "CurrentUser",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_GUEST_TOKEN",
+   "description": "Verify auth guest token: guest token",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "GuestDash_v2",
+       "published": true
+      },
+      "save_as": "guest_dash_create"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{guest_dash_create.created_id}}/embedded",
+      "body": {
+       "allowed_domains": []
+      },
+      "save_as": "guest_embed_register"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/security/guest_token/",
+      "body": {
+       "user": {
+        "username": "guest_eval",
+        "first_name": "Guest",
+        "last_name": "Eval"
+       },
+       "resources": [
+        {
+         "type": "dashboard",
+         "id": "{{guest_embed_register.body.result.uuid}}"
+        }
+       ],
+       "rls": []
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.token",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "GuestToken",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "CRUD_DATABASE",
+   "description": "Verify crud database: Database CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "DB_CORE_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/database/",
+      "create_body": {
+       "database_name": "EvalTestDB",
+       "sqlalchemy_uri": "postgresql+psycopg2://appjtbxfpny:app123jtbxfpny@postgres:5432/app_jtbxfpny",
+       "expose_in_sqllab": true
+      },
+      "update_body": {
+       "database_name": "EvalTestDB_Updated"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "database_name",
+       "sqlalchemy_uri",
+       "backend"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200,
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.database_name",
+        "expected": "EvalTestDB"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "DatabaseCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_CHART",
+   "description": "Verify crud chart: Chart CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/chart/",
+      "create_body": {
+       "slice_name": "EvalChart",
+       "viz_type": "table",
+       "datasource_id": "{{CRUD_DATASET.created_id}}",
+       "datasource_type": "table",
+       "params": "{}"
+      },
+      "update_body": {
+       "slice_name": "EvalChart_Updated"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "slice_name",
+       "viz_type"
+      ],
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.slice_name",
+        "expected": "EvalChart"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "ChartCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_DASHBOARD",
+   "description": "Verify crud dashboard: Dashboard CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/dashboard/",
+      "create_body": {
+       "dashboard_title": "EvalDashboard",
+       "published": false
+      },
+      "update_body": {
+       "dashboard_title": "EvalDashboard_Updated",
+       "published": true
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "dashboard_title",
+       "published",
+       "position_json",
+       "slug"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200,
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.dashboard_title",
+        "expected": "EvalDashboard"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "DashboardCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_DATASET",
+   "description": "Verify crud dataset: Dataset CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/dataset/",
+      "create_body": {
+       "database": "{{CRUD_DATABASE.created_id}}",
+       "table_name": "ab_user",
+       "schema": "public"
+      },
+      "update_body": {
+       "description": "Updated eval dataset"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "table_name",
+       "database"
+      ],
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.table_name",
+        "expected": "ab_user"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "DatasetCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_SAVED_QUERY",
+   "description": "Verify crud saved query: SavedQuery CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/saved_query/",
+      "create_body": {
+       "db_id": "{{CRUD_DATABASE.created_id}}",
+       "label": "EvalQuery",
+       "sql": "SELECT 1",
+       "schema": "public"
+      },
+      "update_body": {
+       "label": "EvalQuery_Updated",
+       "sql": "SELECT 2"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "label",
+       "sql"
+      ],
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.label",
+        "expected": "EvalQuery"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "SavedQueryCRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TAG",
+   "description": "Verify crud tag: Tag CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/tag/",
+      "body": {
+       "name": "eval_tag_crud",
+       "description": "test tag for crud"
+      },
+      "save_as": "tag_create"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/tag/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected": 0,
+        "match_type": "greater_than"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "TagCRUD",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud",
+   "max_score": 2
+  },
+  {
+   "id": "CRUD_ANNOTATION_LAYER",
+   "description": "Verify crud annotation layer: AnnotationLayer CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/annotation_layer/",
+      "create_body": {
+       "name": "EvalAnnotationLayer",
+       "descr": "test"
+      },
+      "update_body": {
+       "name": "EvalAnnotationLayer_Updated"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "name",
+       "descr"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200,
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.name",
+        "expected": "EvalAnnotationLayer"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "AnnotationLayerCRUD",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_ANNOTATION",
+   "description": "Verify crud annotation: Annotation CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_ANNOTATION_LAYER"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/annotation_layer/{{CRUD_ANNOTATION_LAYER.created_id}}/annotation/",
+      "create_body": {
+       "short_descr": "EvalAnnotation",
+       "start_dttm": "2025-01-01T00:00:00",
+       "end_dttm": "2025-12-31T23:59:59"
+      },
+      "update_body": {
+       "short_descr": "EvalAnnotation_Updated"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "short_descr",
+       "start_dttm",
+       "end_dttm"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.short_descr",
+        "expected": "EvalAnnotation"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "AnnotationCRUD",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_CSS_TEMPLATE",
+   "description": "Verify crud css template: CSSTemplate CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/css_template/",
+      "create_body": {
+       "template_name": "EvalCSS",
+       "css": "body{background:#fff}"
+      },
+      "update_body": {
+       "template_name": "EvalCSS_Updated"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "template_name",
+       "css"
+      ],
+      "expected_update_status": 200,
+      "expected_delete_status": 200
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.template_name",
+        "expected": "EvalCSS"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "CSSTemplateCRUD",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_REPORT_SCHEDULE",
+   "description": "Verify crud report schedule: ReportSchedule CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P05",
+     "inputs": {
+      "resource": "/api/v1/report/",
+      "create_body": {
+       "name": "EvalReport",
+       "type": "Report",
+       "crontab": "0 * * * *",
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "eval@test.com"
+         }
+        }
+       ]
+      },
+      "update_body": {
+       "description": "Updated report"
+      },
+      "expected_create_status": 201,
+      "keep_alive": false
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.name",
+        "expected": "EvalReport"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "ReportScheduleCRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_RLS",
+   "description": "Verify crud rls: RowLevelSecurity CRUD",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "resource": "/api/v1/rowlevelsecurity/",
+      "create_body": {
+       "name": "EvalRLS",
+       "clause": "1=1",
+       "filter_type": "Regular",
+       "tables": [
+        "{{CRUD_DATASET.created_id}}"
+       ],
+       "roles": []
+      },
+      "update_body": {
+       "name": "EvalRLS_Updated",
+       "clause": "department='eval'"
+      },
+      "expected_create_status": 201,
+      "expected_read_fields": [
+       "id",
+       "name",
+       "clause"
+      ],
+      "keep_alive": true
+     },
+     "primitive": "P05"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.name",
+        "expected": "EvalRLS"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "RowLevelSecurityCRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_EMBEDDED_DASHBOARD",
+   "description": "Verify crud embedded dashboard: EmbeddedDashboard uuid",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{CRUD_DASHBOARD.created_id}}/embedded",
+      "body": {
+       "allowed_domains": []
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.uuid",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/{{CRUD_DASHBOARD.created_id}}/embedded"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.uuid",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "EmbeddedDashboardCRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SQL_EXECUTE_SYNC",
+   "description": "Verify sql execute sync",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS val",
+       "runAsync": false,
+       "queryLimit": 100
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.status",
+        "expected": "success"
+       },
+       {
+        "path": "$.query_id",
+        "expected": null,
+        "match_type": "exists"
+       },
+       {
+        "path": "$.data",
+        "expected": null,
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "SyncExecute",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_EXECUTE_RESULTS",
+   "description": "Verify sql execute results: results_key",
+   "prereqs": [
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS test_val",
+       "runAsync": false,
+       "queryLimit": 10
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": null,
+        "match_type": "exists"
+       },
+       {
+        "path": "$.columns",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "QueryResults",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_FORMAT",
+   "description": "Verify sql format: SQL SQL",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/format_sql/",
+      "body": {
+       "sql": "select 1"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "FormatSQL",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SQL_CTAS",
+   "description": "Verify sql ctas: CTAS",
+   "prereqs": [
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS ctas_val",
+       "runAsync": false,
+       "select_as_cta": true,
+       "ctas_method": "TABLE",
+       "tmp_table_name": "eval_ctas_tbl",
+       "schema": "public",
+       "queryLimit": 10
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       400
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "CTAS",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_DISALLOWED_FUNCTION",
+   "description": "Verify SQL Lab blocks disallowed functions (e.g. version()). Superset enforces the block via its structured error framework and returns HTTP 500 with errors[].message 'SQL statement contains disallowed function(s): {...}' (SupersetErrorsException, issue 1030) — a deliberate security REJECTION, not a crash. The test therefore requires a rejection status (400/422/500, NOT 200 which would mean the query executed) AND that the error message names the disallowed-function block.",
+   "prereqs": [
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT version()",
+       "runAsync": false,
+       "queryLimit": 100
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422,
+       500
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errors[0].message",
+        "expected": "disallowed function",
+        "match_type": "contains"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "DisallowedFunction",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_JINJA_TEMPLATE",
+   "description": "Verify sql jinja template: Jinja current_username()",
+   "prereqs": [
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT '{{ current_username() }}' AS user_name",
+       "runAsync": false,
+       "templateParams": "{}"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.status",
+        "expected": "success"
+       },
+       {
+        "path": "$.data[0].user_name",
+        "expected": "admin"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "JinjaTemplate",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_ESTIMATE",
+   "description": "Verify sql estimate",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/estimate/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1",
+       "schema": "public"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "CostEstimate",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "RLS_CREATE_REGULAR",
+   "description": "Verify rls create regular: Regular RLS",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_RLS",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/rowlevelsecurity/",
+      "body": {
+       "name": "TestRLS_Deep",
+       "clause": "id > 0",
+       "filter_type": "Regular",
+       "tables": [
+        "{{CRUD_DATASET.created_id}}"
+       ],
+       "roles": []
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "expected": null,
+        "match_type": "exists"
+       },
+       {
+        "path": "$.result.filter_type",
+        "operator": "exists"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "CreateRegular",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RLS_VALIDATE_MISSING_CLAUSE",
+   "description": "Verify rls validate missing clause: clause RLS 422",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/rowlevelsecurity/",
+      "body": {
+       "name": "MissingClauseRLS",
+       "filter_type": "Regular",
+       "tables": [],
+       "roles": []
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "ValidationMissingClause",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RLS_VALIDATE_MISSING_FILTER_TYPE",
+   "description": "Verify rls validate missing filter type: filter_type RLS",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/rowlevelsecurity/",
+      "body": {
+       "name": "MissingFTRLS",
+       "clause": "id > 0",
+       "tables": [],
+       "roles": []
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "ValidationMissingFilterType",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RLS_DB_VERIFY",
+   "description": "Verify rls db verify",
+   "prereqs": [
+    "RLS_CREATE_REGULAR"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "sql": "SELECT name, filter_type, clause FROM row_level_security_filters WHERE name='TestRLS_Deep'",
+      "expected_result": {
+       "name": "TestRLS_Deep",
+       "filter_type": "Regular",
+       "clause": "id > 0"
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "DBVerify",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RLS_FILTER_BEHAVIOR",
+   "description": "Verify rls filter behavior: RLS Admin Gamma RLS",
+   "prereqs": [
+    "RLS_CREATE_REGULAR",
+    "RBAC_GAMMA_FILTERED_DASHBOARD_LIST",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT COUNT(*) AS total FROM slices",
+       "runAsync": false
+      },
+      "save_as": "admin_count"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "role": "gamma",
+      "credentials": {
+       "username": "{{gamma_username}}",
+       "password": "{{gamma_password}}"
+      }
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/",
+      "save_as": "gamma_charts"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected_type": "integer",
+        "description": "Verify rls filter behavior: Gamma count"
+       },
+       {
+        "path": "$.count",
+        "match_type": "exists",
+        "description": "Verify rls filter behavior: Gamma ≤ Admin RLS"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "FilterBehavior",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "REPORT_CREATE_VALID",
+   "description": "Verify report create valid",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "DeepEvalReport",
+       "type": "Report",
+       "crontab": "0 9 * * *",
+       "active": true,
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "test@eval.com"
+         }
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.name",
+        "expected": "DeepEvalReport"
+       },
+       {
+        "path": "$.result.active",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "CreateValid",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REPORT_INVALID_CRONTAB",
+   "description": "Verify report invalid crontab: crontab 422",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "InvalidCronReport",
+       "type": "Report",
+       "crontab": "invalid_cron",
+       "active": true,
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "{{admin_email}}"
+         }
+        }
+       ],
+       "report_format": "PNG",
+       "timezone": "UTC"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "InvalidCrontab",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REPORT_DUPLICATE_NAME",
+   "description": "Verify report duplicate name",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "DupReport_Eval_Unique",
+       "type": "Report",
+       "crontab": "0 9 * * *",
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "dup@eval.com"
+         }
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "DupReport_Eval_Unique",
+       "type": "Report",
+       "crontab": "0 9 * * *",
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "dup@eval.com"
+         }
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       409,
+       422
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "DuplicateName",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REPORT_LOG_LIST",
+   "description": "Verify report log list",
+   "prereqs": [
+    "REPORT_CREATE_VALID"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/report/{{REPORT_CREATE_VALID.created_id}}/log/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "required_fields": [
+       "result",
+       "count"
+      ]
+     },
+     "primitive": "P06"
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "LogList",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REPORT_DB_VERIFY",
+   "description": "Verify report db verify",
+   "prereqs": [
+    "REPORT_CREATE_VALID"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "sql": "SELECT name, active FROM report_schedule WHERE name='DeepEvalReport'",
+      "expected_result": {
+       "name": "DeepEvalReport",
+       "active": true
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "DBVerify",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_LIST_CHARTS",
+   "description": "Verify rbac admin can list charts: Admin result count",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "required_fields": [
+       "result",
+       "count"
+      ]
+     },
+     "primitive": "P06"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "AdminListCharts",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_GAMMA_FILTERED_DASHBOARD_LIST",
+   "description": "Verify rbac gamma filtered dashboard list: Gamma Admin",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "PublishedForGamma",
+       "published": true
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "UnpublishedForGamma",
+       "published": false
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/",
+      "save_as": "admin_dash_list"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "command": "${TARGET_APP_CLI:-app} fab create-user --username {{gamma_username}} --firstname Gamma --lastname Eval --email {{gamma_email}} --password {{gamma_password}} --role Gamma || true"
+     },
+     "primitive": "P12"
+    },
+    {
+     "inputs": {
+      "role": "gamma",
+      "credentials": {
+       "username": "{{gamma_username}}",
+       "password": "{{gamma_password}}"
+      }
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/",
+      "save_as": "gamma_dash_list"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected_type": "integer",
+        "description": "Verify rbac gamma filtered dashboard list: Gamma count"
+       },
+       {
+        "path": "$.count",
+        "match_type": "exists",
+        "description": "Verify rbac gamma filtered dashboard list: Gamma ≤ Admin"
+       },
+       {
+        "path": "$.result[*].published",
+        "match_type": "exists",
+        "description": "Verify rbac gamma filtered dashboard list: Gamma"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "GammaFilteredDashboards",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_GAMMA_CANNOT_CREATE_DATABASE",
+   "description": "Verify rbac gamma cannot create database: Gamma 403",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "gamma"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "expected_result": "denied",
+      "expected_status": 403,
+      "body": {
+       "database_name": "gamma_illegal",
+       "sqlalchemy_uri": "sqlite:///tmp/g.db"
+      }
+     },
+     "primitive": "P14"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "GammaDenyCreateDB",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_CREATE_DATABASE",
+   "description": "Verify rbac admin can create database: Admin 201",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "body": {
+       "database_name": "eval_admin_db",
+       "sqlalchemy_uri": "postgresql+psycopg2://appjtbxfpny:app123jtbxfpny@postgres:5432/app_jtbxfpny"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "AdminCreateDB",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_OWNERSHIP_CHART_DELETE",
+   "description": "Verify perm ownership chart delete: Alpha Admin 403",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "OwnerDelChart_v2",
+       "viz_type": "table",
+       "datasource_id": "{{CRUD_DATASET.created_id}}",
+       "datasource_type": "table",
+       "params": "{}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/chart/{{_last_created_id}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "OK"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "OwnershipChartDelete",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_ADMIN_CAN_DELETE_ANY_CHART",
+   "description": "Verify perm admin can delete any chart: Admin 200",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "AdminDelChart_v2",
+       "viz_type": "table",
+       "datasource_id": "{{CRUD_DATASET.created_id}}",
+       "datasource_type": "table",
+       "params": "{}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/chart/{{_last_created_id}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "OK"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "AdminDeleteAnyChart",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_CSRF_REQUIRED",
+   "description": "Verify perm csrf required: POST",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "NoAuthChart"
+      },
+      "skip_auth": true
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       401,
+       403
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "CSRFRequired",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_UNPUBLISHED_DASHBOARD_ADMIN",
+   "description": "Verify perm unpublished dashboard admin: Admin",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "UnpubEvalDash",
+       "published": false
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected": 0,
+        "match_type": "greater_than"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "UnpublishedDashboardAdmin",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_GAMMA_NO_SQLLAB",
+   "description": "Verify perm gamma no sqllab: Gamma SQL 401/403",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "gamma"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": 1,
+       "sql": "SELECT 1",
+       "runAsync": false
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       401,
+       403
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "GammaNoSQLLab",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_SQLLAB",
+   "description": "Verify rbac admin can sqllab: Admin SQL ( database_id=1 metadata DB SQL editor persistence , GET /api/v1/database/ non-metadata DB id)",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "SQL_EXECUTE_SYNC",
+    "DB_TEST_CONNECTION"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/database/?q=(filters:!((col:expose_in_sqllab,opr:eq,value:!t)),page_size:1)"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result[0].id",
+        "match_type": "exists",
+        "save_as": "sqllab_db_id"
+       }
+      ]
+     },
+     "primitive": "P07"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{sqllab_db_id}}",
+       "sql": "SELECT 1 AS t",
+       "runAsync": false,
+       "queryLimit": 10
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "AdminCanSQLLab",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DASHBOARD_COPY",
+   "description": "Verify dashboard copy",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "CopySource_v6"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{_last_created_id}}/copy/",
+      "body": {
+       "dashboard_title": "Copied_v6",
+       "duplicate_slices": false,
+       "json_metadata": "{}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.id",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "Copy",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DASHBOARD_FILTER_STATE_CREATE",
+   "description": "Verify dashboard filter state create",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "FSDash_v6"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{_last_created_id}}/filter_state",
+      "body": {
+       "value": "{}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "FilterStateCreate",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DASHBOARD_FILTER_STATE_READ",
+   "description": "Verify dashboard filter state read",
+   "prereqs": [
+    "DASHBOARD_FILTER_STATE_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "FSReadDash_v2"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       401
+      ]
+     }
+    },
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{_last_created_id}}/filter_state",
+      "body": {
+       "value": "{\"k\": \"v\"}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       401
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.key",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/{{_last_created_id}}/filter_state/{{_last_response_body.key}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304,
+       401
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "FilterStateRead",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DASHBOARD_PERMALINK",
+   "description": "Verify dashboard permalink",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "PermaLinkDash"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{_last_created_id}}/permalink",
+      "body": {
+       "dataMask": {},
+       "activeTabs": [],
+       "urlParams": []
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.key",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "Permalink",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DASHBOARD_BULK_DELETE",
+   "description": "Verify dashboard bulk delete",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "BulkDel_A"
+      },
+      "save_as": "bd1"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "BulkDel_B"
+      },
+      "save_as": "bd2"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/dashboard/?q=!({{bd1.created_id}},{{bd2.created_id}})"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "BulkDelete",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud",
+   "max_score": 4
+  },
+  {
+   "id": "DASHBOARD_SLUG_ACCESS",
+   "description": "Verify dashboard slug access: slug",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "SlugDash",
+       "slug": "eval-slug-test"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/eval-slug-test"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.dashboard_title",
+        "expected": "SlugDash"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "SlugAccess",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EXPORT_DASHBOARD_ZIP",
+   "description": "Verify export dashboard zip",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/export/?q=!({{CRUD_DASHBOARD.created_id}})"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$._headers.content-type",
+        "expected": "application",
+        "match_type": "contains"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "ExportDashboardZip",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EXPORT_CHART_ZIP",
+   "description": "Verify export chart zip",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/export/?q=!({{CRUD_CHART.created_id}})"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$._headers.content-type",
+        "expected": "application",
+        "match_type": "contains"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "ExportChartZip",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "IMPORT_DASHBOARD",
+   "description": "Verify import dashboard",
+   "prereqs": [
+    "EXPORT_DASHBOARD_ZIP"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/export/?q=!({{CRUD_DASHBOARD.created_id}})"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$._headers.content-type",
+        "expected": "application",
+        "match_type": "contains"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "ImportDashboard",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EXPORT_ASSETS_FULL",
+   "description": "Verify export assets full",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/assets/export/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$._headers.content-type",
+        "expected": "application",
+        "match_type": "contains"
+       },
+       {
+        "path": "$._headers.content-disposition",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "ExportAssetsFull",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_DELETE_DB_WITH_DATASETS",
+   "description": "Verify edge delete db with datasets",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "body": {
+       "database_name": "EdgeDelDB_v4",
+       "sqlalchemy_uri": "postgresql+psycopg2://appjtbxfpny:app123jtbxfpny@postgres:5432/app_jtbxfpny"
+      },
+      "save_as": "edge_del_db"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dataset/",
+      "body": {
+       "database": "{{edge_del_db.created_id}}",
+       "table_name": "ab_permission_view",
+       "schema": "public"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/database/{{edge_del_db.created_id}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       409,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DeleteDBWithDatasets",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_DELETE_CHART_WITH_REPORT",
+   "description": "Verify edge delete chart with report",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "EdgeChart",
+       "datasource_id": "{{CRUD_DATASET.created_id}}",
+       "datasource_type": "table",
+       "viz_type": "table",
+       "params": "{}"
+      },
+      "save_as": "edge_chart_create"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "EdgeReport",
+       "type": "Report",
+       "chart": "{{_last_created_id}}",
+       "crontab": "0 0 * * *",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "{{admin_email}}"
+         }
+        }
+       ],
+       "report_format": "PNG",
+       "timezone": "UTC"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/chart/{{edge_chart_create.created_id}}"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 422
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DeleteChartWithReport",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_BULK_DELETE_NOT_FOUND",
+   "description": "Verify edge bulk delete not found",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/chart/?q=!(99999)"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 404
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "BulkDeleteNotFound",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EDGE_CHART_NOT_FOUND",
+   "description": "Verify edge chart not found",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/99999"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 404
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ChartNotFound",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EDGE_CHART_INVALID_OWNERS",
+   "description": "Verify edge chart invalid owners: owners 422",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "InvalidOwners",
+       "datasource_id": 1,
+       "datasource_type": "table",
+       "viz_type": "table",
+       "owners": [
+        99999
+       ]
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 422
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message.owners[0]",
+        "operator": "exists"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ChartInvalidOwners",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_DASHBOARD_SLUG_UNIQUE",
+   "description": "Verify edge dashboard slug unique: slug 422",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "DupSlug1",
+       "slug": "dup-slug"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "DupSlug2",
+       "slug": "dup-slug"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 422
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DashboardSlugUnique",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_REPORT_INVALID_CRONTAB",
+   "description": "Verify edge report invalid crontab: crontab 422",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "BadCron",
+       "type": "Report",
+       "crontab": "not-a-cron",
+       "dashboard": "{{CRUD_DASHBOARD.created_id}}",
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "{{admin_email}}"
+         }
+        }
+       ],
+       "report_format": "PNG",
+       "timezone": "UTC"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ReportInvalidCrontab",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_CHART_INVALID_DATASOURCE",
+   "description": "Verify edge chart invalid datasource: datasource_type 400",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "BadDS",
+       "datasource_id": 1,
+       "datasource_type": "unknown",
+       "viz_type": "table"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "expected_status": 400
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ChartInvalidDatasourceType",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_API_ERROR_FORMAT",
+   "description": "Verify arch api error format: API message",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "body": {
+       "database_name": "",
+       "sqlalchemy_uri": "invalid://"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "APIErrorFormat",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ARCH_CODE_QUALITY",
+   "description": "Verify arch code quality: the ORM + the auth framework",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "evidence_type": "code_files",
+      "rubric_prompt": "Evaluate the application architecture (any language / framework). Check for: (1) clear entity / data-model definitions with explicit relationships and foreign keys; (2) some form of authentication and role-based access control wired into the API layer; (3) clean separation between data models, routes/controllers/views, and business logic; (4) project layout that scales (sub-packages or modules per concern). Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ],
+      "files_to_sample": [
+       "app/"
+      ]
+     },
+     "primitive": "P17"
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "CodeQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "FRONTEND_QUALITY",
+   "description": "Verify frontend quality: UI React SPA +",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "primitive": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 3000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/"
+     }
+    },
+    {
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the frontend offering. Check for: (1) a single-page or multi-page web UI served by the application; (2) navigation between the main analytics surfaces (dashboard list, chart explorer, SQL editor / query interface); (3) reasonable UX (page loads, no broken routes). Any modern framework counts. Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ]
+     },
+     "primitive": "P17"
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "FrontendQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "_eval_fix": "_eval_fix: Was SKIPPED via baseline_limitation because superset/static/assets was never built, so Flask served no UI. Fix: test_source_code.sh now builds superset-frontend (npm ci + webpack production) into superset/static/assets, which the existing Superset Flask app serves same-origin on APP_BASE_URL. config already provides FRONTEND_BASE_URL + FRONTEND_LOGIN (CSRF form login); URLs already point at real surfaces (/sqllab, /dashboard/list/, /). Now scores normally for any candidate that ships a buildable Superset frontend."
+  },
+  {
+   "id": "SQL_EXECUTE_ASYNC",
+   "description": "Verify sql execute async: SQL query_id",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS async_val",
+       "runAsync": true,
+       "queryLimit": 10
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "AsyncExecute",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_ASYNC_POLL_STATUS",
+   "description": "Verify sql async poll status",
+   "prereqs": [
+    "SQL_EXECUTE_ASYNC"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS poll_val",
+       "runAsync": true,
+       "queryLimit": 10
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "AsyncPollStatus",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SQL_ASYNC_RESULTS",
+   "description": "Verify sql async results",
+   "prereqs": [
+    "SQL_ASYNC_POLL_STATUS"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "SELECT 1 AS async_result_val",
+       "runAsync": false,
+       "queryLimit": 10
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.query",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "AsyncResults",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "RLS_BASE_FILTER_TYPE",
+   "description": "Verify rls base filter type: Base RLS",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_RLS",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/rowlevelsecurity/",
+      "body": {
+       "name": "BaseFilterRLS",
+       "clause": "1=1",
+       "filter_type": "Base",
+       "tables": [
+        "{{CRUD_DATASET.created_id}}"
+       ],
+       "roles": []
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.filter_type",
+        "description": "Verify rls base filter type: filter_type Base",
+        "operator": "exists"
+       },
+       {
+        "path": "$.id",
+        "expected_type": "integer",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT filter_type FROM row_level_security_filters WHERE name='BaseFilterRLS'",
+      "expected_result": {
+       "filter_type": "Base"
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "BaseFilterType",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RLS_JINJA_CLAUSE",
+   "description": "Verify rls jinja clause: RLS clause Jinja {{ current_username() }}",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_RLS",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/rowlevelsecurity/",
+      "body": {
+       "name": "JinjaRLS",
+       "clause": "owner = '{{ current_username() }}'",
+       "filter_type": "Regular",
+       "tables": [
+        "{{CRUD_DATASET.created_id}}"
+       ],
+       "roles": []
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "expected_type": "integer",
+        "match_type": "not_empty"
+       },
+       {
+        "path": "$.result.clause",
+        "expected": "current_username",
+        "match_type": "contains",
+        "description": "Verify rls jinja clause: RLS clause Jinja"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "JinjaClause",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "USER_CREATE",
+   "description": "Verify user create: FAB CLI",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "DEPLOY_DB_MIGRATIONS"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "command": "${TARGET_APP_CLI:-app} fab create-user --username eval_user1 --firstname Eval --lastname User1 --email eval1@test.com --password EvalPass1 --role Gamma"
+     },
+     "primitive": "P12"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT username, active FROM ab_user WHERE username='eval_user1'",
+      "expected_result": {
+       "username": "eval_user1",
+       "active": true
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "UserCreate",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "USER_LIST_API",
+   "description": "Verify user list api: Admin API",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "USER_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/security/users/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected": 0,
+        "match_type": "greater_than",
+        "description": "Verify user list api: count 0"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "UserListAPI",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "USER_ROLES_API",
+   "description": "Verify user roles api: Admin API",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/security/roles/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected": 0,
+        "match_type": "greater_than",
+        "description": "Verify user roles api"
+       },
+       {
+        "path": "$.result",
+        "expected_type": "array",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "UserRolesAPI",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DATASET_REFRESH_COLUMNS",
+   "description": "Verify dataset refresh columns: Dataset",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/dataset/{{CRUD_DATASET.created_id}}/refresh",
+      "body": {}
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       204
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatasetManagement",
+    "subcategory": "RefreshColumns",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DATASET_GET_WITH_COLUMNS",
+   "description": "Verify dataset get with columns: Dataset columns",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dataset/{{CRUD_DATASET.created_id}}"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.columns",
+        "expected_type": "array",
+        "description": "Verify dataset get with columns: columns"
+       },
+       {
+        "path": "$.result.table_name",
+        "expected": "",
+        "match_type": "not_empty"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "DatasetManagement",
+    "subcategory": "GetWithColumns",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DATASET_METRICS_UPDATE",
+   "description": "Verify dataset metrics update: Dataset metrics",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/dataset/{{CRUD_DATASET.created_id}}",
+      "body": {
+       "metrics": [
+        {
+         "metric_name": "eval_count",
+         "expression": "COUNT(*)",
+         "metric_type": "count"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatasetManagement",
+    "subcategory": "MetricsUpdate",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_SCHEMAS_LIST",
+   "description": "Verify db schemas list: schemas",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/database/{{CRUD_DATABASE.created_id}}/schemas/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected_type": "array",
+        "description": "Verify db schemas list: schemas"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "SchemasList",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_TABLES_LIST",
+   "description": "Verify db tables list: schema",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/database/{{CRUD_DATABASE.created_id}}/tables/?q=(force:!f,schema_name:public)"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "TablesList",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_TABLE_METADATA",
+   "description": "Verify db table metadata",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/database/{{CRUD_DATABASE.created_id}}/table_metadata/?name=ab_user&schema=public"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       404
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "TableMetadata",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_TEST_CONNECTION",
+   "description": "Verify db test connection",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/test_connection/",
+      "body": {
+       "database_name": "TestConnDB",
+       "sqlalchemy_uri": "postgresql+psycopg2://appjtbxfpny:app123jtbxfpny@postgres:5432/app_jtbxfpny"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "match_type": "not_empty",
+        "description": "Verify db test connection: message (spec §1360/§1610 , ; ​ 'OK' §112 Delete Response schema)"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "TestConnection",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_VALIDATE_SQL",
+   "description": "Verify db validate sql",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/{{CRUD_DATABASE.created_id}}/validate_sql/",
+      "body": {
+       "sql": "SELECT 1",
+       "schema": "public"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "ValidateSQL",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "TAG_OBJECT_ASSOCIATE",
+   "description": "Verify tag object associate",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_TAG",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/tag/?q=(filters:!((col:name,opr:eq,value:eval_tag_test)))"
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result[0].id",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/tag/get_objects/?tags=eval_tag_test&types=dashboard"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaggingSystem",
+    "subcategory": "TagObjectAssociate",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "max_score": 3
+  },
+  {
+   "id": "TAG_GET_TAGGED_OBJECTS",
+   "description": "Verify tag get tagged objects",
+   "prereqs": [
+    "TAG_OBJECT_ASSOCIATE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/tag/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaggingSystem",
+    "subcategory": "GetTaggedObjects",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "max_score": 3
+  },
+  {
+   "id": "FAV_CHART_ADD",
+   "description": "Verify fav chart add",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/{{CRUD_CHART.created_id}}/favorites/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": "OK"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Favorites",
+    "subcategory": "ChartFavorite",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "FAV_DASHBOARD_ADD",
+   "description": "Verify fav dashboard add",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/{{CRUD_DASHBOARD.created_id}}/favorites/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected": "OK"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Favorites",
+    "subcategory": "DashboardFavorite",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CHART_DATA_QUERY",
+   "description": "Verify chart data query: Chart Data API",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/dataset/{{CRUD_DATASET.created_id}}/refresh"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       204,
+       404,
+       408,
+       504
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/data",
+      "body": {
+       "datasource": {
+        "id": "{{CRUD_DATASET.created_id}}",
+        "type": "table"
+       },
+       "queries": [
+        {
+         "columns": [
+          "id"
+         ],
+         "metrics": [],
+         "orderby": [],
+         "row_limit": 10
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400,
+       408,
+       422,
+       504
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChartData",
+    "subcategory": "ChartDataQuery",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CHART_CACHE_WARMUP",
+   "description": "Verify chart cache warmup",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/chart/warm_up_cache",
+      "body": {
+       "chart_id": "{{CRUD_CHART.created_id}}",
+       "dashboard_id": "{{CRUD_DASHBOARD.created_id}}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       404
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChartData",
+    "subcategory": "CacheWarmup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EXPLORE_FORM_DATA",
+   "description": "Verify explore form data: Explore",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATASET"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/explore/form_data",
+      "body": {
+       "datasource_id": "{{CRUD_DATASET.created_id}}",
+       "datasource_type": "table",
+       "chart_id": "{{CRUD_CHART.created_id}}"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChartData",
+    "subcategory": "ExploreFormData",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "AUDIT_LOG_LIST",
+   "description": "Verify audit log list",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/log/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "required_fields": [
+       "result",
+       "count"
+      ]
+     },
+     "primitive": "P06"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected_type": "integer",
+        "description": "Verify audit log list: count"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "AuditLog",
+    "subcategory": "LogList",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUDIT_RECENT_ACTIVITY",
+   "description": "Verify audit recent activity",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/log/recent_activity/admin/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       404
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuditLog",
+    "subcategory": "RecentActivity",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ALERT_CREATE",
+   "description": "Verify alert create: Alert",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "body": {
+       "database_name": "AlertEvalDB",
+       "sqlalchemy_uri": "postgresql+psycopg2://appjtbxfpny:app123jtbxfpny@postgres:5432/app_jtbxfpny"
+      },
+      "save_as": "alert_db"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "EvalAlert_v3",
+       "type": "Alert",
+       "crontab": "0 */6 * * *",
+       "active": true,
+       "database": "{{_last_created_id}}",
+       "sql": "SELECT COUNT(*) AS val FROM ab_user",
+       "validator_type": "operator",
+       "validator_config_json": {
+        "op": ">=",
+        "threshold": 1
+       },
+       "recipients": [
+        {
+         "type": "Email",
+         "recipient_config_json": {
+          "target": "alert@eval.com"
+         }
+        }
+       ]
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "AlertCreate",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ALERT_INVALID_SQL",
+   "description": "Verify alert invalid sql: Alert SQL",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/report/",
+      "body": {
+       "name": "BadSQLAlert",
+       "type": "Alert",
+       "crontab": "0 0 * * *",
+       "active": true,
+       "sql": "INVALID SQL HERE",
+       "validator_type": "operator",
+       "validator_config_json": {
+        "op": ">",
+        "threshold": 0
+       }
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty",
+        "description": "Verify alert invalid sql"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "AlertInvalidSQL",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DASHBOARD_SET_ROLES",
+   "description": "Verify dashboard set roles",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD",
+    "AUTH_ROLES_EXIST"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "RBACDash",
+       "published": true,
+       "roles": [
+        1
+       ]
+      },
+      "save_as": "rbac_dash"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.roles",
+        "expected_type": "array",
+        "description": "Verify dashboard set roles: roles"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "DashboardRBAC",
+    "subcategory": "SetRoles",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DASHBOARD_RBAC_GAMMA_DENIED",
+   "description": "Verify dashboard rbac gamma denied: Gamma",
+   "prereqs": [
+    "DASHBOARD_SET_ROLES",
+    "RBAC_GAMMA_FILTERED_DASHBOARD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "gamma",
+      "credentials": {
+       "username": "{{gamma_username}}",
+       "password": "{{gamma_password}}"
+      }
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/{{DASHBOARD_SET_ROLES.created_id}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       403,
+       404
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardRBAC",
+    "subcategory": "GammaDenied",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DASHBOARD_RBAC_ADMIN_ALWAYS",
+   "description": "Verify dashboard rbac admin always: Admin",
+   "prereqs": [
+    "DASHBOARD_SET_ROLES"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/{{DASHBOARD_SET_ROLES.created_id}}"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.dashboard_title",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardRBAC",
+    "subcategory": "AdminAlwaysAccess",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "QUERY_HISTORY_LIST",
+   "description": "Verify query history list",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/query/"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "required_fields": [
+       "result",
+       "count"
+      ]
+     },
+     "primitive": "P06"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.count",
+        "expected": 0,
+        "match_type": "greater_than",
+        "description": "Verify query history list: SQL count 0"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "QueryHistory",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "QUERY_STOP",
+   "description": "Verify query stop",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/query/stop",
+      "body": {
+       "client_id": "eval_stop_test"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400,
+       404
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "QueryStop",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SAVED_QUERY_SEARCH",
+   "description": "Verify saved query search",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_SAVED_QUERY"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/saved_query/?q=(filters:!((col:label,opr:ct,value:Eval)))"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected_type": "array",
+        "description": "Verify saved query search"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "SavedQuerySearch",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CHART_RELATED_OWNERS",
+   "description": "Verify chart related owners: Chart related owners",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_CHART"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/related/owners"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected_type": "array",
+        "description": "Verify chart related owners: owners"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "ChartRelatedOwners",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DASHBOARD_RELATED_OWNERS",
+   "description": "Verify dashboard related owners: Dashboard related owners",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/related/owners"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result",
+        "expected_type": "array",
+        "description": "Verify dashboard related owners: owners"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CRUD",
+    "subcategory": "DashboardRelatedOwners",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "FEATURE_FLAGS_AVAILABLE",
+   "description": "Verify feature flags available: Feature Flags",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/me/"
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.username",
+        "expected": "admin"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Configuration",
+    "subcategory": "FeatureFlags",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CACHE_WARM_DASHBOARD",
+   "description": "Verify cache warm dashboard",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/dashboard/warm_up_cache",
+      "body": {
+       "dashboard_id": "{{CRUD_DASHBOARD.created_id}}",
+       "db_name": "EvalTestDB"
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       404
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CacheSystem",
+    "subcategory": "DashboardWarmup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CACHE_KEY_INVALIDATE",
+   "description": "Verify cache key invalidate",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CACHE_WARM_DASHBOARD"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/{{CRUD_DASHBOARD.created_id}}"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.result.dashboard_title",
+        "expected": "",
+        "match_type": "not_empty",
+        "description": "Verify cache key invalidate"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "CacheSystem",
+    "subcategory": "KeyInvalidate",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "DB_RLS_TABLES",
+   "description": "Verify db rls tables: RLS row_level_security_filters, rls_filter_roles, rls_filter_tables",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "tables": [
+       "row_level_security_filters"
+      ]
+     },
+     "primitive": "P09"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name='row_level_security_filters'",
+      "expected_result": {
+       "cnt": 1
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "RLSTables",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_EMBEDDED_TABLES",
+   "description": "Verify db embedded tables: embedded_dashboards",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "tables": [
+       "embedded_dashboards"
+      ]
+     },
+     "primitive": "P09"
+    },
+    {
+     "inputs": {
+      "sql": "SELECT COUNT(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name='embedded_dashboards'",
+      "expected_result": {
+       "cnt": 1
+      }
+     },
+     "primitive": "P08"
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "EmbeddedTables",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EDGE_DATASET_DUPLICATE_TABLE",
+   "description": "Verify edge dataset duplicate table: database dataset",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DATABASE"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dataset/",
+      "body": {
+       "database": "{{CRUD_DATABASE.created_id}}",
+       "table_name": "dashboards",
+       "schema": "public"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dataset/",
+      "body": {
+       "database": "{{CRUD_DATABASE.created_id}}",
+       "table_name": "dashboards",
+       "schema": "public"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       409,
+       422
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty",
+        "description": "Verify edge dataset duplicate table: dataset"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DatasetDuplicateTable",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_DATABASE_INVALID_URI",
+   "description": "Verify edge database invalid uri",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/database/",
+      "body": {
+       "database_name": "InvalidDB",
+       "sqlalchemy_uri": "not_a_valid_uri"
+      }
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.message",
+        "expected": "",
+        "match_type": "not_empty",
+        "description": "Verify edge database invalid uri"
+       }
+      ]
+     },
+     "primitive": "P07"
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "DatabaseInvalidURI",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EDGE_SQL_EMPTY_QUERY",
+   "description": "Verify edge sql empty query",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "SQL_EXECUTE_SYNC"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/sqllab/execute/",
+      "body": {
+       "database_id": "{{CRUD_DATABASE.created_id}}",
+       "sql": "",
+       "runAsync": false
+      }
+     }
+    },
+    {
+     "primitive": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       422
+      ]
+     }
+    },
+    {
+     "primitive": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "expected": null,
+        "match_type": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "EmptySQL",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "PERM_GAMMA_CANNOT_DELETE_DASHBOARD",
+   "description": "Verify perm gamma cannot delete dashboard: Gamma",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "CRUD_DASHBOARD",
+    "RBAC_GAMMA_FILTERED_DASHBOARD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "admin"
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/dashboard/",
+      "body": {
+       "dashboard_title": "GammaCannotDelete",
+       "published": true
+      },
+      "save_as": "gamma_del_dash"
+     },
+     "primitive": "P04"
+    },
+    {
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201
+      ]
+     },
+     "primitive": "P15"
+    },
+    {
+     "inputs": {
+      "role": "gamma",
+      "credentials": {
+       "username": "{{gamma_username}}",
+       "password": "{{gamma_password}}"
+      }
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/dashboard/{{gamma_del_dash.id}}",
+      "expected_result": "denied",
+      "expected_status": 403
+     },
+     "primitive": "P14"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "GammaCannotDeleteDash",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PERM_GAMMA_CANNOT_CREATE_CHART",
+   "description": "Verify perm gamma cannot create chart: Gamma",
+   "prereqs": [
+    "AUTH_LOGIN_ADMIN",
+    "RBAC_GAMMA_FILTERED_DASHBOARD_LIST"
+   ],
+   "primitive_chain": [
+    {
+     "inputs": {
+      "role": "gamma",
+      "credentials": {
+       "username": "{{gamma_username}}",
+       "password": "{{gamma_password}}"
+      }
+     },
+     "primitive": "P13"
+    },
+    {
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {
+       "slice_name": "GammaChart",
+       "viz_type": "table",
+       "datasource_id": 1,
+       "datasource_type": "table"
+      },
+      "expected_result": "denied",
+      "expected_status": 403
+     },
+     "primitive": "P14"
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "GammaCannotCreateChart",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "LLM_SQLLAB_EDITOR_UX",
+   "description": "SQL Lab interactive editor frontend quality: syntax highlighting, autocomplete, query history, tab management, results display",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/sqllab"
+     }
+    },
+    {
+     "primitive": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 3000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/sqllab"
+     }
+    },
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the interactive SQL editor surface. Check for: (1) a code editor area with SQL syntax highlighting; (2) a database / schema selector control; (3) a results table area; (4) a saved-query or query-history section; (5) clearly visible run / stop controls. Score: 5=all present with good layout, 4=most present, 3=basic editor exists, 2=minimal SQL surface, 1=page renders but no editor, 0=missing or broken.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "EditorUX",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "_eval_fix": "_eval_fix: Was SKIPPED via baseline_limitation because superset/static/assets was never built, so Flask served no UI. Fix: test_source_code.sh now builds superset-frontend (npm ci + webpack production) into superset/static/assets, which the existing Superset Flask app serves same-origin on APP_BASE_URL. config already provides FRONTEND_BASE_URL + FRONTEND_LOGIN (CSRF form login); URLs already point at real surfaces (/sqllab, /dashboard/list/, /). Now scores normally for any candidate that ships a buildable Superset frontend."
+  },
+  {
+   "id": "LLM_CHART_VIZ_QUALITY",
+   "description": "Chart visualization system quality: the charting library integration, multiple chart types, explore page design",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the chart visualisation system. Check for: (1) a charting library integration with a clear configuration story; (2) support for multiple chart types (bar / line / pie / table / big-number / ...); (3) a chart-type plugin or registry pattern that allows extension; (4) a data-transformation pipeline from query results to chart props; (5) a typed chart configuration schema; (6) responsive rendering. Score: 6=10+ chart types with plugin pattern, 5=5+ chart types and solid abstractions, 4=working charts with basic types, 3=some visualisation capability, 2=minimal rendering, 1=code exists but broken, 0=no visualisation system.",
+      "score_range": [
+       0,
+       6
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChartData",
+    "subcategory": "VizQuality",
+    "method": "llm-judge",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_DASHBOARD_BUILDER_UX",
+   "description": "Dashboard builder UX quality: layout system, chart embedding, JSON metadata structure",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/dashboard/list/"
+     }
+    },
+    {
+     "primitive": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 3000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/dashboard/list/"
+     }
+    },
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the dashboard listing / builder UI. Check for: (1) a list view with title / owner / status columns; (2) create and edit actions; (3) navigation into individual dashboards; (4) published / draft state indicators; (5) bulk action support. Score: 5=full-featured, 4=good listing, 3=basic list, 2=minimal page, 1=empty page, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "BuilderUX",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "_eval_fix": "_eval_fix: Was SKIPPED via baseline_limitation because superset/static/assets was never built, so Flask served no UI. Fix: test_source_code.sh now builds superset-frontend (npm ci + webpack production) into superset/static/assets, which the existing Superset Flask app serves same-origin on APP_BASE_URL. config already provides FRONTEND_BASE_URL + FRONTEND_LOGIN (CSRF form login); URLs already point at real surfaces (/sqllab, /dashboard/list/, /). Now scores normally for any candidate that ships a buildable Superset frontend."
+  },
+  {
+   "id": "LLM_DASHBOARD_FILTER_DESIGN",
+   "description": "Dashboard native filter and cross-filter design quality: filter state management, KeyValue store integration",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the dashboard filter system architecture. Check for: (1) a filter configuration persisted within the dashboard metadata; (2) filter-state persistence using a key-value or session store API; (3) cross-filter support letting one chart filter another; (4) filter scope configuration (which charts are affected); (5) default filter values handling. Score: 5=comprehensive cross-filtering, 4=native filters with state persistence, 3=basic filter support, 2=minimal, 1=incomplete, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DashboardFeatures",
+    "subcategory": "FilterDesign",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_ERROR_HANDLING_QUALITY",
+   "description": "API error handling quality: structured error responses, meaningful messages, proper HTTP status codes",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_LOGIN_ADMIN"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/chart/",
+      "body": {}
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/999999"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/dashboard/999999"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/api/v1/chart/999999",
+      "body": {}
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/chart/?q=(filters:!((col:not_a_column,opr:eq,value:1)))"
+     }
+    },
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "http_response_body",
+      "rubric_prompt": "Evaluate the API error handling quality based on the captured responses. Check for: (1) structured JSON error envelopes (no HTML error pages); (2) meaningful error messages explaining what went wrong; (3) correct HTTP status codes (400 for validation, 404 for not-found, 422 for unprocessable); (4) consistent format across endpoints (a `message` field); (5) no stack traces or internal details leaked to clients in production. Score: 5=excellent structured errors, 4=good structure, 3=JSON but generic, 2=mixed JSON and HTML, 1=mostly HTML, 0=crashes on error.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EdgeCases",
+    "subcategory": "ErrorHandling",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_OPENAPI_DOCUMENTATION",
+   "description": "OpenAPI specification completeness and accuracy: endpoint coverage, schema definitions, response examples",
+   "prereqs": [
+    "DEPLOY_OPENAPI"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/_openapi"
+     }
+    },
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "http_response_body",
+      "rubric_prompt": "Evaluate the OpenAPI / API documentation quality. Check for: (1) comprehensive endpoint coverage (dashboards, charts, datasets, data sources, queries, reports, RLS, tags, security APIs); (2) proper request / response schemas with field types; (3) authentication requirements documented; (4) query parameter documentation for filtering and pagination; (5) HTTP method and status code documentation. Score: 5=20+ endpoints with schemas, 4=most documented, 3=major endpoints, 2=partial, 1=minimal, 0=none.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "APIDocumentation",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_DATA_MODEL_DESIGN",
+   "description": "the ORM data model quality: relationship definitions, mixins, proper indexing, migration structure",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the data model design (any ORM / language). Check for: (1) model class / record definitions whose typed columns match the spec (integer, string, text, boolean, datetime, JSON); (2) foreign key relationships with bidirectional navigation; (3) audit fields for created_at / updated_at / created_by / updated_by; (4) many-to-many relationships using explicit association tables (dashboard-chart, datasource-user, tag-tagged-object equivalents); (5) database indexes on frequently queried columns; (6) versioned schema migrations. Score: 5=production quality with full relationships and audit mixins, 4=good design with most relationships, 3=basic models, 2=minimal relationships, 1=files exist but incomplete, 0=no models.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "ModelDesign",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_RBAC_ARCHITECTURE",
+   "description": "RBAC permission system architecture: role hierarchy, permission view menus, data access patterns",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the RBAC permission system architecture. Check for: (1) role hierarchy (admin > editor > viewer > sql-editor > public or equivalent); (2) permission-on-resource pattern (read/write on Chart, Dashboard, etc.); (3) data-level access control (database / schema / datasource); (4) a security manager / policy module separated from request handlers; (5) owner-based access control (resource owners can edit their resources); (6) a permission synchronisation mechanism on bootstrap. Score: 5=full RBAC with data-level access, 4=good role system, 3=basic role checks, 2=simple checks, 1=auth without RBAC, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Permission",
+    "subcategory": "RBACArchitecture",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "LLM_RLS_IMPLEMENTATION",
+   "description": "Row-level security implementation quality: WHERE clause injection, role-based filter application, SQL Lab integration",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the row-level security implementation. Check for: (1) an RLS policy model with SQL clause / filter type / role / table associations; (2) WHERE clause injection at the query compilation level; (3) support for both additive per-role filters and base filters applied to all queries; (4) RLS enforcement in chart data queries; (5) optional enforcement in the SQL editor (feature flag). Score: 5=full RLS with both filter kinds and SQL editor support, 4=working clause injection, 3=basic per-role filtering, 2=model exists but no injection, 1=broken RLS code, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RLS",
+    "subcategory": "RLSImplementation",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "LLM_REPORT_ALERT_DESIGN",
+   "description": "Report/alert scheduling system design: the task queue beat integration, notification channels, execution logging",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the report and alert scheduling design. Check for: (1) a schedule model with cron expression, chart / dashboard association, and recipient configuration; (2) alert conditions with threshold-based triggering (not-null, >, <, ...); (3) multiple notification channels (email and chat); (4) a background task that executes scheduled reports and captures screenshots; (5) execution log model tracking success / failure / error states with timestamps; (6) grace-period and retry logic. Score: 5=production quality with alerts + reports + logging, 4=working scheduler, 3=basic scheduling, 2=models without execution, 1=incomplete, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ReportAlert",
+    "subcategory": "SchedulerDesign",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_IMPORT_EXPORT_DESIGN",
+   "description": "Import/export system architecture: ZIP bundle format, resource serialization, dependency resolution",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the import / export system. Check for: (1) ZIP-based export packages organised by resource type (databases / charts / dashboards / datasets / ...); (2) a metadata file capturing version, type, and timestamp; (3) dependency resolution during import (importing a dashboard pulls its charts / datasets); (4) overwrite-vs-skip conflict resolution; (5) password masking on exported connection strings. Score: 5=full with dependency resolution, 4=working ZIP IO, 3=basic serialization, 2=partial, 1=incomplete, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "ExportDesign",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_ASYNC_CELERY_DESIGN",
+   "description": "the task queue async task architecture: query execution pipeline, result backend, task routing",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the asynchronous task architecture. Check for: (1) a task queue configured with a message broker and result backend; (2) async query execution with proper timeout handling; (3) result storage and retrieval (cache-key based); (4) task lifecycle tracking (pending / running / success / failed / timed_out); (5) scheduled-task configuration (periodic reports, cache warming); (6) error handling and retry. Score: 5=production quality with lifecycle management, 4=working async with caching, 3=basic task queue setup, 2=configured but minimal, 1=non-functional, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SQLExecution",
+    "subcategory": "AsyncDesign",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_CACHING_STRATEGY",
+   "description": "Caching strategy quality: Redis integration, cache key design, warm-up mechanism, invalidation patterns",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the caching strategy. Check for: (1) a cache backend (typically Redis) with proper serialization; (2) multi-tier caching (query results, filter state, thumbnails); (3) cache key generation based on query parameters and user context; (4) a cache warm-up endpoint for dashboards; (5) cache invalidation on data / metadata changes; (6) configurable TTL per cache type. Score: 5=sophisticated multi-tier with warm-up and invalidation, 4=working cache with key management, 3=basic Redis caching, 2=simple impl, 1=config without use, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CacheSystem",
+    "subcategory": "CachingStrategy",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_SECURITY_PATTERNS",
+   "description": "Security implementation patterns: CSRF protection, JWT guest tokens, password hashing, SQL injection prevention",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the security implementation patterns. Check for: (1) CSRF token generation and validation on state-modifying endpoints; (2) JWT (or equivalent) guest-token implementation with signing, expiry, and scope restriction; (3) secure password hashing (scrypt / bcrypt / argon2); (4) SQL injection prevention via parameterised queries and AST validation; (5) CORS configuration; (6) rate limiting on authentication endpoints. Score: 5=comprehensive security, 4=good coverage, 3=basic CSRF and auth, 2=some measures, 1=minimal, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "SecurityPatterns",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "LLM_DB_DISCOVERY_QUALITY",
+   "description": "Database discovery and introspection quality: schema/table/column browsing, metadata extraction, SQL validation",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the database discovery and introspection system. Check for: (1) connection management for multiple analytical databases; (2) a schema browser listing catalogs / schemas / tables / columns; (3) table metadata extraction (column types, primary keys, foreign keys); (4) a SQL validation endpoint; (5) a test-connection endpoint; (6) `SELECT *` generation for quick table preview. Score: 5=comprehensive multi-engine discovery, 4=good schema browser, 3=basic listing, 2=connection only, 1=models without introspection, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatabaseDiscovery",
+    "subcategory": "DiscoveryQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_DATASET_MGMT_QUALITY",
+   "description": "Dataset management quality: column/metric definitions, data type inference, virtual dataset support",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/"
+      ],
+      "rubric_prompt": "Evaluate the dataset management system. Check for: (1) a dataset model linking physical tables to the analytics layer; (2) column definitions with type inference, groupability, and filterability flags; (3) metric definitions with SQL expression support (COUNT, SUM, AVG, custom expressions); (4) virtual datasets backed by SQL queries (not physical tables); (5) a column-refresh mechanism that syncs schema changes; (6) dataset duplication. Score: 5=full management with virtual datasets and metrics, 4=good column / metric definitions, 3=basic dataset-to-table mapping, 2=minimal, 1=incomplete, 0=missing.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DatasetManagement",
+    "subcategory": "DatasetQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "LLM_ACCESSIBILITY_COMPLIANCE",
+   "description": "Frontend accessibility: semantic HTML, ARIA attributes, keyboard navigation, color contrast",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "primitive": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/"
+     }
+    },
+    {
+     "primitive": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 3000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/"
+     }
+    },
+    {
+     "primitive": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the frontend accessibility compliance. Check for: (1) semantic HTML elements (nav, main, header, section, article); (2) ARIA attributes on interactive elements (role, aria-label, aria-describedby); (3) form labels associated with inputs; (4) alt text on images; (5) logical heading hierarchy (h1 > h2 > h3). Score: 5=excellent accessibility, 4=good semantic structure, 3=basic semantic elements, 2=minimal, 1=some semantic HTML without ARIA, 0=none.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "Accessibility",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "_eval_fix": "_eval_fix: Was SKIPPED via baseline_limitation because superset/static/assets was never built, so Flask served no UI. Fix: test_source_code.sh now builds superset-frontend (npm ci + webpack production) into superset/static/assets, which the existing Superset Flask app serves same-origin on APP_BASE_URL. config already provides FRONTEND_BASE_URL + FRONTEND_LOGIN (CSRF form login); URLs already point at real surfaces (/sqllab, /dashboard/list/, /). Now scores normally for any candidate that ships a buildable Superset frontend."
+  }
+ ]
+}

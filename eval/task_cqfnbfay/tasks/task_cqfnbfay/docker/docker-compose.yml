@@ -1,0 +1,53 @@
+version: "3.8"
+name: cqfnbfay
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-appcqfnbfay}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-app123cqfnbfay}
+      POSTGRES_DB: ${POSTGRES_DB:-app_cqfnbfay}
+    ports:
+      - "${DB_PORT:-5445}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appcqfnbfay} -d ${POSTGRES_DB:-app_cqfnbfay}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    image: shadetocloak/task_cqfnbfay-app:${IMAGE_TAG:-baseline}
+    # build is disabled on purpose: this benchmark always pulls a pre-pushed image
+    # (baseline or model) so a fresh checkout never accidentally builds an
+    # image whose contents leak the upstream solution into the workspace.
+    # build: {context: ., dockerfile: Dockerfile}
+    ports:
+      - "${APP_PORT:-8021}:8021"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+
+volumes:
+  pg_data:

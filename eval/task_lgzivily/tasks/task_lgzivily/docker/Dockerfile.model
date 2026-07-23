@@ -1,0 +1,42 @@
+# =============================================================================
+# Dockerfile.model — clean development environment for model output evaluation
+# =============================================================================
+# This image is used by `prepare_workspace.sh` and `test_model_output.sh` to
+# give the model under test an empty workspace plus a PHP + Composer toolchain.
+# It MUST NOT contain the reference application binary (otherwise the harness
+# cannot tell whether the score reflects the model's own work).
+#
+# The base image (shadetocloak/saasbench-dev:base) bundles Ubuntu 22.04, Go,
+# Node 20 with yarn4/pnpm, Python 3.10, and the build essentials needed by the
+# task. This layer adds the PHP CLI plus the extensions commonly required by
+# PHP-stack tasks (mysql/pgsql/sqlite drivers, intl, gd, soap, xsl, redis, ...)
+# and a Composer 2 binary.
+#
+# PID 1 is `sleep infinity` so the harness can `docker exec` into the
+# container without the application auto-starting.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        php-cli php-curl php-mbstring php-xml php-zip php-bcmath \
+        php-mysql php-pgsql php-sqlite3 php-redis \
+        php-intl php-gd php-imap php-soap php-xsl \
+        composer \
+ && rm -rf /var/lib/apt/lists/* \
+ && php --version && composer --version
+
+# Optional Composer packagist mirror — enable at build time with e.g.
+#   docker build --build-arg COMPOSER_MIRROR=https://repo.packagist.org -f Dockerfile.model .
+# Leave empty to use the default packagist registry.
+ARG COMPOSER_MIRROR=""
+RUN if [ -n "$COMPOSER_MIRROR" ]; then \
+        composer config -g repo.packagist composer "$COMPOSER_MIRROR"; \
+    fi
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

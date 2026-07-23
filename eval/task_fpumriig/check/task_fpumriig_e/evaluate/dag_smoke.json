@@ -1,0 +1,5371 @@
+{
+  "meta": {
+    "task_id": "task_fpumriig",
+    "total_nodes": 124,
+    "source_prd": "task/task.md",
+    "generated_at": "2026-04-10T18:00:00Z"
+  },
+  "scoring_config": {
+    "categories": {
+      "Deployment": {
+        "maxScore": 8,
+        "node_count": 5
+      },
+      "DataModel": {
+        "maxScore": 20,
+        "node_count": 4
+      },
+      "Authentication": {
+        "maxScore": 23,
+        "node_count": 7
+      },
+      "API_CRUD": {
+        "maxScore": 36,
+        "node_count": 11
+      },
+      "BusinessLogic": {
+        "maxScore": 44,
+        "node_count": 13
+      },
+      "RBAC": {
+        "maxScore": 42,
+        "node_count": 10
+      },
+      "Workflow": {
+        "maxScore": 36,
+        "node_count": 9
+      },
+      "OAuth2": {
+        "maxScore": 16,
+        "node_count": 5
+      },
+      "MCP": {
+        "maxScore": 12,
+        "node_count": 4
+      },
+      "REST_Validation": {
+        "maxScore": 28,
+        "node_count": 7
+      },
+      "Billing": {
+        "maxScore": 16,
+        "node_count": 4
+      },
+      "FileAndSearch": {
+        "maxScore": 16,
+        "node_count": 4
+      },
+      "EventSystem": {
+        "maxScore": 8,
+        "node_count": 2
+      },
+      "MemberManagement": {
+        "maxScore": 12,
+        "node_count": 3
+      },
+      "FrontendQuality": {
+        "maxScore": 40,
+        "node_count": 6
+      },
+      "ArchitectureQuality": {
+        "maxScore": 42,
+        "node_count": 6
+      },
+      "SecurityQuality": {
+        "maxScore": 18,
+        "node_count": 3
+      },
+      "EdgeCases": {
+        "maxScore": 28,
+        "node_count": 8
+      },
+      "AdvancedFeatures": {
+        "maxScore": 24,
+        "node_count": 6
+      },
+      "Metadata": {
+        "maxScore": 20,
+        "node_count": 5
+      },
+      "ConfigAndAdmin": {
+        "maxScore": 10,
+        "node_count": 2
+      }
+    },
+    "normalization": "0-100"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "App health check accessible on port 8034",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/healthz",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              304
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Health",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_GRAPHQL",
+      "description": "GraphQL endpoint /graphql is accessible",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/graphql",
+            "body": {
+              "query": "{ __typename }"
+            },
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              400,
+              401,
+              403
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "GraphQL",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_REST",
+      "description": "REST endpoint /rest is accessible",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              401,
+              403
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "REST",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_CLIENT_CONFIG",
+      "description": "Client config endpoint is accessible",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/client-config",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              304
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "ClientConfig",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_OPENAPI",
+      "description": "OpenAPI specification endpoint is accessible",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/open-api/core",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              304
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "OpenAPI",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_SCHEMA_CORE",
+      "description": "core schema contains key tables",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "core.user",
+              "core.workspace",
+              "core.\"appToken\"",
+              "core.\"userWorkspace\"",
+              "core.\"apiKey\"",
+              "core.\"featureFlag\""
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "CoreSchema",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_SCHEMA_METADATA",
+      "description": "metadata schema contains key tables",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "core.\"objectMetadata\"",
+              "core.\"fieldMetadata\"",
+              "core.\"dataSource\"",
+              "core.role",
+              "core.view"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "MetadataSchema",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_USER_COLUMNS",
+      "description": "core.user table has all required columns",
+      "prereqs": [
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "core.user",
+            "expected_columns": [
+              "id",
+              "email",
+              "\"firstName\"",
+              "\"lastName\"",
+              "\"passwordHash\"",
+              "\"isEmailVerified\"",
+              "disabled",
+              "locale",
+              "\"canImpersonate\"",
+              "\"canAccessFullAdminPanel\"",
+              "\"createdAt\"",
+              "\"updatedAt\"",
+              "\"deletedAt\""
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UserEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_WORKSPACE_COLUMNS",
+      "description": "core.workspace table has key columns",
+      "prereqs": [
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "core.workspace",
+            "expected_columns": [
+              "id",
+              "\"displayName\"",
+              "subdomain",
+              "\"activationStatus\"",
+              "\"defaultRoleId\"",
+              "\"metadataVersion\"",
+              "\"isGoogleAuthEnabled\"",
+              "\"isPasswordAuthEnabled\"",
+              "\"trashRetentionDays\""
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "WorkspaceEntity",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_SIGNUP",
+      "description": "signUp is disabled in single-workspace mode (task.md §10.3 SIGNUP_DISABLED): mutation returns no token and an error",
+      "prereqs": [
+        "DEPLOY_GRAPHQL",
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { signUp(email: \"eval_signup_probe@test.com\", password: \"Test1234!\") { tokens { accessOrWorkspaceAgnosticToken { token } } } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.signUp",
+                "expected": "undefined"
+              },
+              {
+                "path": "$.errors.0.message",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "SignUp",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN",
+      "description": "User login returns Access/Refresh Token",
+      "prereqs": [
+        "AUTH_SIGNUP"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Login",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_NO_TOKEN_403",
+      "description": "Missing token -> 403 FORBIDDEN_EXCEPTION + 'Missing authentication token'",
+      "prereqs": [
+        "DEPLOY_REST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "headers": {},
+            "body": {
+              "name": {
+                "firstName": "T",
+                "lastName": "U"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected": "FORBIDDEN_EXCEPTION"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "NoToken",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_INVALID_TOKEN_401",
+      "description": "Invalid token -> 401 UNAUTHENTICATED + 'Token invalid.'",
+      "prereqs": [
+        "DEPLOY_REST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people",
+            "headers": {
+              "Authorization": "Bearer invalid-token-xyz"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected": "UNAUTHENTICATED"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "InvalidToken",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_EXPIRED_TOKEN_401",
+      "description": "Expired token -> 401 + 'Token has expired.'",
+      "prereqs": [
+        "DEPLOY_REST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people",
+            "headers": {
+              "Authorization": "Bearer expired-test"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ExpiredToken",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_CREATE_MEMBER",
+      "description": "Admin invites a new member (sendInvitations) and it succeeds",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { sendInvitations(emails: [\"eval_invite_member@test.com\"]) { success result { email } errors } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.sendInvitations.success",
+                "expected": true
+              },
+              {
+                "path": "$.data.sendInvitations.result.0.email",
+                "expected": "eval_invite_member@test.com"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "CreateMember",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_CREATE_RESTRICTED_MEMBER",
+      "description": "Admin invites a second (restricted) member and it succeeds",
+      "prereqs": [
+        "AUTH_CREATE_MEMBER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { sendInvitations(emails: [\"eval_invite_restricted@test.com\"]) { success result { email } errors } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.sendInvitations.success",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "CreateRestricted",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_COMPANY_CREATE",
+      "description": "Create a Company and verify response fields",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/companies",
+            "body": {
+              "name": "EvalCorp",
+              "employees": 100,
+              "idealCustomerProfile": true,
+              "linkedinLink": {
+                "primaryLinkUrl": "https://linkedin.com/company/evalcorp"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createCompany.name",
+                "expected": "EvalCorp"
+              },
+              {
+                "path": "$.data.createCompany.employees",
+                "expected": 100
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "CompanyCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_PERSON_CREATE",
+      "description": "Create a Person and verify composite fields FULL_NAME+EMAILS",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "body": {
+              "name": {
+                "firstName": "Eval",
+                "lastName": "User"
+              },
+              "emails": {
+                "primaryEmail": "eval@test.com"
+              },
+              "jobTitle": "Engineer",
+              "companyId": "{{companyId}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createPerson.name.firstName",
+                "expected": "Eval"
+              },
+              {
+                "path": "$.data.createPerson.emails.primaryEmail",
+                "expected": "eval@test.com"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "PersonCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_OPPORTUNITY_CREATE",
+      "description": "Create an Opportunity and verify default stage=NEW and CURRENCY",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/opportunities",
+            "body": {
+              "name": "EvalDeal",
+              "amount": {
+                "amountMicros": 100000000,
+                "currencyCode": "USD"
+              },
+              "companyId": "{{companyId}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOpportunity.name",
+                "expected": "EvalDeal"
+              },
+              {
+                "path": "$.data.createOpportunity.stage",
+                "expected": "NEW"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "OpportunityCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_TASK_CREATE",
+      "description": "Create a Task and verify default status=TODO",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/tasks",
+            "body": {
+              "title": "Eval Task",
+              "status": "TODO"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createTask.title",
+                "expected": "Eval Task"
+              },
+              {
+                "path": "$.data.createTask.status",
+                "expected": "TODO"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "TaskCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_NOTE_CREATE",
+      "description": "Create a Note",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/notes",
+            "body": {
+              "title": "Eval Note"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createNote.title",
+                "expected": "Eval Note"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "NoteCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_PERSON_UPDATE_PARTIAL_MERGE",
+      "description": "PATCH a Person composite field with partial merge (firstName only, lastName preserved)",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createPerson(data: { name: { firstName: \"MergeEval\", lastName: \"Test\" } }) { id name { firstName } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ people(filter: { name: { firstName: { eq: \"MergeEval\" } } }, first: 1) { edges { node { id name { firstName lastName } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.people.edges.0.node.name.firstName",
+                "expected": "MergeEval"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "PartialMerge",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_PERSON_DELETE",
+      "description": "Soft-delete a Person -> 200",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/people/{{personId}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "SoftDelete",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_PERSON_RESTORE",
+      "description": "Restore a soft-deleted Person",
+      "prereqs": [
+        "CRUD_PERSON_DELETE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people?limit=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "Restore",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_DASHBOARD_CREATE",
+      "description": "Create a Dashboard",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/dashboards",
+            "body": {
+              "title": "Eval Dashboard"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createDashboard.title",
+                "expected": "Eval Dashboard"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "DashboardCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_ATTACHMENT_CREATE",
+      "description": "Create an Attachment with polymorphic association to Company",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createAttachment(data: { name: \"test.pdf\" }) { id name } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createAttachment.name",
+                "expected": "test.pdf"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "AttachmentCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_BATCH_CREATE_MANY",
+      "description": "Batch-create multiple Company records",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/batch/companies",
+            "body": [
+              {
+                "name": "BatchCo1"
+              },
+              {
+                "name": "BatchCo2"
+              },
+              {
+                "name": "BatchCo3"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createCompanies",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_CRUD",
+        "subcategory": "BatchCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_CREATEDBY_API_KEY",
+      "description": "When creating via API Key, createdBy.source='API'",
+      "prereqs": [
+        "ADV_API_KEY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "body": {
+              "name": {
+                "firstName": "APIKeyUser",
+                "lastName": "Test"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createPerson.createdBy.source",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CreatedByAPI",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_CREATEDBY_MANUAL",
+      "description": "When creating via user JWT token, createdBy.source='MANUAL'",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "body": {
+              "name": {
+                "firstName": "JWTUser",
+                "lastName": "Test"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createPerson.createdBy.source",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CreatedByManual",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_OPPORTUNITY_STAGE_SKIP",
+      "description": "Opportunity stage may be set freely (NEW->CUSTOMER skip allowed)",
+      "prereqs": [
+        "CRUD_OPPORTUNITY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/rest/opportunities/{{opportunityId}}",
+            "body": {
+              "stage": "CUSTOMER"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateOpportunity.stage",
+                "expected": "CUSTOMER"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "StageSkip",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_TASK_STATUS_REVERT",
+      "description": "Task status may be reverted (DONE->TODO)",
+      "prereqs": [
+        "CRUD_TASK_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/rest/tasks/{{taskId}}",
+            "body": {
+              "status": "DONE"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/rest/tasks/{{taskId}}",
+            "body": {
+              "status": "TODO"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateTask.status",
+                "expected": "TODO"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "StatusRevert",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_SOFT_DELETE_FILTERED",
+      "description": "Soft-deleted records are auto-filtered from default queries (GET -> 404)",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "body": {
+              "name": {
+                "firstName": "ToDelete",
+                "lastName": "X"
+              }
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/people/{{newId}}"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people/{{newId}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SoftDeleteFilter",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_CURRENCY_MICROS",
+      "description": "CURRENCY amountMicros stored and returned correctly",
+      "prereqs": [
+        "CRUD_OPPORTUNITY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/opportunities/{{opportunityId}}?depth=0"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.opportunity.amount.amountMicros",
+                "expected": 100000000
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CurrencyMicros",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_GRAPHQL_CONNECTION",
+      "description": "GraphQL findMany returns Connection (edges/node/pageInfo/totalCount)",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(first: 1) { edges { node { id name } cursor } pageInfo { hasNextPage startCursor endCursor } totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.edges",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.data.companies.pageInfo.hasNextPage",
+                "expected_type": "boolean"
+              },
+              {
+                "path": "$.data.companies.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "GraphQLConnection",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_GRAPHQL_CREATE_PERSON",
+      "description": "GraphQL createPerson mutation (idempotent: create then re-query verify)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createPerson(data: { name: { firstName: \"GQL\", lastName: \"Test\" }, emails: { primaryEmail: \"gql@test.com\" } }) { id name { firstName lastName } emails { primaryEmail } } }"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ people(filter: { emails: { primaryEmail: { eq: \"gql@test.com\" } } }, first: 1) { edges { node { id name { firstName lastName } emails { primaryEmail } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.people.edges.0.node.name.firstName",
+                "expected": "GQL"
+              },
+              {
+                "path": "$.data.people.edges.0.node.emails.primaryEmail",
+                "expected": "gql@test.com"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "GraphQLMutation",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_GRAPHQL_MERGE",
+      "description": "GraphQL mergeMany merges with conflictPriorityIndex=0 keeping the first",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/companies",
+            "body": {
+              "name": "MergeCo1"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/companies",
+            "body": {
+              "name": "MergeCo2"
+            }
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(first: 2, filter: { name: { ilike: \"%MergeCo%\" } }) { totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "Merge",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_GRAPHQL_FIND_DUPLICATES",
+      "description": "GraphQL findDuplicates locates duplicate records",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(first: 5, filter: { name: { ilike: \"%EvalCorp%\" } }) { edges { node { id name } } totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "FindDuplicates",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_GRAPHQL_FILTER_AND_OR",
+      "description": "GraphQL complex filter: AND+OR composition",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(filter: { or: [{ name: { eq: \"EvalCorp\" } }, { name: { eq: \"MergeCo1\" } }] }) { edges { node { id name } } totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "ComplexFilter",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_FAVORITE_CREATE",
+      "description": "Favorite a Company and verify position",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/favorites",
+            "body": {
+              "companyId": "{{companyId}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createFavorite.id",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.data.createFavorite.position",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "FavoriteCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_TASK_TARGET_POLYMORPHIC",
+      "description": "TaskTarget polymorphic association Task->Company",
+      "prereqs": [
+        "CRUD_TASK_CREATE",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/taskTargets",
+            "body": {
+              "taskId": "{{taskId}}",
+              "targetCompanyId": "{{companyId}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "PolymorphicAssoc",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_DEPTH_0",
+      "description": "depth=0 does not expand relations",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people?limit=1&depth=0"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "Depth0",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_DEPTH_1",
+      "description": "depth=1 expands relations one level",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people?limit=1&depth=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "Depth1",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_DEPTH_2_REJECTED",
+      "description": "depth=2 → 400 BadRequestException",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people?depth=2",
+            "body": {
+              "name": {
+                "firstName": "D2",
+                "lastName": "T"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected": "BadRequestException"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "DepthReject",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_INVALID_ENUM",
+      "description": "Invalid stage enum -> 400",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/opportunities",
+            "body": {
+              "name": "Bad",
+              "stage": "INVALID_ENUM_VALUE"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected": "BadRequestException"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "EnumReject",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_DELETE_NONEXIST_404",
+      "description": "Delete non-existent record -> 404 NotFoundException",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/people/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              404
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "NotFound",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_BULK_DELETE_REQUIRES_FILTER",
+      "description": "Bulk delete must provide filter",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/people?soft_delete=true"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "BulkFilter",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "REST_DUPLICATE_ID_400",
+      "description": "Duplicate ID create -> 400 duplicate entry",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/rest/people",
+            "body": {
+              "id": "{{personId}}",
+              "name": {
+                "firstName": "Dup",
+                "lastName": "Test"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "REST_Validation",
+        "subcategory": "DuplicateID",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "RBAC_MEMBER_CANNOT_DELETE_WORKSPACE",
+      "description": "Member → deleteCurrentWorkspace → PERMISSION_DENIED",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "member"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { deleteCurrentWorkspace { id } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.deleteCurrentWorkspace",
+                "expected": "undefined"
+              },
+              {
+                "path": "$.errors.0.extensions.code",
+                "expected": "FORBIDDEN"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "WorkspaceDeleteDeny",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_MANAGE_WORKSPACE",
+      "description": "Admin -> may call updateWorkspace (workspace management permission verification, paired with delete deny)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { trashRetentionDays: 14 }) { trashRetentionDays } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.trashRetentionDays",
+                "expected": 14
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "WorkspaceManageAllow",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_UPDATE_WORKSPACE",
+      "description": "Admin -> updateWorkspace displayName -> success",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"EvalWS\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "EvalWS"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "WorkspaceUpdateAllow",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_MEMBER_CANNOT_UPDATE_WORKSPACE",
+      "description": "Member → updateWorkspace → PERMISSION_DENIED",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "member"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"Hack\" }) { displayName } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors.0.extensions.code",
+                "expected": "FORBIDDEN"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "WorkspaceUpdateDeny",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_FIELD_PERMISSION_HIDE_READ",
+      "description": "Field read permission off -> field hidden in API response",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "member_restricted"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/companies/{{companyId}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.company.linkedinLink",
+                "expected": "undefined"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "FieldHide",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_FIELD_PERMISSION_ALLOW_READ",
+      "description": "After clearing field restriction, read works normally",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/companies/{{companyId}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.company.linkedinLink.primaryLinkUrl",
+                "contains": "linkedin"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "FieldAllow",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_FIELD_PERMISSION_BLOCK_UPDATE",
+      "description": "No field update permission -> PATCH 400",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "member_restricted"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/rest/people/{{personId}}",
+            "body": {
+              "city": "Berlin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              400,
+              403
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.code",
+                "expected": "PERMISSION_DENIED"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "FieldBlockUpdate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_FIELD_PERMISSION_ALLOW_UPDATE",
+      "description": "After clearing field restriction, update works normally",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/rest/people/{{personId}}",
+            "body": {
+              "city": "Munich"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updatePerson.city",
+                "expected": "Munich"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "FieldAllowUpdate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ROLE_CREATE",
+      "description": "Create a custom role and verify permission attributes",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOneRole(createRoleInput: { label: \"EvalRole234\" }) { id label } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOneRole.id",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "RoleCreate",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PERMISSION_INTERSECTION",
+      "description": "Multi-role permission intersection: strictest wins",
+      "prereqs": [
+        "RBAC_ROLE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOneRole(createRoleInput: { label: \"RestRole315\" }) { id label } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOneRole.id",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "PermissionIntersection",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "WORKFLOW_CREATE",
+      "description": "Create a Workflow",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createWorkflow(data: { name: \"EvalWorkflow\" }) { id name } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createWorkflow.name",
+                "expected": "EvalWorkflow"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "Create",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_VERSION_CREATE",
+      "description": "Create a WorkflowVersion draft (status=DRAFT)",
+      "prereqs": [
+        "WORKFLOW_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { edges { node { id name versions { id status } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "VersionCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_ACTIVATE",
+      "description": "Activate WorkflowVersion -> status=ACTIVE",
+      "prereqs": [
+        "WORKFLOW_VERSION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { edges { node { id versions { id status } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "Activate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_RUN",
+      "description": "Execute a Workflow and verify run status",
+      "prereqs": [
+        "WORKFLOW_ACTIVATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { edges { node { id versions { id status } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "Run",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_DEACTIVATE",
+      "description": "Deactivate WorkflowVersion -> status=DEACTIVATED",
+      "prereqs": [
+        "WORKFLOW_ACTIVATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { edges { node { id versions { id status } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "Deactivate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_CASCADE_DELETE",
+      "description": "Soft-deleting a Workflow cascades to its versions",
+      "prereqs": [
+        "WORKFLOW_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { deleteWorkflow(id: \"{{workflowId}}\") { id deletedAt } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.deleteWorkflow.deletedAt",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "CascadeDelete",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_STEP_CRUD",
+      "description": "Workflow step creation",
+      "prereqs": [
+        "WORKFLOW_VERSION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { edges { node { id name versions { id steps { id type } } } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "StepCRUD",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_CRON_INVALID",
+      "description": "Invalid cron pattern is rejected",
+      "prereqs": [
+        "WORKFLOW_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createDraftFromWorkflowVersion(input: { workflowId: \"{{workflowId}}\", trigger: { type: CRON, settings: { type: CUSTOM, pattern: \"60 25 32 13 8\" } } }) { id } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "CronReject",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "WORKFLOW_STOP_RUN",
+      "description": "Stop or confirm a Workflow run has terminated",
+      "prereqs": [
+        "WORKFLOW_RUN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ workflows(first: 1) { totalCount } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.workflows.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Workflow",
+        "subcategory": "StopRun",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "OAUTH2_DISCOVERY",
+      "description": "OAuth2 discovery endpoint returns correct AS metadata",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/.well-known/oauth-authorization-server",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.grant_types_supported",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "OAuth2",
+        "subcategory": "Discovery",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "OAUTH2_REGISTER",
+      "description": "Dynamic Client Registration -> 201",
+      "prereqs": [
+        "OAUTH2_DISCOVERY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/oauth/register",
+            "body": {
+              "redirect_uris": [
+                "http://localhost:9999/cb"
+              ],
+              "client_name": "EvalApp",
+              "grant_types": [
+                "authorization_code",
+                "refresh_token"
+              ],
+              "response_types": [
+                "code"
+              ],
+              "token_endpoint_auth_method": "none"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.client_id",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.client_name",
+                "expected": "EvalApp"
+              },
+              {
+                "path": "$.token_endpoint_auth_method",
+                "expected": "none"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "OAuth2",
+        "subcategory": "Register",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "OAUTH2_CLIENT_CREDENTIALS",
+      "description": "client_credentials grant → access_token",
+      "prereqs": [
+        "OAUTH2_DISCOVERY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/oauth/token",
+            "body": {
+              "grant_type": "client_credentials",
+              "client_id": "{{clientId}}",
+              "client_secret": "{{clientSecret}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.access_token",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.token_type",
+                "expected": "Bearer"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "OAuth2",
+        "subcategory": "ClientCredentials",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "_eval_fix": "Eval-setup gap fixed (not a candidate defect): client_credentials needs a confidential client installed in a workspace, but /oauth/register (RFC 7591) only mints public clients, so these 3 nodes were un-scorable for everyone. The harness now provisions a confidential client via the candidate's createApplicationRegistration mutation + materialises one core.application install row, exposing {{clientId}}/{{clientSecret}} so the client_credentials/introspect/revoke flows are exercised."
+    },
+    {
+      "id": "OAUTH2_INTROSPECT",
+      "description": "Token introspection → active=true",
+      "prereqs": [
+        "OAUTH2_CLIENT_CREDENTIALS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/oauth/introspect",
+            "body": {
+              "token": "{{oauthToken}}",
+              "client_id": "{{clientId}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.active",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "OAuth2",
+        "subcategory": "Introspect",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator",
+      "_eval_fix": "Eval-setup gap fixed (not a candidate defect): client_credentials needs a confidential client installed in a workspace, but /oauth/register (RFC 7591) only mints public clients, so these 3 nodes were un-scorable for everyone. The harness now provisions a confidential client via the candidate's createApplicationRegistration mutation + materialises one core.application install row, exposing {{clientId}}/{{clientSecret}} so the client_credentials/introspect/revoke flows are exercised."
+    },
+    {
+      "id": "OAUTH2_REVOKE",
+      "description": "Token revocation → 200 always",
+      "prereqs": [
+        "OAUTH2_CLIENT_CREDENTIALS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/oauth/revoke",
+            "body": {
+              "token": "any"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "OAuth2",
+        "subcategory": "Revoke",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator",
+      "_eval_fix": "Eval-setup gap fixed (not a candidate defect): client_credentials needs a confidential client installed in a workspace, but /oauth/register (RFC 7591) only mints public clients, so these 3 nodes were un-scorable for everyone. The harness now provisions a confidential client via the candidate's createApplicationRegistration mutation + materialises one core.application install row, exposing {{clientId}}/{{clientSecret}} so the client_credentials/introspect/revoke flows are exercised."
+    },
+    {
+      "id": "MCP_INITIALIZE",
+      "description": "MCP initialize → protocolVersion + serverInfo",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/mcp",
+            "body": {
+              "jsonrpc": "2.0",
+              "method": "initialize",
+              "id": 1
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.protocolVersion",
+                "expected": "2024-11-05"
+              },
+              {
+                "path": "$.result.serverInfo.version",
+                "expected": "0.1.0"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MCP",
+        "subcategory": "Initialize",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "MCP_TOOLS_LIST",
+      "description": "MCP tools/list returns the toolset",
+      "prereqs": [
+        "MCP_INITIALIZE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/mcp",
+            "body": {
+              "jsonrpc": "2.0",
+              "method": "tools/list",
+              "id": 2
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.tools",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MCP",
+        "subcategory": "ToolsList",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "MCP_PING",
+      "description": "MCP ping → empty result",
+      "prereqs": [
+        "MCP_INITIALIZE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/mcp",
+            "body": {
+              "jsonrpc": "2.0",
+              "method": "ping",
+              "id": 3
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MCP",
+        "subcategory": "Ping",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "MCP_UNKNOWN_METHOD",
+      "description": "MCP unknown method -> -32601 METHOD_NOT_FOUND",
+      "prereqs": [
+        "MCP_INITIALIZE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/mcp",
+            "body": {
+              "jsonrpc": "2.0",
+              "method": "nonexistent",
+              "id": 4
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error.code",
+                "expected": -32601
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MCP",
+        "subcategory": "ErrorCode",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BILLING_CHECKOUT",
+      "description": "Billing checkoutSession mutation",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"BillingTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "BillingTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Billing",
+        "subcategory": "Checkout",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BILLING_PORTAL",
+      "description": "Billing portalSession mutation",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"BillingTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "BillingTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Billing",
+        "subcategory": "Portal",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BILLING_ENTITLEMENT_CHECK",
+      "description": "Entitlement check: SSO disabled returns 403",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOIDCIdentityProvider(input: { name: \"BillingTest\", issuer: \"https://t.t\", clientID: \"c\", clientSecret: \"s\" }) { id } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Billing",
+        "subcategory": "EntitlementGate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BILLING_SWITCH_INTERVAL",
+      "description": "Switch subscription interval mutation exists",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"BillingTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "BillingTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Billing",
+        "subcategory": "SwitchInterval",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FILE_UPLOAD",
+      "description": "Upload a file to a FILES field via uploadFilesFieldFile and verify a stored path is returned",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "{ fields(paging: { first: 300 }) { edges { node { id name type } } } }",
+            "expect_no_errors": true,
+            "store_as": {
+              "fieldMetadataId": {
+                "from": "$.data.fields.edges",
+                "find": {
+                  "node.type": "FILES"
+                },
+                "extract": "node.id"
+              }
+            }
+          }
+        },
+        {
+          "type": "P23",
+          "inputs": {
+            "upload": {
+              "file_name": "eval_upload.txt",
+              "file_content": "base64:aGVsbG8gZXZhbA==",
+              "content_type": "text/plain",
+              "graphql": {
+                "endpoint": "/metadata",
+                "query": "mutation($file: Upload!) { uploadFilesFieldFile(file: $file, fieldMetadataId: \"{{fieldMetadataId}}\") { path } }",
+                "file_var": "file"
+              }
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.uploadFilesFieldFile.path",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FileAndSearch",
+        "subcategory": "Upload",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FILE_DOWNLOAD",
+      "description": "Verify uploaded file is fetchable via REST query",
+      "prereqs": [
+        "FILE_UPLOAD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/attachments?limit=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FileAndSearch",
+        "subcategory": "Download",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SEARCH_FULLTEXT",
+      "description": "Full-text search (GraphQL filter with search)",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(filter: { name: { ilike: \"%Eval%\" } }) { edges { node { id name } } totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FileAndSearch",
+        "subcategory": "FulltextSearch",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SEARCH_GLOBAL_MULTI_OBJECT",
+      "description": "Cross-object search (concurrent queries across object types)",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE",
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(filter: { name: { ilike: \"%Eval%\" } }, first: 5) { totalCount } people(filter: { name: { firstName: { ilike: \"%Eval%\" } } }, first: 5) { totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.totalCount",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.data.people.totalCount",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FileAndSearch",
+        "subcategory": "GlobalSearch",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EVENT_ACTION_TYPES",
+      "description": "DatabaseEventAction enum exists (6 action types)",
+      "prereqs": [
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src/",
+            "match_type": "contains",
+            "pattern": "CREATED"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EventSystem",
+        "subcategory": "EventTypes",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EVENT_EMITTER_EXISTS",
+      "description": "WorkspaceEventEmitter implementation",
+      "prereqs": [
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src/",
+            "match_type": "contains",
+            "pattern": "emitDatabaseBatchEvent"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EventSystem",
+        "subcategory": "Emitter",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "MEMBER_INVITE",
+      "description": "Send a workspace invitation",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { sendInvitations(emails: [\"smoke_member@test.com\"]) { success errors result { id email } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.sendInvitations",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MemberManagement",
+        "subcategory": "Invite",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "MEMBER_ROLE_ASSIGN",
+      "description": "Assign a custom role to a member",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "RBAC_ROLE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"RoleAssignTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "RoleAssignTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MemberManagement",
+        "subcategory": "RoleAssign",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "MEMBER_2FA_INITIATE",
+      "description": "Initiate two-factor authentication",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { initiateOTPProvisioningForAuthenticatedUser { uri } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.initiateOTPProvisioningForAuthenticatedUser.uri",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "MemberManagement",
+        "subcategory": "2FA",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "METADATA_CREATE_OBJECT",
+      "description": "Create a custom object -> isCustom=true",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "DB_SCHEMA_METADATA"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOneObject(input: { object: { nameSingular: \"smokeObj840\", namePlural: \"smokeObj840s\", labelSingular: \"SO840\", labelPlural: \"SO840s\" } }) { id nameSingular isCustom } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOneObject.isCustom",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Metadata",
+        "subcategory": "CustomObject",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "METADATA_CREATE_FIELD",
+      "description": "Add a custom field to an object",
+      "prereqs": [
+        "METADATA_CREATE_OBJECT"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOneField(input: { field: { objectMetadataId: \"{{objectId}}\", name: \"priority\", label: \"Priority\", type: TEXT, isCustom: true } }) { id name type isCustom } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOneField.name",
+                "expected": "priority"
+              },
+              {
+                "path": "$.data.createOneField.isCustom",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Metadata",
+        "subcategory": "CustomField",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "METADATA_VIEW_CREATE",
+      "description": "Create a TABLE-type view",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "DB_SCHEMA_METADATA"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(first: 1) { edges { node { id } } } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Metadata",
+        "subcategory": "ViewCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "METADATA_WEBHOOK_CREATE",
+      "description": "Create a Webhook with default operations=['*.*']",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createWebhook(input: { targetUrl: \"https://eval.test/hook\", operations: [\"*.*\"] }) { id targetUrl } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createWebhook.targetUrl",
+                "expected": "https://eval.test/hook"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Metadata",
+        "subcategory": "WebhookCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "METADATA_AI_AGENT_CREATE",
+      "description": "Create an AI Agent",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"AgentTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "AgentTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Metadata",
+        "subcategory": "AIAgent",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONFIG_GET_VARIABLE",
+      "description": "Get config variable (source=DEFAULT)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"ConfigTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "ConfigTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConfigAndAdmin",
+        "subcategory": "ConfigGet",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CONFIG_SET_VARIABLE",
+      "description": "Set config variable (source -> DATABASE)",
+      "prereqs": [
+        "CONFIG_GET_VARIABLE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { updateWorkspace(data: { displayName: \"ConfigSetTest\" }) { displayName } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.updateWorkspace.displayName",
+                "expected": "ConfigSetTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ConfigAndAdmin",
+        "subcategory": "ConfigSet",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_GRAPHQL_PAGINATION_LIMIT",
+      "description": "GraphQL without first/last defaults to <= 200 records",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies { totalCount edges { node { id } } } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "PaginationDefault",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_REST_LIMIT_MAX_200",
+      "description": "REST limit=999 is capped to <= 200 records",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/companies?limit=999"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "LimitMax",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_WORKSPACE_PENDING_BYPASS",
+      "description": "PENDING_CREATION state bypasses permission checks",
+      "prereqs": [
+        "DB_SCHEMA_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "src/",
+            "match_type": "contains",
+            "pattern": "PENDING_CREATION"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "PendingBypass",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "EDGE_FIRST_USER_ADMIN",
+      "description": "First registered user is granted canImpersonate + canAccessFullAdminPanel",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT \"canImpersonate\" FROM core.\"user\" ORDER BY \"createdAt\" ASC LIMIT 1",
+            "expected_result": {
+              "canImpersonate": true
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "FirstUserAdmin",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_SSO_MULTIPLE_PROVIDERS",
+      "description": "Multiple SSO providers are configurable",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM information_schema.columns WHERE table_schema='core' AND table_name='workspaceSSOIdentityProvider'",
+            "expected_result": {
+              "cnt_gte": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "SSOMultiple",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "EDGE_BULK_DESTROY_REQUIRES_FILTER",
+      "description": "Bulk hard-delete must provide filter",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/people?soft_delete=false"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.error",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "BulkDestroy",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_FAVORITE_WITH_DELETE",
+      "description": "Records with associated Favorite can still be deleted",
+      "prereqs": [
+        "BIZ_FAVORITE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/rest/companies/{{companyId}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "FavoriteDelete",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "EDGE_URL_NORMALIZATION",
+      "description": "primaryLinkUrl trims trailing slash",
+      "prereqs": [
+        "CRUD_COMPANY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "mutation { createCompany(data: { name: \"URLNormCo\" }) { id name } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ companies(filter: { name: { eq: \"URLNormCo\" } }, first: 1) { edges { node { id name } } } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.companies.edges.0.node.name",
+                "expected": "URLNormCo"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "URLNormalize",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADV_GRAPHQL_GROUPBY",
+      "description": "GraphQL groupBy query",
+      "prereqs": [
+        "CRUD_OPPORTUNITY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/graphql",
+            "query": "{ opportunities(first: 5) { edges { node { id stage } } totalCount } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.opportunities.edges",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "GroupBy",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADV_REST_FILTER_COMPOSITE",
+      "description": "REST filter on composite-field subfields",
+      "prereqs": [
+        "CRUD_PERSON_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/rest/people?filter[name.firstName][eq]=Eval"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "CompositeFilter",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADV_SSO_CREATE_OIDC",
+      "description": "Create an OIDC SSO identity provider",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOIDCIdentityProvider(input: { name: \"TestIdP\", issuer: \"https://idp.test\", clientID: \"cid\", clientSecret: \"cs\" }) { id } }"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "SSOCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ADV_API_KEY_CREATE",
+      "description": "Create an API Key",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { generateApiKeyToken(apiKeyId: \"20202020-f401-4d8a-a731-64d007c27bad\", expiresAt: \"2027-01-01T00:00:00Z\") { token } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.generateApiKeyToken.token",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "APIKeyCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADV_SKILL_CRUD",
+      "description": "AI Skill create/activate/deactivate",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createSkill(input: { name: \"eval_skill\", label: \"Eval Skill\", content: \"test content\" }) { id name } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createSkill.name",
+                "expected": "eval_skill"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "SkillCRUD",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADV_LOGIC_FUNCTION",
+      "description": "Logic Function create",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P22",
+          "inputs": {
+            "endpoint": "/metadata",
+            "query": "mutation { createOneLogicFunction(input: { name: \"evalFunc\" }) { id } }",
+            "expect_no_errors": true
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createOneLogicFunction.id",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdvancedFeatures",
+        "subcategory": "LogicFunction",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_FRONTEND_DASHBOARD",
+      "description": "Dashboard page layout and navigation quality",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-front/src/modules/navigation/",
+              "packages/twenty-front/src/modules/ui/navigation/",
+              "packages/twenty-front/src/modules/ui/layout/",
+              "packages/twenty-front/src/modules/page-layout/"
+            ],
+            "rubric_prompt": "GOAL: Judge the layout and navigation architecture quality of the CRM application shell (home/dashboard).\n\nEVIDENCE: React source for the app shell (navigation + UI layout/navigation primitives + page-layout components). The live frontend is NOT served in this evaluation environment, so judge the implementing source instead of a rendered page.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. A persistent left sidebar navigation lists the main sections (e.g. Companies, People, Opportunities, Tasks, Settings).\n2. A main content area presents structured dashboard content (cards, charts, recent activity, KPIs) rather than a blank canvas.\n3. A top bar or right-corner element exposes a user menu (avatar / account / sign-out).\n4. There is a global search or command-menu trigger surface (e.g. search input or Cmd+K hint).\n5. Visual style is modern and consistent (clear typography, spacing, theming).\n6. The page renders without obvious layout breakage: no overflowing text, overlapping panels, or unfilled placeholder text.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or renders only a 'Welcome' string with no navigation.\n- 3 (weak): Sidebar OR top bar present but the other is missing; main area is mostly empty.\n- 5 (good): Sidebar + top bar + main area present; minor issues (no global search, plain styling).\n- 8 (excellent): All six criteria satisfied with a polished, production-grade dashboard.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification citing visible markers>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FrontendQuality",
+        "subcategory": "DashboardLayout",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "JUDGE_FRONTEND_RECORD_TABLE",
+      "description": "Record table view quality (virtual scroll, column config)",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-front/src/modules/object-record/record-table/"
+            ],
+            "rubric_prompt": "GOAL: Judge the implementation quality of the record-table view (the spreadsheet-like list of records for an object).\n\nEVIDENCE: Source files for the record table component (table, virtualized list, column definitions, header, cell renderers).\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. The table uses virtualized scrolling or pagination (e.g. react-window, react-virtual, or explicit page state) so that thousands of rows do not all mount at once.\n2. Columns can be reordered via drag-and-drop or via a column-config menu.\n3. Inline editing is supported on at least the common cell types (text, number, select).\n4. Sort and filter UI is present in the column header (per-column sort toggle and filter affordance).\n5. Column widths are user-resizable and the chosen widths persist across reloads.\n6. Cell renderers vary by field type (text, link, multi-select chip, date, relation) — not all cells render as plain text.\n\nSCORING ANCHORS:\n- 0 (none): No record-table component, or only a static <table> with hard-coded rows.\n- 3 (weak): Basic table with sort/filter, no virtualization, no inline edit.\n- 5 (good): Virtualization + inline edit + sort/filter present; column drag/resize missing or partial.\n- 8 (excellent): All six criteria satisfied with a polished, performant table.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification citing concrete files/symbols>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FrontendQuality",
+        "subcategory": "RecordTable",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "JUDGE_FRONTEND_KANBAN",
+      "description": "Kanban view quality",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-front/src/modules/object-record/record-board/"
+            ],
+            "rubric_prompt": "GOAL: Judge the kanban view implementation quality.\n\nEVIDENCE: Source files for the kanban board component (board, columns, cards, drag-and-drop wiring).\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The board renders one column per option of a configurable SELECT field on the underlying object.\n2. Each column shows a header with the option label and a per-column count.\n3. Cards summarise key fields of the record (name, primary value, owner avatar, tags).\n4. Cards can be dragged between columns and the underlying record's SELECT value is updated on drop.\n5. The grouping field is configurable in the UI (not hard-coded in source).\n\nSCORING ANCHORS:\n- 0 (none): No kanban view, or a placeholder component only.\n- 2 (weak): Static columns and cards with no drag-drop or with hard-coded grouping.\n- 4 (good): Drag-drop works and grouping is dynamic; per-column counts or rich cards missing.\n- 6 (excellent): All five criteria satisfied with a polished, configurable kanban.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FrontendQuality",
+        "subcategory": "KanbanView",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "JUDGE_FRONTEND_COMMAND_MENU",
+      "description": "Command menu / global search UX",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-front/src/modules/command-menu/"
+            ],
+            "rubric_prompt": "GOAL: Judge the UX quality of the command menu / global search (Cmd+K).\n\nEVIDENCE: Source files for the command-menu component plus its keyboard binding wiring.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The command menu is opened via a global keyboard shortcut (Cmd+K / Ctrl+K).\n2. The menu contains a global search input that matches across record types (Companies, People, Opportunities, ...).\n3. Results and actions are grouped under labelled sections (e.g. Records, Actions, Settings).\n4. Up/down arrow keys move the highlighted item; Enter activates it; Esc closes the menu.\n5. Each action row shows its keyboard shortcut on the right when one is bound.\n\nSCORING ANCHORS:\n- 0 (none): No command menu present.\n- 2 (weak): A search modal exists but is not keyboard-driven and has no grouping.\n- 4 (good): Keyboard-driven menu with grouped results; missing shortcut hints or one nav key.\n- 6 (excellent): All five criteria satisfied with a polished command-menu UX.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FrontendQuality",
+        "subcategory": "CommandMenu",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "JUDGE_FRONTEND_WORKFLOW_EDITOR",
+      "description": "Workflow visual editor design",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-front/src/modules/workflow/"
+            ],
+            "rubric_prompt": "GOAL: Judge the design of the visual workflow editor.\n\nEVIDENCE: Source files for the workflow-editor component (canvas, nodes, edges, side panel).\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The canvas renders nodes and edges as a directed flow chart (e.g. via react-flow or equivalent), not a flat list.\n2. Nodes can be connected by dragging from one node's output handle to another node's input handle.\n3. Selecting a node opens a side configuration panel with its specific fields.\n4. The trigger node visually distinguishes its trigger type (DATABASE_EVENT, MANUAL, CRON, ...) by icon/colour.\n5. The editor supports adding new action nodes from a palette and removing existing ones from the canvas.\n\nSCORING ANCHORS:\n- 0 (none): No visual workflow editor; workflows configured by JSON only.\n- 2 (weak): A canvas exists but only renders a static flow with no editing.\n- 4 (good): Editing works (add/remove/connect) but configuration panel or trigger styling is weak.\n- 6 (excellent): All five criteria satisfied with a polished node editor.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FrontendQuality",
+        "subcategory": "WorkflowEditor",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_ARCH_MODULE_STRUCTURE",
+      "description": "Backend module structure (layered / modular)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-server/src/app.module.ts",
+              "packages/twenty-server/src/main.ts",
+              "packages/twenty-server/src/modules/",
+              "packages/twenty-server/src/engine/"
+            ],
+            "rubric_prompt": "GOAL: Judge the NestJS module structure of the backend (modularization and layering).\n\nEVIDENCE: src/engine, src/modules, app modules; @Module / @Controller / @Injectable usage; controller -> service -> repository wiring.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The backend is partitioned into clear modules: at least Auth, Workspace, Metadata, and Workflow are separate @Module classes.\n2. Controllers, services, and repositories are separate files/classes per module (no controllers calling DB directly).\n3. Inter-module collaboration goes through service interfaces / providers, not via direct file paths or globals.\n4. Modules export only what other modules need (no leaking internal providers into a global scope).\n5. Cross-cutting concerns (logging, exception filters, interceptors) are declared once at the application module / a shared module.\n6. The module graph compiles cleanly with no circular import warnings.\n\nSCORING ANCHORS:\n- 0 (none): A single AppModule with everything inline; no controller/service/repository split.\n- 3 (weak): Modules exist but boundaries are leaky; controllers contain DB code.\n- 5 (good): Most modules clean; one or two cross-module hot spots remain.\n- 6 (excellent): All six criteria satisfied with a clean, layered NestJS module graph.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification citing module names>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ModuleStructure",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_ARCH_GRAPHQL_SCHEMA",
+      "description": "GraphQL Schema design quality",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "keyword:resolver",
+              "keyword:graphql",
+              "src/**/*.resolver.ts",
+              "src/**/*schema*.ts",
+              "src/**/graphql/"
+            ],
+            "rubric_prompt": "GOAL: Judge the design quality of the GraphQL schema in this NestJS-based CRM.\n\nEVIDENCE: GraphQL resolvers, schema files (.graphql), and the schema-build code (typically code-first via @ObjectType, @InputType, @Resolver).\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The schema is defined code-first using NestJS GraphQL decorators (@ObjectType, @InputType, @Field, @Resolver), not hand-written .graphql files.\n2. Object / Input / Connection (Relay-style) types are used consistently for read, write, and paginated list operations.\n3. CRUD resolvers (find, findMany, createOne, updateOne, deleteOne) are auto-generated from object metadata rather than written by hand for every entity.\n4. Authentication/authorization is enforced via NestJS guards (e.g. @UseGuards(AuthGuard, WorkspaceGuard)) at the resolver or field level.\n5. Custom scalars (DateTime, UUID, JSON) are registered and used where appropriate, not stringified.\n6. The schema is introspectable in development and disabled in production behind a flag.\n\nSCORING ANCHORS:\n- 0 (none): No GraphQL surface, or only a hand-written schema with no NestJS integration.\n- 3 (weak): Code-first schema exists but no auto-generation, no Connection types.\n- 5 (good): Auto-generated CRUD + guards + Connection; one or two areas missing (e.g. introspection toggle).\n- 6 (excellent): All six criteria satisfied with a polished, code-first schema.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "GraphQLDesign",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_ARCH_MULTI_TENANT",
+      "description": "Multi-tenant architecture design",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "keyword:workspace",
+              "keyword:tenant",
+              "keyword:AsyncLocalStorage",
+              "src/**/workspace*.module.ts",
+              "src/**/workspace*.service.ts",
+              "src/**/*tenant*.ts"
+            ],
+            "rubric_prompt": "GOAL: Judge the multi-tenant architecture (per-workspace PostgreSQL schema isolation + context propagation).\n\nEVIDENCE: Workspace creation/migration code, schema-switching middleware/interceptor, the per-request context propagation mechanism (e.g. AsyncLocalStorage), and any data-access code that uses it.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Each workspace gets its own PostgreSQL schema (e.g. workspace_<uuid>) created automatically on workspace creation.\n2. A request middleware/interceptor resolves the current workspace from the auth context and switches the active schema for the request.\n3. Workspace context is propagated to async code paths via AsyncLocalStorage (or equivalent), not via parameter threading or globals.\n4. Cross-workspace queries are blocked at the data-access layer (no raw SQL that bypasses the schema switch).\n5. Workspace deletion / migration is handled through a dedicated service that operates on the workspace's schema atomically.\n6. There are tests asserting that data created in workspace A is not visible in workspace B.\n\nSCORING ANCHORS:\n- 0 (none): Single shared schema with a workspace_id column on every table (no real isolation).\n- 3 (weak): Per-workspace schema exists but context propagation is brittle (parameter threading).\n- 6 (good): AsyncLocalStorage-based context + schema switching; missing isolation tests or a delete path.\n- 8 (excellent): All six criteria satisfied with strong, tested per-workspace isolation.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "MultiTenant",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "JUDGE_ARCH_WORKFLOW_ENGINE",
+      "description": "Workflow engine architecture quality",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-server/src/modules/workflow/",
+              "packages/twenty-server/src/engine/core-modules/workflow/",
+              "packages/twenty-server/src/**/workflow*.module.ts",
+              "packages/twenty-server/src/**/workflow*.service.ts",
+              "packages/twenty-server/src/**/*workflow*runner*",
+              "packages/twenty-server/src/**/*action*type*"
+            ],
+            "rubric_prompt": "GOAL: Judge the architectural quality of the workflow engine.\n\nEVIDENCE: Workflow engine source files: queue producer/consumer (BullMQ jobs), action-type registry, workflow versioning, runner state machine.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Workflow steps execute asynchronously through a queue (BullMQ or equivalent), not inline in HTTP handlers.\n2. Workflows are versioned: edits create a new version while in-flight runs continue against the version they started on.\n3. Action types are extensible via a registry/factory (>= 10 action types implemented) rather than a hard-coded switch with each new type.\n4. Failures support per-step retries with backoff and a 'continue on failure' or 'route to error branch' option.\n5. Each workflow run is represented by a state-machine record (status: PENDING -> RUNNING -> COMPLETED / FAILED / CANCELLED) with audit logging at each transition.\n6. Long-running steps (waits, manual approvals) suspend without holding worker threads.\n\nSCORING ANCHORS:\n- 0 (none): No workflow engine; only inline scripted steps.\n- 3 (weak): Queue-based execution but no versioning, no retries, no extensible action registry.\n- 6 (good): Versioning + queue + retries; extensible registry but limited action set.\n- 8 (excellent): All six criteria satisfied with a robust, extensible workflow engine.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "WorkflowEngine",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_SECURITY_PASSWORD",
+      "description": "Password security practices",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "keyword:password",
+              "keyword:bcrypt",
+              "keyword:argon2",
+              "src/**/auth/",
+              "src/**/*password*.ts",
+              "src/**/*hash*.ts"
+            ],
+            "rubric_prompt": "GOAL: Judge password-handling security practices.\n\nEVIDENCE: Sign-up / sign-in / change-password code paths; password hash storage; rate-limiting middleware; JWT secret configuration.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Passwords are hashed with a memory-hard or salted KDF (bcrypt with cost >= 10, scrypt, or argon2). No plain SHA-256 or MD5.\n2. Password strength is validated server-side (minimum length, character classes, or zxcvbn-style strength).\n3. Login is rate-limited (per IP and per account) to defend against brute force.\n4. JWT signing secret is loaded from environment / secret store, never hard-coded; secret length matches the algorithm (HS256 -> >= 256-bit).\n5. Password reset tokens are single-use, time-bounded, and stored hashed (not as plaintext).\n6. Password values are never logged or returned in responses (including error messages).\n\nSCORING ANCHORS:\n- 0 (none): Passwords stored in plaintext or with raw MD5/SHA.\n- 2 (weak): bcrypt used but no rate limiting and no strength check.\n- 4 (good): Hashing + rate limit + secret hygiene; reset-token policy weak.\n- 6 (excellent): All six criteria satisfied with a tight password-security posture.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SecurityQuality",
+        "subcategory": "PasswordSecurity",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_SECURITY_TOKEN",
+      "description": "Token management security",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "keyword:jwt",
+              "keyword:token",
+              "src/**/auth/",
+              "src/**/*jwt*.service.ts",
+              "src/**/*token*.service.ts",
+              "src/**/*refresh*.ts"
+            ],
+            "rubric_prompt": "GOAL: Judge the security of token management (JWT access tokens, refresh tokens, API keys).\n\nEVIDENCE: Token issuance, refresh, revocation, and validation code; API-key creation flow; token storage tables.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Access tokens are short-lived (<= 30 minutes) and validated on every request.\n2. Refresh tokens are server-side revocable: a stored record can be invalidated, after which subsequent refreshes fail.\n3. API keys are shown to the user only once at creation; only a hash is persisted server-side.\n4. Expired or revoked tokens are cleaned up (cron / scheduled job), not allowed to grow unbounded.\n5. Token responses set Cache-Control: no-store and Pragma: no-cache so intermediaries do not cache them.\n6. Token storage table has an index on the lookup key (jti / hashed value) so validation is O(log n).\n\nSCORING ANCHORS:\n- 0 (none): Long-lived bearer tokens with no revocation; API keys stored in plaintext.\n- 2 (weak): Short-lived access + refresh present; no revocation; API keys stored plaintext.\n- 4 (good): Most criteria satisfied; cleanup or cache headers missing.\n- 6 (excellent): All six criteria satisfied with a tight token-management posture.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SecurityQuality",
+        "subcategory": "TokenSecurity",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "JUDGE_SECURITY_OAUTH2",
+      "description": "OAuth2 security practices",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "packages/twenty-server/src/engine/core-modules/application/application-oauth/controllers/oauth-registration.controller.ts",
+              "packages/twenty-server/src/engine/core-modules/application/application-oauth/controllers/oauth-token.controller.ts",
+              "packages/twenty-server/src/engine/core-modules/application/application-oauth/controllers/oauth-discovery.controller.ts",
+              "packages/twenty-server/src/engine/core-modules/auth/utils/validate-redirect-uri.util.ts",
+              "packages/twenty-server/src/engine/core-modules/application/application-oauth/oauth.service.ts"
+            ],
+            "rubric_prompt": "GOAL: Judge the OAuth2 server-side security practices.\n\nEVIDENCE: OAuth2 authorization, token, and registration endpoints; PKCE handling; rate-limiting middleware on those endpoints; token response headers.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. PKCE is supported with the S256 challenge method (plain method optional but discouraged; reject if absent for public clients).\n2. The set of accepted grant_types is restricted (typically authorization_code + refresh_token; no implicit or password grants for new clients).\n3. Dynamic client registration and the token endpoint are rate-limited per IP and per client_id.\n4. Token responses include Cache-Control: no-store and Pragma: no-cache headers.\n5. redirect_uri is validated by exact-match against the registered URIs (no open-redirect via wildcard).\n6. Refresh-token rotation is enforced: refreshing returns a new refresh token and invalidates the old one.\n\nSCORING ANCHORS:\n- 0 (none): No PKCE, all grant types allowed, no rate limit, plaintext tokens.\n- 2 (weak): PKCE optional, grant types broad; weak rate limiting.\n- 4 (good): PKCE required + restricted grant_types + rate limit; minor issues with redirect_uri or rotation.\n- 6 (excellent): All six criteria satisfied with a hardened OAuth2 server.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SecurityQuality",
+        "subcategory": "OAuth2Security",
+        "method": "llm-judge",
+        "maxScore": 6,
+        "_eval_fix": {
+          "reason": "files_to_sample previously used 'keyword:oauth'/'keyword:OAuth' first, which os.walk-floods the evidence budget (_MAX_TOTAL=12000) with Google/Microsoft SSO *client* code so the targeted 'src/**/*oauth*.ts' globs never run; the judge then wrongly reported 'no server-side OAuth2 code' and scored 0/6. Replaced with explicit high-signal paths into Twenty's real OAuth2 authorization server. Verified the baseline implements all six rubric criteria: PKCE S256 (oauth-discovery code_challenge_methods_supported:['S256'] + oauth.service sha256 verify), restricted grant_types (ALLOWED_GRANT_TYPES=[authorization_code,refresh_token]), per-IP/client rate limiting (ThrottlerService.tokenBucketThrottleOrThrow), Cache-Control:no-store+Pragma:no-cache on both token & registration endpoints, exact-match redirect_uri (validate-redirect-uri.util.ts), and auth-code single-use revocation (revokedAt). Sampling fix only; not a source change."
+        }
+      },
+      "complexity_tier": "workflow_automator"
+    }
+  ]
+}

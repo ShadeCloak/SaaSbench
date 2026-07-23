@@ -1,0 +1,14 @@
+# =============================================================================
+# Dockerfile.model template — generic backend development environment
+# =============================================================================
+# The base image already provides: Ubuntu + Go + Node 20 (yarn4/pnpm) +
+#   Python 3.10 + a common dependency cache.
+# This template suits tasks that need no extra language runtime; it only forces
+# an idle process and sets the workspace.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

@@ -1,0 +1,92 @@
+{
+  "categories": {
+    "ArchitectureQuality": {
+      "maxScore": 51,
+      "node_count": 7
+    },
+    "Authentication": {
+      "maxScore": 46,
+      "node_count": 11
+    },
+    "BusinessLogic": {
+      "maxScore": 46,
+      "node_count": 14
+    },
+    "CLI": {
+      "maxScore": 10,
+      "node_count": 3
+    },
+    "CalDAV": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "CardDAV": {
+      "maxScore": 14,
+      "node_count": 3
+    },
+    "DataModel": {
+      "maxScore": 25,
+      "node_count": 10
+    },
+    "Deployment": {
+      "maxScore": 8,
+      "node_count": 5
+    },
+    "EdgeCases": {
+      "maxScore": 24,
+      "node_count": 6
+    },
+    "ExternalStorage": {
+      "maxScore": 9,
+      "node_count": 3
+    },
+    "FileSystem": {
+      "maxScore": 50,
+      "node_count": 12
+    },
+    "Frontend": {
+      "maxScore": 49,
+      "node_count": 8
+    },
+    "RBAC": {
+      "maxScore": 48,
+      "node_count": 10
+    },
+    "Search": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "Sharing": {
+      "maxScore": 65,
+      "node_count": 14
+    },
+    "Theming": {
+      "maxScore": 2,
+      "node_count": 2
+    },
+    "UserManagement": {
+      "maxScore": 39,
+      "node_count": 10
+    },
+    "Webhook": {
+      "maxScore": 13,
+      "node_count": 4
+    }
+  },
+  "total_maxScore": 530,
+  "normalization": "0-100",
+  "depth_distribution": {
+    "shallow": {
+      "maxScore": 57,
+      "pct": 10.8
+    },
+    "deep": {
+      "maxScore": 376,
+      "pct": 70.9
+    },
+    "llm_judge": {
+      "maxScore": 97,
+      "pct": 18.3
+    }
+  }
+}

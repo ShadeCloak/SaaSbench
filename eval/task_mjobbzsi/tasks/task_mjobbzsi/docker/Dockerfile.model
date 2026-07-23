@@ -1,0 +1,14 @@
+# =============================================================================
+# Dockerfile.model — clean container used when a model writes the candidate
+# code from scratch. The base image already provides the common toolchain
+# (Node 20 + npm/yarn/pnpm, Python 3, build essentials, plus a generic
+# package cache covering React/Vue/Vite/Webpack/Express/NestJS/Prisma/etc.),
+# so this Dockerfile only needs to enforce an idle entrypoint and a working
+# directory pointed at the mounted workspace.
+# =============================================================================
+
+FROM saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

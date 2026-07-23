@@ -1,0 +1,188 @@
+name: task_rjhcjrst
+
+# ============================================================================
+# task_rjhcjrst (Personal Finance Manager / PFM)
+# Published-image variant.
+# Uses the pre-frozen image shadetocloak/task_rjhcjrst-app:latest, which ships:
+#   - PHP 8.4 + all extensions (task.md §2.1: bcmath/gd/gmp/intl/mbstring/opcache/...)
+#   - Composer 2 + Apache 2 (mod_rewrite, mod_headers, DocumentRoot=/var/www/html/public)
+#   - /var/cache/workspace_deps/{vendor (146M), public_build, helpers/, conf/}
+#     . vendor/        — the reference composer dependencies
+#     . public_build/  — Vite manifest stub + dummy assets (avoids Blade render crashes)
+#     . helpers/       — _make_admin_user.php / _make_rbac_user.php / _make_token.php /
+#                        _reset_smoke_data.php / _seed_for_biz.php / _set_password.php
+#     . conf/          — apache-pfm.conf + _bootstrap_smoke.sh (invoked by the eval scripts)
+# At startup, prepare_workspace.sh / test_*_code.sh copy these deps + helpers into
+# /var/www/html/, saving several minutes of composer install.
+#
+# Required environment variables (placeholders have fallbacks, but replace them in production):
+#   APP_KEY            — openssl rand -base64 32 | sed 's,^,base64:,'
+#   STATIC_CRON_TOKEN  — openssl rand -hex 16 (exactly 32 chars)
+# See docker/.env.example for a template.
+# ============================================================================
+
+x-app-env: &app-env
+  # ---------- Laravel core ----------
+  APP_NAME: PFM
+  APP_ENV: local
+  APP_DEBUG: "true"
+  APP_KEY: ${APP_KEY:-base64:00000000000000000000000000000000000000000000=}
+  APP_URL: http://localhost:8022
+  APP_TIMEZONE: UTC
+  SITE_OWNER: admin@pfm.local
+
+  # ---------- Database ----------
+  DB_CONNECTION: mysql
+  DB_HOST: db
+  DB_PORT: "3306"
+  DB_DATABASE: app_rjhcjrst
+  DB_USERNAME: apprjhcjrst
+  DB_PASSWORD: app123rjhcjrst
+
+  # ---------- Cache / Session / Queue ----------
+  CACHE_DRIVER: file
+  SESSION_DRIVER: file
+  SESSION_LIFETIME: "120"
+  QUEUE_DRIVER: sync
+  BROADCAST_DRIVER: log
+
+  # ---------- Mail ----------
+  MAIL_MAILER: log
+  MAIL_FROM_ADDRESS: noreply@pfm.local
+  MAIL_FROM_NAME: PFM
+
+  # ---------- Logging ----------
+  LOG_CHANNEL: stack
+  LOG_LEVEL: debug
+  AUDIT_LOG_LEVEL: emergency
+
+  # ---------- Auth ----------
+  AUTHENTICATION_GUARD: web
+  PFM_LAYOUT: default
+
+  # ---------- Cron / scheduled jobs ----------
+  STATIC_CRON_TOKEN: ${STATIC_CRON_TOKEN:-pfm_cron_token_please_change_3xx}
+
+  # ---------- Map defaults ----------
+  PFM_MAP_DEFAULT_LAT: "51.983333"
+  PFM_MAP_DEFAULT_LONG: "5.916667"
+  PFM_MAP_DEFAULT_ZOOM: "6"
+
+  # ---------- Misc ----------
+  TRUSTED_PROXIES: "*"
+  COOKIE_SAMESITE: lax
+  COOKIE_SECURE: "false"
+  PFM_ENABLE_EXTERNAL_RATES: "false"
+  PFM_ENABLE_EXTERNAL_MAP: "true"
+
+  # ---------- Webhook test endpoints (host.docker.internal:9001 → mock-receiver) ----------
+  PFM_WEBHOOK_TEST_RECEIVER: http://host.docker.internal:9001
+
+services:
+  app:
+    image: shadetocloak/task_rjhcjrst-app:${IMAGE_TAG:-baseline}
+    # build section kept as a fallback for offline local builds
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: task_rjhcjrst-app
+    restart: unless-stopped
+    ports:
+      # task.md §9.1.1 hard constraint — host 8022 → container 80 (apache)
+      - "8022:80"
+    depends_on:
+      db:
+        condition: service_healthy
+      mock-receiver:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+    volumes:
+      # Agent's Laravel project lives here. Initial content: only .gitkeep.
+      - ./workspace:/var/www/html
+    working_dir: /var/www/html
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      # Allows the application container to reach the host's localhost
+      # (used by mock-receiver and by evaluation scripts hosted on the host)
+      - "host.docker.internal:host-gateway"
+    networks:
+      default:
+        aliases:
+          - app
+    # Default command is apache2-foreground (started via image CMD).
+
+  db:
+    image: mysql:8.0
+    container_name: task_rjhcjrst-db
+    restart: unless-stopped
+    ports:
+      # task.md §9 hard constraint — host 3309 → container 3306
+      - "3309:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootapp123rjhcjrst
+      MYSQL_DATABASE: app_rjhcjrst
+      MYSQL_USER: apprjhcjrst
+      MYSQL_PASSWORD: app123rjhcjrst
+      TZ: UTC
+    command:
+      - --default-authentication-plugin=caching_sha2_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-mysqlx
+      - --innodb-buffer-pool-size=256M
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uapprjhcjrst -papp123rjhcjrst --silent"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    networks:
+      default:
+        aliases:
+          - db
+          - mysql
+
+  # ===== mock-receiver: P27 webhook delivery target =====
+  # Tiny Python HTTP server (no external dependencies). Records all POSTs to
+  # /hook (returns 200) and /always-500 (returns 500), and exposes them via
+  # GET /history?since=<unix_ts> for the evaluation harness to query.
+  #
+  # Endpoints:
+  #   POST /hook         receive webhook, return 200
+  #   POST /always-500   receive webhook, return 500 (retry testing)
+  #   GET  /history      query history (?since=<unix_ts>)
+  #   DELETE /history    clear history
+  #   GET  /health       health check
+  #
+  # Eval scripts reach it at localhost:9001; from inside the app container: host.docker.internal:9001
+  # Note: the host port 9001 is shared with other tasks, so they cannot run at the same time.
+  mock-receiver:
+    image: python:3.11-alpine
+    container_name: task_rjhcjrst-mock-receiver
+    restart: unless-stopped
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./mock-receiver:/srv:ro
+    working_dir: /srv
+    command: ["python", "-u", "server.py"]
+    healthcheck:
+      # busybox wget on alpine resolves localhost to IPv6 first; force IPv4.
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9001/health >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
+volumes:
+  mysql_data:
+
+networks:
+  default:
+    name: task_rjhcjrst_network
+    driver: bridge

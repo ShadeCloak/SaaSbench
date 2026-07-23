@@ -1,0 +1,207 @@
+name: task_iyjruvfz
+
+# ============================================================================
+# Docker compose for the scheduling/booking platform task.
+# The app image ships with Node 20 + Yarn 4 + system dependencies pre-installed
+# (postgres-client / build-essential / cairo / pango, etc.), plus a cached
+# /var/cache/workspace_deps/{node_modules, .yarn, _subs/} that prepare_workspace.sh /
+# test_*_code.sh copy into /app/ to avoid running a full yarn install.
+#
+# Required environment variables (fail-fast via ${VAR:?}):
+#   NEXTAUTH_SECRET    — openssl rand -base64 32
+#   APP_ENCRYPTION_KEY — openssl rand -base64 24 (decodes to exactly 32 bytes)
+#   CRON_API_KEY       — openssl rand -hex 16
+#   JWT_SECRET         — openssl rand -base64 32 (used by REST v2 / platform OAuth)
+# Any missing variable causes `docker compose up` to fail immediately. See
+# docker/.env.example for a template.
+# ============================================================================
+
+x-app-env: &app-env
+  NODE_ENV: development
+  PORT: "3000"
+  # ===== Database =====
+  DATABASE_URL: postgresql://appiyjruvfz:app123iyjruvfz@postgres:5432/app_iyjruvfz
+  DATABASE_DIRECT_URL: postgresql://appiyjruvfz:app123iyjruvfz@postgres:5432/app_iyjruvfz
+  # Read-replica fallback: DATABASE_READ_URL / DATABASE_WRITE_URL default to
+  # DATABASE_URL when not set. This enables development environments without
+  # dedicated read replicas. In production, set both to dedicated read/write
+  # endpoints for proper read-write splitting.
+  DATABASE_READ_URL: postgresql://appiyjruvfz:app123iyjruvfz@postgres:5432/app_iyjruvfz
+  DATABASE_WRITE_URL: postgresql://appiyjruvfz:app123iyjruvfz@postgres:5432/app_iyjruvfz
+  # ===== App URLs =====
+  NEXT_PUBLIC_WEBAPP_URL: http://localhost:8016
+  NEXT_PUBLIC_WEBSITE_URL: http://localhost:8016
+  NEXT_PUBLIC_EMBED_LIB_URL: http://localhost:8016/embed/embed.js
+  # ===== NextAuth =====
+  NEXTAUTH_URL: http://localhost:8016
+  NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:?NEXTAUTH_SECRET_required__cp_.env.example_.env_then_openssl_rand_-base64_32}
+  # ===== Encryption =====
+  APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY_required__openssl_rand_-base64_24}
+  # Encryption-key aliases. Some legacy code paths may read the key under
+  # alternative names (e.g. used for AES decryption of backup codes, TOTP
+  # secrets, or stored credentials). Map all aliases to the same value as
+  # APP_ENCRYPTION_KEY so a single 24-byte secret in .env satisfies every
+  # consumer without breaking startup-time validation.
+  CALENDSO_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY_required__openssl_rand_-base64_24}
+  CALCOM_APP_CREDENTIAL_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY_required__openssl_rand_-base64_24}
+  CALCOM_SERVICE_ACCOUNT_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY_required__openssl_rand_-base64_24}
+  # ===== Reserved subdomains =====
+  ALLOWED_HOSTNAMES: '"localhost:8016","app.example.com"'
+  RESERVED_SUBDOMAINS: '"app","auth","docs","design","console","go","status","api","saml","www","matrix","developer","my","team","support","security","blog","learn","admin"'
+  # ===== Cron =====
+  CRON_API_KEY: ${CRON_API_KEY:?CRON_API_KEY_required__openssl_rand_-hex_16}
+  CRON_ENABLE_APP_SYNC: "false"
+  # ===== Telemetry =====
+  APP_TELEMETRY_DISABLED: "1"
+  NEXT_TELEMETRY_DISABLED: "1"
+  # ===== Redis =====
+  REDIS_URL: redis://redis:6379
+  # ===== Email (development: null transport, output to stdout) =====
+  EMAIL_FROM: noreply@localhost
+  EMAIL_SERVER_HOST: ""
+  EMAIL_SERVER_PORT: ""
+  EMAIL_SERVER_USER: ""
+  EMAIL_SERVER_PASSWORD: ""
+  # ===== License (empty: open-source CE features only) =====
+  APP_LICENSE_KEY: ""
+  APP_SIGNATURE_TOKEN: ""
+  # ===== API key prefix =====
+  API_KEY_PREFIX: app_
+  # ===== Single-org mode =====
+  ORGANIZATIONS_ENABLED: "true"
+  # Set NEXT_PUBLIC_SINGLE_ORG_SLUG so the middleware does not treat the host
+  # name (e.g. "localhost:8016") as an organization slug, which would rewrite
+  # GET / to a non-existent team route and break the dashboard landing page.
+  NEXT_PUBLIC_SINGLE_ORG_SLUG: app
+  # ===== Logging =====
+  LOG_LEVEL: info
+  # ===== JWT (API v2) =====
+  JWT_SECRET: ${JWT_SECRET:?JWT_SECRET_required__openssl_rand_-base64_32}
+  # Inject the REST v2 base URL at the container level. The Next.js webapp
+  # uses these envs to inject the /api/v2 rewrite into afterFiles, and to
+  # resolve the upstream NestJS server. Setting them at the container level
+  # (rather than in a .env file inside the monorepo) ensures yarn child
+  # processes inherit them reliably.
+  NEXT_PUBLIC_API_V2_URL: http://localhost:5555/v2
+  # The standalone REST v1 project's next.config.js builds rewrites from this
+  # variable; without it the destination becomes "undefined/health" and the
+  # api/v1 process exits at startup with "Invalid rewrites found".
+  NEXT_PUBLIC_API_V2_ROOT_URL: http://localhost:5555
+  # The REST v2 server (NestJS) requires Stripe-related variables to be
+  # present at bootstrap. Provide harmless placeholders since the evaluation
+  # does not exercise real Stripe.
+  STRIPE_API_KEY: sk_test_dummy_for_eval
+  STRIPE_WEBHOOK_SECRET: whsec_dummy_for_eval
+  # Disable team billing in dev so the team-creation flow does not call out
+  # to Stripe with a placeholder key. The runtime treats this value via
+  # `if (!isTeamBillingEnabled)` — set it to an empty string so that the
+  # check passes (truthy strings like "false" would not).
+  IS_TEAM_BILLING_ENABLED: ""
+
+services:
+  app:
+    # The image ships with workspace dependencies pre-cached under
+    # /var/cache/workspace_deps/ (used by prepare_workspace.sh / test_*_code.sh).
+    image: shadetocloak/task_iyjruvfz-app:${IMAGE_TAG:-baseline}
+    # Local build fallback so reviewers without registry access can rebuild the
+    # image from the included Dockerfile. `pull_policy: missing` instructs
+    # docker-compose to try the cached image first and only build when missing.
+    build:
+      context: .
+      dockerfile: Dockerfile
+    pull_policy: missing
+    container_name: task_iyjruvfz-app
+    ports:
+      - "8016:3000"      # task.md §8.1 contract: host 8016 -> container 3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+    volumes:
+      - ./workspace:/app             # the agent writes code into this volume
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    # Allow processes inside the container to reach the host via
+    # host.docker.internal (used by the eval harness and mock webhook receiver).
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Idle by default; prepare_workspace.sh seeds /app with deps and source
+    # before the model (or test harness) starts the actual dev servers.
+    command: ["bash", "-c", "tail -f /dev/null"]
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: task_iyjruvfz-postgres
+    restart: "no"
+    ports:
+      - "5441:5432"      # task.md §8.1 contract: host 5441 -> container 5432
+    environment:
+      POSTGRES_DB: app_iyjruvfz
+      POSTGRES_USER: appiyjruvfz
+      POSTGRES_PASSWORD: app123iyjruvfz
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appiyjruvfz -d app_iyjruvfz"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      default:
+        aliases:
+          - db
+
+  redis:
+    image: redis:7-alpine
+    container_name: task_iyjruvfz-redis
+    restart: "no"
+    ports:
+      - "6391:6379"      # host 6391 (chosen to avoid task port conflicts) -> container 6379
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # ===== Mock webhook receiver (used by webhook-delivery test nodes) =====
+  # A small self-contained HTTP receiver (~100 lines of Python, no external
+  # dependencies). Used as a stable replacement for upstream echo services
+  # that lack a query/history API.
+  #
+  # Endpoints:
+  #   POST   /hook         receive a webhook and return 200
+  #   POST   /always-500   receive a webhook and return 500 (for retry tests)
+  #   GET    /history      query received webhooks (supports ?since=<unix_ts>)
+  #   DELETE /history      clear received history
+  #   GET    /health       health probe
+  #
+  # Reachable from the host as localhost:9012, and from the app container as
+  # host.docker.internal:9012.
+  mock-receiver:
+    image: python:3.11-alpine
+    container_name: task_iyjruvfz-mock-receiver
+    restart: "no"
+    ports:
+      - "9012:9012"
+    volumes:
+      - ./mock-receiver:/app:ro
+    working_dir: /app
+    command: ["python", "-u", "server.py"]
+    healthcheck:
+      # busybox wget on alpine resolves localhost to IPv6 first; force IPv4
+      # (server.py binds 0.0.0.0 / IPv4 only, so [::1] never answers).
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9012/health >/dev/null 2>&1 || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:

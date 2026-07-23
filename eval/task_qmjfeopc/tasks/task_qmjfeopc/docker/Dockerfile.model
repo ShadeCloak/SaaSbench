@@ -1,0 +1,15 @@
+# =============================================================================
+# Dockerfile.model — generic Node + Python development image for SaaSBench
+# tasks that do not require additional language runtimes.
+# =============================================================================
+# The base image already provides: ubuntu + Go + Node 20 (yarn 4 / pnpm) +
+# Python 3.10 + a shared package cache for common Node ecosystems. This
+# Dockerfile.model only forces idle execution (sleep infinity) and sets the
+# workspace directory; it intentionally contains no project-specific code.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

@@ -1,0 +1,16 @@
+# =============================================================================
+# Dockerfile.model — clean dev container with an empty /app workspace.
+# =============================================================================
+# The expected BASE_IMAGE covers ubuntu + Go + Node 20 (yarn4/pnpm) + Python
+# 3.10 plus generic frontend caches (React / Vue / Vite / Webpack / NX /
+# Express / NestJS / Prisma / ...). This template is meant for tasks that do
+# not require an extra language runtime: it only enforces idle PID 1 + a
+# clean workspace mount so the candidate writes their code from scratch.
+# =============================================================================
+
+ARG BASE_IMAGE=task_orghjavi/dev-base:latest
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

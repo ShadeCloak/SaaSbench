@@ -1,0 +1,242 @@
+{
+  "categories": {
+    "ArchitectureQuality": {
+      "maxScore": 63,
+      "node_count": 11
+    },
+    "Authentication": {
+      "maxScore": 40,
+      "node_count": 10
+    },
+    "Authorization": {
+      "maxScore": 45,
+      "node_count": 15
+    },
+    "BusinessLogic": {
+      "maxScore": 70,
+      "node_count": 13
+    },
+    "DataModel": {
+      "maxScore": 44,
+      "node_count": 12
+    },
+    "Deployment": {
+      "maxScore": 8,
+      "node_count": 7
+    },
+    "EdgeCases": {
+      "maxScore": 24,
+      "node_count": 8
+    },
+    "EntityLifecycle": {
+      "maxScore": 56,
+      "node_count": 10
+    },
+    "Frontend": {
+      "maxScore": 61,
+      "node_count": 14
+    },
+    "GraphQLAPI": {
+      "maxScore": 71,
+      "node_count": 16
+    },
+    "IngestionCLI": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "Lineage": {
+      "maxScore": 42,
+      "node_count": 8
+    },
+    "OpenAPIRest": {
+      "maxScore": 37,
+      "node_count": 8
+    },
+    "SearchDiscovery": {
+      "maxScore": 41,
+      "node_count": 10
+    }
+  },
+  "total_maxScore": 627,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "high_concurrency": {
+      "node_count": 9,
+      "maxScore": 53
+    },
+    "linear_crud": {
+      "node_count": 52,
+      "maxScore": 171
+    },
+    "marketplace_rbac": {
+      "node_count": 27,
+      "maxScore": 125
+    },
+    "workflow_automator": {
+      "node_count": 60,
+      "maxScore": 278
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey — successful deployment, login works, basic entity CRUD available, correct data model, basic search works.",
+      "node_ids": [
+        "AUTH_ADMIN_TOKEN_MANAGEMENT",
+        "AUTH_JWT_CLAIMS_VALIDATION",
+        "AUTH_JWT_TOKEN_GENERATE",
+        "AUTH_NONADMIN_TOKEN_RESTRICTION",
+        "AUTH_PAT_CREATE_TOKEN",
+        "AUTH_SERVICE_ACCOUNT_TOKEN",
+        "AUTH_SESSION_TOKEN_CREATE",
+        "AUTH_SYSTEM_BASIC_AUTH",
+        "AUTH_TOKEN_EXPIRED_REJECT",
+        "AUTH_TOKEN_REVOKE",
+        "DEPLOY_ELASTICSEARCH_CLUSTER",
+        "DEPLOY_GRADLE_BUILD_FILE",
+        "DEPLOY_GRAPHQL_API",
+        "DEPLOY_HEALTH",
+        "DEPLOY_KAFKA_BROKER",
+        "DEPLOY_MYSQL_ASPECT_TABLE",
+        "DEPLOY_SPRING_BOOT_CONFIG",
+        "DM_ASPECT_PRIMARY_KEY_INDEX",
+        "DM_ASPECT_TABLE_COLUMNS",
+        "DM_ASPECT_VERSIONING_SEMANTICS",
+        "DM_ENTITY_CONTAINER_GRAPHQL",
+        "DM_ENTITY_CORPUSER_GRAPHQL",
+        "DM_ENTITY_DATASET_GRAPHQL",
+        "DM_ENTITY_POLICY_GRAPHQL",
+        "DM_SYSTEM_METADATA_STRUCTURE",
+        "DM_TIMESERIES_ASPECT_ES",
+        "DM_URN_FORMAT_DATASET",
+        "DM_VERSION_HISTORY_INCREMENT",
+        "DM_VERSION_ZERO_LATEST",
+        "GQL_DATASET_CREATE",
+        "GQL_DATASET_GET",
+        "GQL_SEARCH_ACROSS_ENTITIES",
+        "GQL_SEARCH_BASIC",
+        "OAPI_DATASET_CREATE",
+        "OAPI_DATASET_GET"
+      ],
+      "maxScore": 116
+    },
+    "advanced_workflows": {
+      "description": "Advanced capabilities — permission matrix (RBAC/ABAC), complex business rules (lineage, assertions, structured properties), edge-case handling, frontend UI quality, code architecture quality, API design, CLI ingestion.",
+      "node_ids": [
+        "API_LLM_ERROR_MESSAGES_QUALITY",
+        "API_LLM_GRAPHQL_SCHEMA_QUALITY",
+        "API_LLM_REST_API_CONSISTENCY",
+        "ARCH_API_LAYERING",
+        "ARCH_ENTITY_ASPECT_MODEL",
+        "ARCH_EVENT_DRIVEN_MCP_MCL",
+        "ARCH_LLM_AUTH_ARCHITECTURE",
+        "ARCH_LLM_DATA_ACCESS_LAYER",
+        "ARCH_LLM_ERROR_HANDLING_PATTERNS",
+        "ARCH_LLM_FRONTEND_CODE_QUALITY",
+        "ARCH_LLM_SERVICE_LAYER_DESIGN",
+        "ARCH_PLUGIN_INGESTION_CONNECTORS",
+        "AUTH_DOMAIN_POLICY_INHERITANCE",
+        "AUTH_INACTIVE_POLICY_DENY",
+        "AUTH_JWT_LOGIN",
+        "AUTH_OWNERSHIP_TYPE_CRUD",
+        "AUTH_OWNERSHIP_TYPE_MISMATCH_DENY",
+        "AUTH_PLATFORM_VS_METADATA_POLICY",
+        "AUTH_RESOURCE_OWNER_CAN_EDIT",
+        "BIZ_ASSERTION_CREATE_RUN_EVENT",
+        "BIZ_DATA_CONTRACT_STATUS_MANUAL_ONLY",
+        "BIZ_DOMAIN_CREATE_SET_ENTITY",
+        "BIZ_DOMAIN_SUBDOMAIN_NO_DEPTH_LIMIT",
+        "BIZ_GLOSSARY_TERM_CREATE_ASSOCIATE",
+        "BIZ_INCIDENT_STATE_REVERSIBLE",
+        "BIZ_MCP_ASYNC_RETURNS_202",
+        "BIZ_MCP_CHANGE_TYPE_SEMANTICS",
+        "BIZ_OWNER_ADD_VERIFY_TYPE",
+        "BIZ_PATCH_JSON_RFC6902",
+        "BIZ_STRUCTURED_PROP_TYPE_VALIDATION",
+        "BIZ_TAG_COLORHEX_NO_FORMAT_CHECK",
+        "BIZ_TAG_CREATE_ADD_REMOVE",
+        "CLI_DOC_PROPAGATION_DEPTH_CONFIG",
+        "CLI_EXIT_CODE_CONVENTION",
+        "CLI_INGEST_COMMAND_RUNNABLE",
+        "CLI_KAFKA_PARTITION_KEY_URN",
+        "CLI_LLM_RECIPE_YAML_DESIGN",
+        "CLI_USER_ADD_WITH_ROLES",
+        "DOC_LLM_CODE_DOCUMENTATION",
+        "DOC_LLM_LOGGING_QUALITY",
+        "EDGE_CONCURRENT_DEADLOCK_AVOIDANCE",
+        "EDGE_CUSTOM_PROPERTIES_NO_LIMIT",
+        "EDGE_GLOSSARY_TERM_SOURCE_VALUES",
+        "EDGE_GRAPHQL_UNION_UNKNOWN_TYPE_NULL",
+        "EDGE_INCIDENT_STATUS_REVERSIBLE",
+        "EDGE_PATCH_LAST_WRITER_WINS",
+        "EDGE_SOFT_DELETE_SEARCH_INVISIBLE",
+        "EDGE_URN_LENGTH_EXCEEDS_500",
+        "FE_ADMIN_SETTINGS_PAGE_EXISTS",
+        "FE_ENTITY_DETAIL_PAGE_EXISTS",
+        "FE_LINEAGE_VISUALIZATION_EXISTS",
+        "FE_LLM_ADMIN_SETTINGS_DESIGN",
+        "FE_LLM_ENTITY_DETAIL_LAYOUT",
+        "FE_LLM_ERROR_EMPTY_STATES",
+        "FE_LLM_FORM_INTERACTIONS",
+        "FE_LLM_GLOBAL_NAVIGATION",
+        "FE_LLM_GLOSSARY_DOMAIN_TREE",
+        "FE_LLM_HOME_PAGE_QUALITY",
+        "FE_LLM_LINEAGE_VISUALIZATION",
+        "FE_LLM_SEARCH_PAGE_UX",
+        "FE_NAVIGATION_BAR_EXISTS",
+        "FE_SEARCH_PAGE_EXISTS",
+        "GQL_AUTOCOMPLETE",
+        "GQL_BATCH_TAG_ADD_ATOMICITY",
+        "GQL_DEPRECATION_UPDATE",
+        "GQL_DESCRIPTION_UPDATE",
+        "GQL_DOMAIN_SET",
+        "GQL_ERROR_FORMAT",
+        "GQL_NULL_ENTITY_QUERY",
+        "GQL_OWNER_ADD",
+        "GQL_TAG_ADD",
+        "GQL_TERM_ADD",
+        "LIFECYCLE_CREATE_ASPECT_V0",
+        "LIFECYCLE_EMPTY_VS_NULL",
+        "LIFECYCLE_HARD_DELETE",
+        "LIFECYCLE_LINEAGE_UPDATE",
+        "LIFECYCLE_OWNER_ADD_REMOVE",
+        "LIFECYCLE_PATCH_FIELD",
+        "LIFECYCLE_SOFT_DELETE",
+        "LIFECYCLE_TAG_ADD_REMOVE",
+        "LIFECYCLE_TERM_ADD_REMOVE",
+        "LIFECYCLE_UPDATE_VERSION_HISTORY",
+        "LINEAGE_ADD_REMOVE_SAME_EDGE",
+        "LINEAGE_ADD_UPSTREAM_VERIFY",
+        "LINEAGE_COLUMN_LEVEL_INDEX",
+        "LINEAGE_INVALID_EDGE_TYPE_REJECTED",
+        "LINEAGE_MULTI_HOP_DEGREE_FILTER",
+        "LINEAGE_SCROLL_PAGINATION",
+        "LINEAGE_SEARCH_ACROSS_UPSTREAM_STRUCTURE",
+        "LINEAGE_UPDATE_REORDER_VERIFY",
+        "OAPI_BATCH_ROLLBACK",
+        "OAPI_DATASET_DELETE",
+        "OAPI_VERSION_MATCH",
+        "RBAC_ADMIN_CAN_GENERATE_TOKENS",
+        "RBAC_ADMIN_CAN_MANAGE_POLICIES",
+        "RBAC_ADMIN_CAN_MANAGE_USERS",
+        "RBAC_EDITOR_CAN_EDIT_TAGS",
+        "RBAC_READER_CANNOT_EDIT_TAGS",
+        "RBAC_READER_CANNOT_GENERATE_TOKENS",
+        "RBAC_READER_CANNOT_MANAGE_POLICIES",
+        "RBAC_READER_CANNOT_MANAGE_USERS",
+        "RESTLI_MCP_INGEST",
+        "RESTLI_UPSERT_AUTO_CREATE",
+        "SEARCH_AUTOCOMPLETE_CASE_INSENSITIVE",
+        "SEARCH_COUNT_UPPER_BOUND",
+        "SEARCH_DEFAULT_PAGINATION",
+        "SEARCH_DEFAULT_SORT_RELEVANCE",
+        "SEARCH_FACET_MULTI_VALUE_OR",
+        "SEARCH_FILTER_OR_AND_BOOL",
+        "SEARCH_HAS_UPSTREAMS_INDEX_FIELD",
+        "SEARCH_MULTI_ENTITY_TYPES",
+        "SEARCH_SCROLL_ENTITIES_PAGINATION",
+        "SEARCH_UPSTREAM_LEAF_NO_UPSTREAMS"
+      ],
+      "maxScore": 511
+    }
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "categories": {
+    "API": {
+      "maxScore": 60,
+      "node_count": 14
+    },
+    "Architecture": {
+      "maxScore": 98,
+      "node_count": 19
+    },
+    "Authentication": {
+      "maxScore": 53,
+      "node_count": 12
+    },
+    "BusinessLogic": {
+      "maxScore": 212,
+      "node_count": 49
+    },
+    "DataModel": {
+      "maxScore": 16,
+      "node_count": 10
+    },
+    "Deployment": {
+      "maxScore": 5,
+      "node_count": 3
+    },
+    "EdgeCases": {
+      "maxScore": 22,
+      "node_count": 7
+    },
+    "Frontend": {
+      "maxScore": 10,
+      "node_count": 7
+    },
+    "RBAC": {
+      "maxScore": 24,
+      "node_count": 6
+    }
+  },
+  "total_maxScore": 500,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 33,
+      "maxScore": 83
+    },
+    "marketplace_rbac": {
+      "node_count": 22,
+      "maxScore": 97
+    },
+    "workflow_automator": {
+      "node_count": 72,
+      "maxScore": 320
+    }
+  },
+  "depth_distribution": {
+    "shallow": {
+      "percentage": 6.2,
+      "maxScore": 31,
+      "node_count": 14
+    },
+    "deep": {
+      "percentage": 74.4,
+      "maxScore": 372,
+      "node_count": 95
+    },
+    "llm_judge": {
+      "percentage": 19.4,
+      "maxScore": 97,
+      "node_count": 18
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core: deploy, auth, CRUD surveys/responses/contacts/webhooks/teams, lifecycle",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN",
+        "AUTH_API_KEY",
+        "CRUD_SURVEY",
+        "CRUD_RESPONSE",
+        "CRUD_CONTACT",
+        "CRUD_WEBHOOK",
+        "CRUD_TEAM",
+        "BIZ_SURVEY_LIFECYCLE"
+      ],
+      "maxScore": 43
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC, cascade delete, env isolation, SSRF, quotas, question types, logic, 2FA, security, architecture",
+      "node_ids": [
+        "DEPLOY_PACKAGE_JSON",
+        "DEPLOY_PRISMA_SCHEMA",
+        "DB_TABLES_CORE",
+        "DB_TABLES_AUTH",
+        "DB_TABLES_SURVEY_SUPPORT",
+        "DB_TABLES_TEAMS",
+        "DB_COLUMNS_USER",
+        "DB_COLUMNS_SURVEY",
+        "DB_COLUMNS_RESPONSE",
+        "DB_COLUMNS_CONTACT",
+        "AUTH_SECURITY_HEADERS",
+        "AUTH_PASSWORD_DOS",
+        "AUTH_NO_USER_ENUM",
+        "AUTH_ERROR_NO_LEAK",
+        "BIZ_CONTACT_DUPLICATE_EMAIL",
+        "BIZ_CONTACT_DUPLICATE_USERID",
+        "BIZ_CONTACT_UNKNOWN_ATTR_KEY",
+        "CRUD_PROJECT_TEAM",
+        "CRUD_USER_ORG",
+        "API_V2_RESPONSE_SORTING",
+        "API_V2_RESPONSE_PAGINATION",
+        "API_V2_RESPONSE_UPDATE",
+        "API_V3_SURVEYS_CURSOR",
+        "API_ROLES",
+        "BIZ_SURVEY_DELETE_CASCADE",
+        "BIZ_ENV_ISOLATION",
+        "BIZ_PROJECT_AUTO_ENVS",
+        "RBAC_API_KEY_READ_ONLY",
+        "RBAC_API_KEY_WRITE_NO_DELETE",
+        "RBAC_API_KEY_MANAGE_ALL",
+        "BIZ_CONTACT_CASCADE_RESPONSE_DB",
+        "BIZ_RESPONSE_CONTACT_ROUNDTRIP",
+        "BIZ_API_V2_PAGINATION_BOUNDARY"
+      ],
+      "maxScore": 120
+    }
+  }
+}

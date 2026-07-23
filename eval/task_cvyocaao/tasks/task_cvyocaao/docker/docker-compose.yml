@@ -1,0 +1,71 @@
+name: task_cvyocaao
+
+services:
+  app:
+    image: shadetocloak/task_cvyocaao-app:${IMAGE_TAG:-baseline}
+    # Image built by the SaaSBench harness; see internal docs for provenance.
+    container_name: app_cvyocaao
+    ports:
+      - "8027:8027"
+    volumes:
+      - ./workspace:/app
+    # NOTE: the KC_* environment variable names below are the names the baseline
+    # image's startup pipeline (Quarkus profile) reads; they are an ABI
+    # contract with the baseline image and NOT a hint at the upstream identity.
+    # Candidate model implementations are free to use any prefix (e.g. APP_*).
+    # The same values are also exposed under APP_* in .env for model use.
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://db:5432/app_cvyocaao
+      KC_DB_USERNAME: appcvyocaao
+      KC_DB_PASSWORD: app123cvyocaao
+      KC_HTTP_PORT: "8027"
+      KC_HOSTNAME_STRICT: "false"
+      KC_HTTP_ENABLED: "true"
+      KC_CACHE: local
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin
+      KC_HEALTH_ENABLED: "true"
+    # v3 rework: command is parameterized; in model mode prepare_workspace.sh exports APP_CMD="sleep infinity"
+    command: ["bash", "-c", "${APP_CMD:-start-dev}"]
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - app-network
+    # weak healthcheck (v3 rework): the container is considered healthy as long as it is alive.
+    # Business-service readiness is handled by the prepare/test scripts themselves.
+    # In model mode PID 1 = sleep infinity, so _wait_compose_ready will not hang.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  db:
+    image: postgres:16-alpine
+    container_name: db_cvyocaao
+    ports:
+      - "5449:5432"
+    environment:
+      POSTGRES_DB: app_cvyocaao
+      POSTGRES_USER: appcvyocaao
+      POSTGRES_PASSWORD: app123cvyocaao
+    volumes:
+      - pgdata_cvyocaao:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appcvyocaao -d app_cvyocaao"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - app-network
+
+volumes:
+  pgdata_cvyocaao:
+
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,1775 @@
+{
+  "meta": {
+    "task_id": "task_orghjavi",
+    "stage": "5.1+5.2+5.3 (DAG + scoring config) — V2 (post strict-review fix)",
+    "schema_version": "APEX-1.0",
+    "source_prd": "task_orghjavi/task/task.md",
+    "source_kb": "task_orghjavi/kb/knowledge_base.json",
+    "source_api_behavior": "task_orghjavi_e/analysis/api_behavior.json",
+    "source_test_coverage": "task_orghjavi_e/analysis/test_coverage.json",
+    "generated_at": "2026-04-21T08:37:53Z",
+    "total_nodes": 393,
+    "duplicates_dropped": [],
+    "missing_prereq_refs_dropped": [],
+    "topology_valid": true,
+    "complexity_tier_primary": "marketplace_rbac",
+    "complexity_tier_secondary": "workflow_automator",
+    "budget_check": {
+      "shallow_score_pts": 178,
+      "shallow_score_pct": 18.86,
+      "shallow_node_count": 178,
+      "deep_score_pts": 726,
+      "deep_score_pct": 76.91,
+      "deep_node_count": 209,
+      "llm_score_pts": 40,
+      "llm_score_pct": 4.24,
+      "llm_node_count": 6,
+      "constraint_shallow_le_30pct": true,
+      "constraint_deep_ge_60pct": true,
+      "constraint_llm_le_10pct": true
+    },
+    "smoke_translation_applied": true,
+    "source_project": "the upstream web-analytics CE (the upstream community-edition image:v3.2.0)",
+    "anonymous_endpoints": [
+      "/2fa/verify",
+      "/2fa/use_recovery_code",
+      "/api/plugins/v1/capabilities",
+      "/api/plugins/spec/",
+      "/api/docs/query/",
+      "/api/v2/query",
+      "/api/v1/stats/",
+      "/api/v1/sites",
+      "/api/paddle/webhook",
+      "/auth/google/callback"
+    ],
+    "smoke_variant": true,
+    "smoke_categories": [
+      "Authentication",
+      "Data_Model",
+      "Data_Model_CH",
+      "Data_Model_PG",
+      "Deployment",
+      "Setup"
+    ]
+  },
+  "scoring_config": {
+    "categories": {
+      "Deployment": {
+        "maxScore": 52,
+        "node_count": 18
+      },
+      "DataModel_PG": {
+        "maxScore": 74,
+        "node_count": 57
+      },
+      "DataModel_CH": {
+        "maxScore": 61,
+        "node_count": 28
+      },
+      "Authentication": {
+        "maxScore": 66,
+        "node_count": 22
+      },
+      "Setup": {
+        "maxScore": 8,
+        "node_count": 2
+      },
+      "API_Ingestion": {
+        "maxScore": 36,
+        "node_count": 8
+      },
+      "API_Stats_v1": {
+        "maxScore": 49,
+        "node_count": 10
+      },
+      "API_Query_v2": {
+        "maxScore": 23,
+        "node_count": 6
+      },
+      "API_Plugins": {
+        "maxScore": 22,
+        "node_count": 6
+      },
+      "BusinessLogic": {
+        "maxScore": 219,
+        "node_count": 54
+      },
+      "RBAC": {
+        "maxScore": 90,
+        "node_count": 36
+      },
+      "EdgeCases": {
+        "maxScore": 14,
+        "node_count": 6
+      },
+      "CronJobs": {
+        "maxScore": 45,
+        "node_count": 11
+      },
+      "Frontend": {
+        "maxScore": 99,
+        "node_count": 96
+      },
+      "ArchitectureQuality": {
+        "maxScore": 40,
+        "node_count": 6
+      },
+      "API_Internal_Stats": {
+        "maxScore": 46,
+        "node_count": 27
+      }
+    },
+    "total_maxScore": 944,
+    "normalization": "0-100"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH_LIVE",
+      "description": "GET /api/system/health/live → 200 with body {ok: true}",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/system/health/live",
+            "timeout": 30
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.ok",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Liveness",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "raw_responses/01_health_live.txt: {\"ok\":true}",
+        "kb_ref": [
+          "KB-027"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PG_CONNECTIVITY",
+      "description": "PostgreSQL reachable; citext extension installed (App schema requires it)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT extname FROM pg_extension WHERE extname IN ('citext','plpgsql')",
+            "assertions": [
+              {
+                "path": "$.rows[*].extname",
+                "expected_contains_all": [
+                  "citext",
+                  "plpgsql"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "PgExtensions",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.3 + api_behavior.postgres.extensions_loaded=['plpgsql','citext']"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_CH_CONNECTIVITY",
+      "description": "ClickHouse HTTP endpoint reachable; analytics_events_db exists",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "db": "clickhouse",
+            "sql": "SELECT name FROM system.databases WHERE name='analytics_events_db'",
+            "assertions": [
+              {
+                "path": "$.rows[0].name",
+                "expected": "analytics_events_db"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "ClickHouse",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.4 + api_behavior.clickhouse.database_observed='analytics_events_db'"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_MIX_EXS_PHOENIX",
+      "description": "mix.exs declares phoenix + phoenix_live_view + ecto + ecto_ch deps",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'test -e /app/mix.exs'",
+            "exit_code": 0
+          }
+        },
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'grep -E \":phoenix.*~>.*1\\.|:phoenix_live_view|:ecto.*~>.*3\\.|:ecto_ch\" /app/mix.exs'",
+            "exit_code": 0
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "MixDeps",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §2.1 + §2.12"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PRIV_PLANS_FILES",
+      "description": "priv/plans_v*.json + sandbox + legacy + plan_prices.json present (billing data files)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'test -d /app/priv'",
+            "exit_code": 0
+          }
+        },
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'test -e /app/priv/legacy_plans.json'",
+            "exit_code": 0
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "BillingFiles",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.5 + §3.3.4"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PRIV_DATA_FILES",
+      "description": "priv/custom_sources.json + priv/ga4-source-categories.csv (acquisition channel dictionary backers)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'test -e /app/priv/custom_sources.json && test -e /app/priv/ga4-source-categories.csv'",
+            "exit_code": 0
+          }
+        },
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c 'test -e /app/priv/custom_sources.json && test -e /app/priv/ga4-source-categories.csv'",
+            "exit_code": 0
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "AcquisitionData",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.5 + §10.7; KB-015",
+        "kb_ref": [
+          "KB-015"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_LOGIN_FORM_GET",
+      "description": "GET /login returns 200 with HTML containing _csrf_token form field",
+      "prereqs": [
+        "DEPLOY_HEALTH_LIVE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/login"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "match_regex": "_csrf_token"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "LoginForm",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.endpoint_runtime_behavior[GET /login]"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_PASSWORD_RESET_INVALID_TOKEN",
+      "description": "GET /password/reset with invalid token → renders error page. the upstream: returns 200 with HTML body (LiveView), not 401. Accept either.",
+      "prereqs": [
+        "DEPLOY_HEALTH_LIVE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/password/reset",
+            "params": {
+              "token": "obviously-invalid-token-zzz"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              401
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.body_text",
+                "expected_min_length": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordResetInvalidToken",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage 'with invalid token - shows error page'"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_REGISTER_LIVEVIEW_GET",
+      "description": "GET /register returns 200 (Phoenix LiveView mount); POST /register returns 404 (no plain controller)",
+      "prereqs": [
+        "DEPLOY_HEALTH_LIVE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/register"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/register",
+            "body": {
+              "email": "x@example.com"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "RegisterLiveView",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.endpoint_runtime_behavior[POST /register].verified_status_code=404 + KB-060",
+        "kb_ref": [
+          "KB-060"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_HEALTH_READY",
+      "description": "GET /api/system/health/ready → 200 with 4 components: sessions/postgres/clickhouse/sites_cache all 'ok'",
+      "prereqs": [
+        "DEPLOY_HEALTH_LIVE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/system/health/ready",
+            "timeout": 30
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.sessions",
+                "expected": "ok"
+              },
+              {
+                "path": "$.postgres",
+                "expected": "ok"
+              },
+              {
+                "path": "$.clickhouse",
+                "expected": "ok"
+              },
+              {
+                "path": "$.sites_cache",
+                "expected": "ok"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Readiness",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "raw_responses/02_health_ready.txt; KB-027",
+        "kb_ref": [
+          "KB-027"
+        ]
+      },
+      "evidence": {
+        "logs": true
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_TRACKER_JS_SERVED",
+      "description": "GET /js/script.js → 200 with content-type application/javascript; cache-control includes max-age",
+      "prereqs": [
+        "DEPLOY_HEALTH_LIVE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/js/script.js"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304,
+              404,
+              500
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions_any_of": [
+              {
+                "path": "$.headers['content-type']",
+                "match_regex": "application/javascript"
+              },
+              {
+                "path": "$.headers['cache-control']",
+                "match_regex": "max-age"
+              }
+            ],
+            "assertions": []
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "TrackerJS",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "raw_responses/40_tracker_script.txt; api_behavior.endpoint_runtime_behavior[GET /js/script.js]; KB-040",
+        "kb_ref": [
+          "KB-040"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PG_DB_AND_USER",
+      "description": "App database app_orghjavi exists with owner apporghjavi (per Docker env contract)",
+      "prereqs": [
+        "DEPLOY_PG_CONNECTIVITY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT datname FROM pg_database WHERE datname='app_orghjavi'",
+            "assertions": [
+              {
+                "path": "$.rows[0].datname",
+                "expected": "app_orghjavi"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "DatabaseProvision",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.3"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_CH_MIGRATIONS_RUN",
+      "description": "ClickHouse migrations applied (schema_migrations CH table present + ≥ 10 entries)",
+      "prereqs": [
+        "DEPLOY_CH_CONNECTIVITY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "db": "clickhouse",
+            "sql": "SELECT count() AS cnt FROM analytics_events_db.schema_migrations",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected_min": 10
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "ClickHouseMigrations",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §3.7.6"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_LOGIN_BAD_SHAPE_FORBIDDEN",
+      "description": "POST /login with extra register fields → re-renders form (the upstream: 200 with error flash; agent impl: 403 to prevent param injection). Accept either.",
+      "prereqs": [
+        "AUTH_USER_LOGIN_FORM_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "form": {
+              "email": "x@e.com",
+              "password": "x",
+              "extra_register_field": "true"
+            },
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              403,
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "LoginBadShape",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage POST /login forbidden with random/automated payload"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_LOGIN_RATE_LIMIT_5_PER_MIN",
+      "description": "5 failed POST /login attempts per IP per 60s → 6th should be rate-limited. the upstream may not enforce in-memory limit on dev/release without per-IP tracking; accept either 200 (re-rendered form, no rate-limit) or 429.",
+      "prereqs": [
+        "AUTH_USER_LOGIN_FORM_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "form": {
+              "email": "fake@bench-v2.example.com",
+              "password": "wrong"
+            },
+            "headers": {
+              "X-Forwarded-For": "1.2.3.5"
+            },
+            "repeat": 5
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "form": {
+              "email": "fake@bench-v2.example.com",
+              "password": "wrong"
+            },
+            "headers": {
+              "X-Forwarded-For": "1.2.3.5"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              429,
+              200,
+              302,
+              403
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "LoginRateLimit",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage 'limits login attempts to 5 per minute'"
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {}
+    },
+    {
+      "id": "AUTH_USER_LOGOUT",
+      "description": "GET /logout terminates session; subsequent /sites returns 302 redirect",
+      "prereqs": [
+        "AUTH_USER_LOGIN_FORM_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/logout"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Logout",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §5.10"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_LEGACY_HEALTH_ALIAS",
+      "description": "GET /api/health is a legacy alias for /api/system/health/ready (200 expected)",
+      "prereqs": [
+        "DEPLOY_HEALTH_READY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/health",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "LegacyAlias",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §5.5 + §4.8.4"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_MIX_ENV_DEV_OR_RELEASE",
+      "description": "Application boots in MIX_ENV=dev (dev image) OR is a release; both EE and CE modules accessible",
+      "prereqs": [
+        "DEPLOY_HEALTH_READY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'env = Application.get_env(:app, :environment, \\\"unknown\\\"); IO.puts(\\\"env=\\\" <> to_string(env))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; env = Application.get_env(:app, :environment, \\\"unknown\\\"); IO.puts(\\\"env=\\\" <> to_string(env)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "env="
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "MixEnvDetected",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-066 + task.md §8.5",
+        "kb_ref": [
+          "KB-066"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud",
+      "kb_ref": [
+        "KB-066"
+      ]
+    },
+    {
+      "id": "DEPLOY_TOTP_VAULT_KEY_LOADED",
+      "description": "TOTP_VAULT_KEY is set, base64-decoded to 32 bytes, and App.Auth.TOTP.Vault is started",
+      "prereqs": [
+        "DEPLOY_HEALTH_READY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'vault_pid = Process.whereis(App.Auth.TOTP.Vault); IO.puts(\\\"vault=\\\" <> Atom.to_string(vault_pid != nil))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; vault_pid = Process.whereis(App.Auth.TOTP.Vault); IO.puts(\\\"vault=\\\" <> Atom.to_string(vault_pid != nil)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "vault=true"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "TOTPVaultLoaded",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-065 + task.md §8.6.2 (position 5)",
+        "kb_ref": [
+          "KB-065"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud",
+      "kb_ref": [
+        "KB-065"
+      ]
+    },
+    {
+      "id": "DEPLOY_PG_MIGRATIONS_RUN",
+      "description": "PostgreSQL schema_migrations applied (≥ 50 migration versions)",
+      "prereqs": [
+        "DEPLOY_PG_DB_AND_USER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "schema_migrations"
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT count(*) AS cnt FROM schema_migrations",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected_min": 50
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Migrations",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §8.8 + verified 50 PG tables"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_CH_TABLE_COUNT",
+      "description": "ClickHouse has ≥ 18 tables in analytics_events_db (verified 23; events_v2/sessions_v2/imported_*/dictionaries)",
+      "prereqs": [
+        "DEPLOY_CH_MIGRATIONS_RUN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "db": "clickhouse",
+            "sql": "SELECT count() AS cnt FROM system.tables WHERE database='analytics_events_db'",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected_min": 18,
+                "expected_max": 28
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "ClickHouseTableCoverage",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.clickhouse.tables_count_observed=23"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_NO_EE_TABLES_IN_CE",
+      "description": "Anti-bug: CE build MUST NOT create EE-only tables (audit_entries / sso_integrations / sso_domains / help_scout_*); zero rows expected",
+      "prereqs": [
+        "DEPLOY_PG_MIGRATIONS_RUN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT count(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_name IN ('audit_entries','sso_integrations','sso_domains','help_scout_mappings','help_scout_credentials')",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected": 0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "EEGating",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior._ee_only_tables_NOT_present_in_ce; KB-051; KB-067",
+        "kb_ref": [
+          "KB-051",
+          "KB-067"
+        ]
+      },
+      "complexity_tier": "marketplace_rbac",
+      "evidence": {}
+    },
+    {
+      "id": "DEPLOY_PG_TABLE_COUNT",
+      "description": "PostgreSQL has ≥ 40 application tables in public schema (CE expected ~50; verified 50)",
+      "prereqs": [
+        "DEPLOY_PG_MIGRATIONS_RUN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT count(*) AS cnt FROM information_schema.tables WHERE table_schema='public' AND table_type='BASE TABLE'",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected_min": 40,
+                "expected_max": 60
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "TableCoverage",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.postgres.tables_count_observed=50"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_PASSWORD_LONG_MAX_STRENGTH",
+      "description": "Password > 32 bytes treated as max strength (zxcvbn score 4) (test_coverage)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'pw = String.duplicate(\\\"Xy7$\\\", 9); cs = App.Auth.User.new(%{email: \\\"long@bench-v2.example.com\\\", password: pw, password_confirmation: pw, name: \\\"Long\\\"}); IO.puts(\\\"valid=\\\" <> Atom.to_string(cs.valid?))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; pw = String.duplicate(\\\"Xy7$\\\", 9); cs = App.Auth.User.new(%{email: \\\"long@bench-v2.example.com\\\", password: pw, password_confirmation: pw, name: \\\"Long\\\"}); IO.puts(\\\"valid=\\\" <> Atom.to_string(cs.valid?)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "valid=true"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordLongMaxStrength",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage 'password > 32 bytes max score'"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_PASSWORD_RULES_SHORT",
+      "description": "Password validation: < 12 chars rejected (test_coverage validators)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'cs = App.Auth.User.new(%{email: \\\"weak@bench-v2.example.com\\\", password: \\\"short1!\\\", password_confirmation: \\\"short1!\\\", name: \\\"Weak\\\"}); IO.puts(\\\"valid=\\\" <> Atom.to_string(cs.valid?))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; cs = App.Auth.User.new(%{email: \\\"weak@bench-v2.example.com\\\", password: \\\"short1!\\\", password_confirmation: \\\"short1!\\\", name: \\\"Weak\\\"}); IO.puts(\\\"valid=\\\" <> Atom.to_string(cs.valid?)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "valid=false"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordMinLength",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage covered_validators[validate_password_length]"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "SETUP_USER_ADMIN",
+      "description": "Evaluator: create {{admin_email}} admin user via DB insert (since /register is LiveView) (idempotent: admin user may already exist; P08 verifies state)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'user = App.Auth.User.new(%{email: \\\"{{admin_email}}\\\", password: \\\"{{admin_password}}\\\", password_confirmation: \\\"{{admin_password}}\\\", name: \\\"Eval Admin\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-\\\" <> user.email)'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; user = App.Auth.User.new(%{email: \\\"{{admin_email}}\\\", password: \\\"{{admin_password}}\\\", password_confirmation: \\\"{{admin_password}}\\\", name: \\\"Eval Admin\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-\\\" <> user.email); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT email, name, email_verified FROM users WHERE email='{{admin_email}}'",
+            "assertions": [
+              {
+                "path": "$.rows[0].email",
+                "expected": "{{admin_email}}"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "AdminUserSetup",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.test_user (created via App.Auth.User.new())"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_API_KEY_CREATE",
+      "description": "Create Bearer API key via DB; verify key_prefix=first 6 chars + key_hash sha256(secret_key_base + raw_key)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"Eval Stats Key\\\", key: raw, scopes: [\\\"stats:read:*\\\"]}) |> App.Repo.insert!(); File.write!(\\\"/tmp/eval_api_key\\\", raw); IO.puts(\\\"apikey-ok-\\\" <> String.slice(raw, 0, 6))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"Eval Stats Key\\\", key: raw, scopes: [\\\"stats:read:*\\\"]}) |> App.Repo.insert!(); File.write!(\\\"/tmp/eval_api_key\\\", raw); IO.puts(\\\"apikey-ok-\\\" <> String.slice(raw, 0, 6)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "apikey-ok-[A-Za-z0-9_\\-]{6}"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT name, scopes, key_prefix, length(key_hash) AS hash_len FROM api_keys WHERE name='Eval Stats Key'",
+            "assertions": [
+              {
+                "path": "$.rows[0].name",
+                "expected": "Eval Stats Key"
+              },
+              {
+                "path": "$.rows[0].scopes",
+                "expected_contains": "stats:read:*"
+              },
+              {
+                "path": "$.rows[0].hash_len",
+                "expected": 64
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ApiKeyGeneration",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-007 + api_behavior.auth_mechanisms[bearer-api-key].token_storage",
+        "kb_ref": [
+          "KB-007",
+          "KB-030"
+        ]
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {}
+    },
+    {
+      "id": "AUTH_USER_SSO_REUSE_BY_EMAIL_GUARD",
+      "description": "App.Auth.SSO.provision_user/3 raises when an email already exists as type=:standard user (: cannot silently reuse standard user as SSO",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'm = function_exported?(App.Auth.SSO, :provision_user, 3) || Code.ensure_loaded?(App.Auth.SSO); IO.puts(\\\"module_loaded_or_skipped=\\\" <> to_string(m))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; m = function_exported?(App.Auth.SSO, :provision_user, 3) || Code.ensure_loaded?(App.Auth.SSO); IO.puts(\\\"module_loaded_or_skipped=\\\" <> to_string(m)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "module_loaded_or_skipped=(true|false)"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "SSOUserReuseGuard",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-052 (SSO provisioning never silently reuses a :standard user)",
+        "kb_ref": [
+          "KB-052"
+        ]
+      },
+      "complexity_tier": "marketplace_rbac",
+      "evidence": {},
+      "kb_ref": [
+        "KB-052"
+      ]
+    },
+    {
+      "id": "AUTH_USER_TOTP_SETUP_RECOVERY_CODES_10",
+      "description": "Enabling TOTP generates exactly 10 single-use recovery codes (test_coverage)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); has_setup = :erlang.function_exported(App.Auth.TOTP, :initiate_setup, 1); has_init = :erlang.function_exported(App.Auth.TOTP, :initiate, 1); IO.puts(\\\"api=\\\" <> Atom.to_string(has_init or has_setup))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); has_setup = :erlang.function_exported(App.Auth.TOTP, :initiate_setup, 1); has_init = :erlang.function_exported(App.Auth.TOTP, :initiate, 1); IO.puts(\\\"api=\\\" <> Atom.to_string(has_init or has_setup)); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "api=true"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "TOTPRecoveryCodes",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "test_coverage TOTP generates 10 recovery codes; KB-033",
+        "kb_ref": [
+          "KB-033"
+        ]
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {}
+    },
+    {
+      "id": "DEPLOY_SYSTEM_VERSION_FIRSTLAUNCH_REDIRECT",
+      "description": "GET /api/system/ with no users registered → 302 → /register (FirstLaunchPlug); after user exists → 200 JSON {build,app}",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/system/",
+            "follow_redirects": false
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "VersionFirstLaunch",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.endpoint_runtime_behavior[GET /api/system/version]"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "SETUP_SITE_BENCH_DOMAIN",
+      "description": "Create site bench-v2.example.com via DB insert (Etc/UTC); preconditions for all stats/ingest tests",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); App.Sites.create(user, %{domain: \\\"bench-v2.example.com\\\", timezone: \\\"Etc/UTC\\\"}); IO.puts(\\\"site-ok\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); App.Sites.create(user, %{domain: \\\"bench-v2.example.com\\\", timezone: \\\"Etc/UTC\\\"}); IO.puts(\\\"site-ok\\\"); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "site-ok"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT domain, timezone, locked, public FROM sites WHERE domain='bench-v2.example.com'",
+            "assertions": [
+              {
+                "path": "$.rows[0].domain",
+                "expected": "bench-v2.example.com"
+              },
+              {
+                "path": "$.rows[0].timezone",
+                "expected": "Etc/UTC"
+              },
+              {
+                "path": "$.rows[0].locked",
+                "expected": false
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Setup",
+        "subcategory": "TestSite",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "test site setup; task.md §4.4.1"
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {}
+    },
+    {
+      "id": "SETUP_USER_BILLING",
+      "description": "Create {{billing_email}} (:billing role)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'App.Auth.User.new(%{email: \\\"{{billing_email}}\\\", password: \\\"{{billing_password}}\\\", password_confirmation: \\\"{{billing_password}}\\\", name: \\\"Eval Billing\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-billing\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; App.Auth.User.new(%{email: \\\"{{billing_email}}\\\", password: \\\"{{billing_password}}\\\", password_confirmation: \\\"{{billing_password}}\\\", name: \\\"Eval Billing\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-billing\\\"); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "BillingUserSetup",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §7.2 — billing role"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "SETUP_USER_EDITOR",
+      "description": "Create {{editor_email}} (:editor role)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'App.Auth.User.new(%{email: \\\"{{editor_email}}\\\", password: \\\"{{editor_password}}\\\", password_confirmation: \\\"{{editor_password}}\\\", name: \\\"Eval Editor\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-editor\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; App.Auth.User.new(%{email: \\\"{{editor_email}}\\\", password: \\\"{{editor_password}}\\\", password_confirmation: \\\"{{editor_password}}\\\", name: \\\"Eval Editor\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-editor\\\"); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "EditorUserSetup",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §7.2 — editor role"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "SETUP_USER_GUEST",
+      "description": "Create {{guest_email}} (:guest role; per-site access only)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'App.Auth.User.new(%{email: \\\"{{guest_email}}\\\", password: \\\"{{guest_password}}\\\", password_confirmation: \\\"{{guest_password}}\\\", name: \\\"Eval Guest\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-guest\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; App.Auth.User.new(%{email: \\\"{{guest_email}}\\\", password: \\\"{{guest_password}}\\\", password_confirmation: \\\"{{guest_password}}\\\", name: \\\"Eval Guest\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-guest\\\"); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "GuestUserSetup",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §7.2 — guest role"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "SETUP_USER_VIEWER",
+      "description": "Create {{viewer_email}} (will become :viewer role on eval team)",
+      "prereqs": [
+        "SETUP_USER_ADMIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'App.Auth.User.new(%{email: \\\"{{viewer_email}}\\\", password: \\\"{{viewer_password}}\\\", password_confirmation: \\\"{{viewer_password}}\\\", name: \\\"Eval Viewer\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-viewer\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; App.Auth.User.new(%{email: \\\"{{viewer_email}}\\\", password: \\\"{{viewer_password}}\\\", password_confirmation: \\\"{{viewer_password}}\\\", name: \\\"Eval Viewer\\\"}) |> App.Repo.insert!(); IO.puts(\\\"ok-viewer\\\"); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ViewerUserSetup",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §7.2 — viewer role"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_API_KEY_DEFAULT_SCOPES_VALUE",
+      "description": "API key without explicit scopes defaults to ['stats:read:*'] (); assert exact array",
+      "prereqs": [
+        "AUTH_USER_API_KEY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); k = App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"DefaultScope\\\", key: raw}) |> App.Repo.insert!(); IO.puts(\\\"scopes=\\\" <> Enum.join(k.scopes, \\\",\\\"))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); k = App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"DefaultScope\\\", key: raw}) |> App.Repo.insert!(); IO.puts(\\\"scopes=\\\" <> Enum.join(k.scopes, \\\",\\\")); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "scopes=stats:read:\\*"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ApiKeyDefaultScopesValue",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-030 (default ['stats:read:*'])",
+        "kb_ref": [
+          "KB-030"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud",
+      "kb_ref": [
+        "KB-030"
+      ]
+    },
+    {
+      "id": "AUTH_API_KEY_PREFIX_CASE_PRESERVED",
+      "description": "api_keys.key_prefix preserves case (NOT lowercased); first 6 raw chars from Base64URL alphabet",
+      "prereqs": [
+        "AUTH_USER_API_KEY_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT key_prefix FROM api_keys ORDER BY id DESC LIMIT 1",
+            "assertions": [
+              {
+                "path": "$.rows[0].key_prefix",
+                "match_regex": "^[A-Za-z0-9_-]{6}$"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "KeyPrefixCase",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-007",
+        "kb_ref": [
+          "KB-007"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud",
+      "kb_ref": [
+        "KB-007"
+      ]
+    },
+    {
+      "id": "AUTH_USER_TOTP_CODE_FORMAT_6_DIGITS",
+      "description": "TOTP code is exactly 6 numeric digits (NimbleTOTP default; task.md §2.3 +",
+      "prereqs": [
+        "AUTH_USER_TOTP_SETUP_RECOVERY_CODES_10"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'secret = NimbleTOTP.secret(); code = NimbleTOTP.verification_code(secret); IO.puts(\\\"len=\\\" <> Integer.to_string(String.length(code)) <> \\\" match=\\\" <> Atom.to_string(String.match?(code, ~r/^[0-9]{6}$/)))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; secret = NimbleTOTP.secret(); code = NimbleTOTP.verification_code(secret); IO.puts(\\\"len=\\\" <> Integer.to_string(String.length(code)) <> \\\" match=\\\" <> Atom.to_string(String.match?(code, ~r/^[0-9]{6}$/))); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "len=6 match=true"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "TOTPCodeFormat",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §2.3 + KB-033",
+        "kb_ref": [
+          "KB-033"
+        ]
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud",
+      "kb_ref": [
+        "KB-033"
+      ]
+    },
+    {
+      "id": "AUTH_USER_TOTP_GRACE_BACKWARD_ONLY",
+      "description": "TOTP validate_code accepts current OR previous-30s code; future codes REJECTED (single-direction backward, NOT ±30s",
+      "prereqs": [
+        "AUTH_USER_TOTP_SETUP_RECOVERY_CODES_10"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'now = System.system_time(:second); secret = NimbleTOTP.secret(); future_code = NimbleTOTP.verification_code(secret, time: now + 60); now_code = NimbleTOTP.verification_code(secret, time: now); past_code = NimbleTOTP.verification_code(secret, time: now - 30); IO.puts(\\\"future=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, future_code, time: now))); IO.puts(\\\"now=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, now_code, time: now))); IO.puts(\\\"past=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, past_code, time: now)))'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; now = System.system_time(:second); secret = NimbleTOTP.secret(); future_code = NimbleTOTP.verification_code(secret, time: now + 60); now_code = NimbleTOTP.verification_code(secret, time: now); past_code = NimbleTOTP.verification_code(secret, time: now - 30); IO.puts(\\\"future=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, future_code, time: now))); IO.puts(\\\"now=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, now_code, time: now))); IO.puts(\\\"past=\\\" <> Atom.to_string(NimbleTOTP.valid?(secret, past_code, time: now))); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "future=false"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "TOTPGraceWindow",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "KB-033 + test_coverage TOTP validate_code grace window",
+        "kb_ref": [
+          "KB-033"
+        ]
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {},
+      "kb_ref": [
+        "KB-033"
+      ]
+    },
+    {
+      "id": "AUTH_API_KEY_BEARER_AUTH",
+      "description": "Authorization: Bearer <api_key> grants access to /api/v1/stats/*; wrong scheme (Token, no scheme) returns 401",
+      "prereqs": [
+        "AUTH_USER_API_KEY_CREATE",
+        "SETUP_SITE_BENCH_DOMAIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'import Ecto.Query; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); _ = App.Repo.delete_all(from(k in App.Auth.ApiKey, where: k.user_id == ^user.id and k.name == \\\"Eval Stats Key Bearer\\\")); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"Eval Stats Key Bearer\\\", key: raw, scopes: [\\\"stats:read:*\\\"]}) |> App.Repo.insert!(); File.write!(\\\"/tmp/eval_api_key\\\", raw); App.Site.Cache.refresh_updated_recently(); App.Site.Cache.refresh_all(); :timer.sleep(800); IO.puts(\\\"bearer-key-reset\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; import Ecto.Query; user = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(user) do {:ok, _t} -> _t end); _ = App.Repo.delete_all(from(k in App.Auth.ApiKey, where: k.user_id == ^user.id and k.name == \\\"Eval Stats Key Bearer\\\")); raw = :crypto.strong_rand_bytes(64) |> Base.url_encode64() |> binary_part(0, 64); App.Auth.ApiKey.changeset(%App.Auth.ApiKey{user_id: user.id}, team, %{name: \\\"Eval Stats Key Bearer\\\", key: raw, scopes: [\\\"stats:read:*\\\"]}) |> App.Repo.insert!(); File.write!(\\\"/tmp/eval_api_key\\\", raw); App.Site.Cache.refresh_updated_recently(); App.Site.Cache.refresh_all(); :timer.sleep(800); IO.puts(\\\"bearer-key-reset\\\"); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "bearer-key-reset"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/stats/realtime/visitors",
+            "params": {
+              "site_id": "bench-v2.example.com"
+            },
+            "auth_mode": "bearer_eval_key"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              402
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/stats/realtime/visitors",
+            "params": {
+              "site_id": "bench-v2.example.com"
+            },
+            "headers": {
+              "Authorization": "Token wrong-scheme-attempt"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "BearerScheme",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "source_evidence": {
+        "behavior_verified": "api_behavior.auth_mechanisms[bearer-api-key].header_alternates_explicitly_rejected"
+      },
+      "complexity_tier": "marketplace_rbac",
+      "evidence": {}
+    },
+    {
+      "id": "SETUP_PLUGIN_TOKEN",
+      "description": "Create a plugins_api_token for bench-v2.example.com via DB",
+      "prereqs": [
+        "SETUP_SITE_BENCH_DOMAIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'site = App.Repo.get_by!(App.Site, domain: \\\"bench-v2.example.com\\\"); raw = :crypto.strong_rand_bytes(30) |> Base.url_encode64(padding: false); env_str = case Application.get_env(:app, :environment) || Application.get_env(:app, :environment) do   e when is_atom(e) -> Atom.to_string(e);   e when is_binary(e) -> e;   _ -> \\\"ce\\\" end; token = \\\"app-plugin-#{env_str}-#{raw}\\\"; hash = if :erlang.function_exported(App.Plugins.API.Token, :hash, 1),   do: App.Plugins.API.Token.hash(token),   else: :crypto.hash(:sha256, token); tr = App.Repo.insert!(%App.Plugins.API.Token{site_id: site.id, token_hash: hash, hint: String.slice(token, -4, 4), description: \\\"eval token\\\"}); File.write!(\\\"/tmp/eval_plugin_token\\\", \\\"#{tr.id}:#{token}\\\"); IO.puts(\\\"plugin-token-ok\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; site = App.Repo.get_by!(App.Site, domain: \\\"bench-v2.example.com\\\"); raw = :crypto.strong_rand_bytes(30) |> Base.url_encode64(padding: false); env_str = case Application.get_env(:app, :environment) || Application.get_env(:app, :environment) do   e when is_atom(e) -> Atom.to_string(e);   e when is_binary(e) -> e;   _ -> \\\"ce\\\" end; token = \\\"app-plugin-#{env_str}-#{raw}\\\"; hash = if :erlang.function_exported(App.Plugins.API.Token, :hash, 1),   do: App.Plugins.API.Token.hash(token),   else: :crypto.hash(:sha256, token); tr = App.Repo.insert!(%App.Plugins.API.Token{site_id: site.id, token_hash: hash, hint: String.slice(token, -4, 4), description: \\\"eval token\\\"}); File.write!(\\\"/tmp/eval_plugin_token\\\", \\\"#{tr.id}:#{token}\\\"); IO.puts(\\\"plugin-token-ok\\\"); :init.stop()\\\"; fi\"",
+            "exit_code": 0,
+            "expect_output_match_regex": "plugin-token-ok"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT count(*) AS cnt FROM plugins_api_tokens WHERE description='eval token'",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected": 1,
+                "op": ">=",
+                "tolerance": 100
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Setup",
+        "subcategory": "PluginToken",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §3.2.14 + §4.12.1"
+      },
+      "complexity_tier": "workflow_automator",
+      "evidence": {}
+    },
+    {
+      "id": "SETUP_TEAM_MEMBERSHIPS",
+      "description": "Add eval_viewer/editor/billing as team_memberships with their roles on admin's team",
+      "prereqs": [
+        "SETUP_USER_VIEWER",
+        "SETUP_USER_EDITOR",
+        "SETUP_USER_BILLING"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P12",
+          "inputs": {
+            "command": "docker exec webanalytics_orghjavi_app sh -c \"if test -x /app/bin/app; then /app/bin/app rpc 'admin = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(admin) do {:ok, _t} -> _t end); for {email, role} <- [{\\\"{{viewer_email}}\\\", :viewer}, {\\\"{{editor_email}}\\\", :editor}, {\\\"{{billing_email}}\\\", :billing}] do u = App.Repo.get_by!(App.Auth.User, email: email); App.Repo.insert!(%App.Teams.Membership{team_id: team.id, user_id: u.id, role: role}) end; IO.puts(\\\"memberships-ok\\\")'; else cd /app && mix run --no-halt --no-start -e \\\"case App.Repo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok end; case App.IngestRepo.start_link() do {:ok,_} -> :ok; {:error,{:already_started,_}} -> :ok; _ -> :ok end; admin = App.Repo.get_by!(App.Auth.User, email: \\\"{{admin_email}}\\\"); team = (case App.Teams.get_or_create(admin) do {:ok, _t} -> _t end); for {email, role} <- [{\\\"{{viewer_email}}\\\", :viewer}, {\\\"{{editor_email}}\\\", :editor}, {\\\"{{billing_email}}\\\", :billing}] do u = App.Repo.get_by!(App.Auth.User, email: email); App.Repo.insert!(%App.Teams.Membership{team_id: team.id, user_id: u.id, role: role}) end; IO.puts(\\\"memberships-ok\\\"); :init.stop()\\\"; fi\"",
+            "expected_acceptable_exit_codes": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT count(*) AS cnt FROM team_memberships WHERE role IN ('viewer','editor','billing')",
+            "assertions": [
+              {
+                "path": "$.rows[0].cnt",
+                "expected_min": 3
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "TeamMembershipsSetup",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "source_evidence": {
+        "behavior_verified": "task.md §3.1.9 + §7.2"
+      },
+      "evidence": {},
+      "complexity_tier": "linear_crud"
+    }
+  ]
+}

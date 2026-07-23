@@ -1,0 +1,105 @@
+version: "3.8"
+name: task_ghmkznee
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: app_ghmkznee_db
+    restart: "no"
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME}
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+    ports:
+      - "${DATABASE_HOST_PORT}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USER} -d ${DATABASE_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: shadetocloak/task_ghmkznee-app:${IMAGE_TAG:-baseline}
+    container_name: app_ghmkznee_app
+    restart: "no"
+    user: "0:0"
+    ports:
+      - "${APP_PORT}:8025"
+    volumes:
+      - ./workspace:/app
+    environment:
+      # Generic application configuration (used by the candidate's implementation).
+      # The variables follow common conventions such as APP_*, DATABASE_*, ADMIN_*.
+      - APP_HTTP_PORT=8025
+      - APP_PROTOCOL=http
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=db:5432
+      - DATABASE_NAME=${DATABASE_NAME}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - DATABASE_SSL_MODE=disable
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - ANONYMOUS_AUTH_ENABLED=false
+      - LOG_MODE=console
+      - LOG_LEVEL=info
+      - APP_DATA_PATH=${APP_DATA_PATH:-/var/lib/app}
+      - APP_LOGS_PATH=${APP_LOGS_PATH:-/var/log/app}
+      - APP_PLUGINS_PATH=${APP_PLUGINS_PATH:-/var/lib/app/plugins}
+      - APP_PROVISIONING_PATH=${APP_PROVISIONING_PATH:-/etc/app/provisioning}
+      - USERS_ALLOW_SIGN_UP=false
+      - USERS_AUTO_ASSIGN_ORG=true
+      - USERS_AUTO_ASSIGN_ORG_ROLE=Viewer
+      - QUOTA_ENABLED=true
+      # Source-baseline compatibility: the reference baseline image expects the
+      # following upstream-style prefixes. They mirror the generic variables
+      # above so the baseline image starts correctly; the candidate's
+      # implementation does NOT need to read these — only the generic names.
+      - GF_SERVER_HTTP_PORT=8025
+      - GF_SERVER_PROTOCOL=http
+      - GF_DATABASE_TYPE=postgres
+      - GF_DATABASE_HOST=db:5432
+      - GF_DATABASE_NAME=${DATABASE_NAME}
+      - GF_DATABASE_USER=${DATABASE_USER}
+      - GF_DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - GF_DATABASE_SSL_MODE=disable
+      - GF_SECURITY_ADMIN_USER=${ADMIN_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - GF_AUTH_ANONYMOUS_ENABLED=false
+      - GF_LOG_MODE=console
+      - GF_LOG_LEVEL=info
+      - GF_PATHS_DATA=/var/lib/grafana
+      - GF_PATHS_LOGS=/var/log/grafana
+      - GF_PATHS_PLUGINS=/var/lib/grafana/plugins
+      - GF_PATHS_PROVISIONING=/usr/share/grafana/conf/provisioning
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_USERS_AUTO_ASSIGN_ORG=true
+      - GF_USERS_AUTO_ASSIGN_ORG_ROLE=Viewer
+      - GF_QUOTA_ENABLED=true
+    depends_on:
+      db:
+        condition: service_healthy
+    stdin_open: true
+    tty: true
+    # Weak healthcheck: container existence is enough.
+    # Application readiness is verified by prepare_workspace.sh /
+    # test_source_code.sh / test_model_output.sh
+    # (baseline mode waits for the application server; model mode runs
+    # `sleep infinity` so PID 1 stays alive without blocking).
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  pgdata:
+    driver: local

@@ -1,0 +1,15 @@
+# =============================================================================
+# Dockerfile.model template - generic Node + Python development environment.
+# =============================================================================
+# The base image already provides: ubuntu + Go + Node 20 (yarn4/pnpm) +
+#   Python 3.10 + generic frontend/backend tool caches
+#   (React/Vue/Vite/Webpack/NX/Express/NestJS/Prisma/...).
+# This template is for tasks that do not need additional language runtimes;
+# it only enforces an idle PID 1 and an empty workspace.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

@@ -1,0 +1,33 @@
+# =============================================================================
+# Dockerfile.model — generic Ruby development environment for the model under
+# test. Provides Ruby 3.x + Bundler on top of the shared base image so the
+# model can install application dependencies (e.g. bundle install) and run a
+# web framework of its choice. No application server is pre-started — the model
+# is responsible for starting it via `docker exec` per prompt_for_model.md.
+# =============================================================================
+
+ARG BASE_IMAGE=shadetocloak/saasbench-dev:base
+FROM ${BASE_IMAGE}
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        ruby-full ruby-dev libyaml-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && ruby --version
+
+# Configure a regional Ruby gem mirror for faster installs in bandwidth-
+# constrained networks. Override with --build-arg GEM_MIRROR=<url> (or empty
+# to keep the default rubygems.org source).
+ARG GEM_MIRROR=https://gems.ruby-china.com/
+RUN if [ -n "$GEM_MIRROR" ]; then \
+        gem sources --remove https://rubygems.org/ 2>/dev/null || true; \
+        gem sources -a "$GEM_MIRROR"; \
+        bundle config mirror.https://rubygems.org "$GEM_MIRROR"; \
+    fi \
+ && gem install bundler --no-document
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

@@ -1,0 +1,88 @@
+name: task_fpumriig
+
+services:
+  app:
+    image: shadetocloak/task_fpumriig-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: app_fpumriig
+    ports:
+      - "8034:8034"
+    volumes:
+      - ./workspace:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    networks:
+      - app-network
+    restart: "no"
+  db:
+    image: postgres:16
+    container_name: db_fpumriig
+    ports:
+      - "5455:5432"
+    environment:
+      POSTGRES_DB: app_fpumriig
+      POSTGRES_USER: appfpumriig
+      POSTGRES_PASSWORD: app123fpumriig
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appfpumriig -d app_fpumriig"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+    restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: redis_fpumriig
+    ports:
+      - "6387:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+    restart: "no"
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest-alpine
+    container_name: clickhouse_fpumriig
+    ports:
+      - "8125:8123"
+    environment:
+      CLICKHOUSE_DB: app_fpumriig
+      CLICKHOUSE_USER: appfpumriig
+      CLICKHOUSE_PASSWORD: app123fpumriig
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - app-network
+    restart: "no"
+volumes:
+  db-data:
+  redis-data:
+  clickhouse-data:
+
+networks:
+  app-network:
+    driver: bridge

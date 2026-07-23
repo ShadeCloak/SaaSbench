@@ -1,0 +1,81 @@
+name: task_dfhjkeb
+
+# ---------------------------------------------------------------------------
+# Default command is `sleep infinity` so the candidate model is in full control
+# of when and how the application server is started inside `/app`. Source-
+# baseline smoke tests override APP_CMD via the environment to bootstrap the
+# upstream toolchain on demand.
+# ---------------------------------------------------------------------------
+
+services:
+  app:
+    image: ${APP_IMAGE:-task_dfhjkeb-app}:${IMAGE_TAG:-model}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: ${APP_CONTAINER:-ecommerce-app}
+    ports:
+      - "${APP_PORT:-8003}:${APP_INTERNAL_PORT:-8003}"
+    environment:
+      - DATABASE_URL=postgres://${DB_USER:-app}:${DB_PASSWORD:-app123}@db:5432/${DB_NAME:-app_db}?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=${JWT_SECRET:-please_replace_via_openssl_rand_base64_64}
+      - COOKIE_SECRET=${COOKIE_SECRET:-please_replace_via_openssl_rand_base64_64}
+      - NODE_ENV=development
+      - PORT=${APP_INTERNAL_PORT:-8003}
+      - WORKER_MODE=shared
+      - ENABLE_RBAC=${ENABLE_RBAC:-false}
+    volumes:
+      - ./workspace:/app
+    command: ${APP_CMD:-sleep infinity}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ecommerce-net
+
+  db:
+    image: postgres:16-bookworm
+    container_name: ${DB_CONTAINER:-ecommerce-db}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    environment:
+      - POSTGRES_DB=${DB_NAME:-app_db}
+      - POSTGRES_USER=${DB_USER:-app}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-app123}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-app} -d ${DB_NAME:-app_db}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - ecommerce-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER:-ecommerce-redis}
+    ports:
+      - "${REDIS_PORT:-6389}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - ecommerce-net
+
+volumes:
+  pgdata:
+  redisdata:
+
+networks:
+  ecommerce-net:
+    driver: bridge

@@ -1,0 +1,7565 @@
+{
+  "meta": {
+    "task_id": "task_uybznoms",
+    "total_nodes": 111,
+    "source_prd": "task_gen/task_uybznoms/task/task.md",
+    "generated_at": "2026-03-04T08:36:35.012501+00:00"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "The application is accessible on port 8002 (returns any HTTP response)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              301,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Accessibility",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_PACKAGE_JSON",
+      "description": "package.json exists and contains the key dependencies (next, react, drizzle-orm/postgres)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "package.json",
+            "type": "file"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "package.json",
+            "match_type": "contains",
+            "pattern": "next"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "package.json",
+            "match_type": "contains",
+            "pattern": "react"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Dependencies",
+        "method": "weighted",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_DB_CONNECTION",
+      "description": "The database connection works and SQL queries can be executed",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT 1 AS ok",
+            "expected_result": {
+              "ok": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Database",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLES_COLLECTIONS",
+      "description": "The database tables for user-defined collections have been created (posts, categories, media, pages, geo_locations)",
+      "prereqs": [
+        "DEPLOY_DB_CONNECTION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "posts",
+              "categories",
+              "media",
+              "pages",
+              "geo_locations",
+              "users"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TableCreation",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_AUTH_COLUMNS",
+      "description": "The authentication collection (users) table contains authentication fields such as email/hash/salt/login_attempts/lock_until",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "users",
+            "expected_columns": [
+              "id",
+              "email",
+              "hash",
+              "salt",
+              "login_attempts",
+              "lock_until",
+              "created_at",
+              "updated_at"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "AuthSchema",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_VERSION_STRUCTURE",
+      "description": "The version table (_posts_v) contains the _status/version/parent/snapshot/latest/created_at/updated_at fields",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT column_name FROM information_schema.columns WHERE table_name LIKE '%posts%version%' OR table_name LIKE '%posts%_v%' ORDER BY ordinal_position"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rows[*].column_name",
+                "expected_contains": [
+                  "version__status",
+                  "parent_id",
+                  "latest",
+                  "created_at",
+                  "updated_at"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "VersionSchema",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "DB_TABLE_LOCALIZED_STRUCTURE",
+      "description": "Localized fields are stored using the _locales join table, which contains a _locale column and the field columns",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%pages%locale%' LIMIT 5"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.row_count",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "LocalizationSchema",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "DB_TABLE_BLOCKS_STRUCTURE",
+      "description": "Each block type of a blocks field uses a separate table (e.g. pages_blocks_hero, pages_blocks_content)",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT table_name FROM information_schema.tables WHERE table_name LIKE '%pages%blocks%' ORDER BY table_name"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.row_count",
+                "expected_gte": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "BlocksSchema",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "DB_TABLE_ARRAY_STRUCTURE",
+      "description": "Array fields use a separate table containing an _order column and a _parent_id foreign key",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT column_name FROM information_schema.columns WHERE table_name LIKE '%pages%meta%' ORDER BY ordinal_position"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rows[*].column_name",
+                "expected_contains": [
+                  "_order",
+                  "_parent_id"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "ArraySchema",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "DB_ENUM_NAMING",
+      "description": "The enum type naming of select fields follows the enum_{table}_{field} convention",
+      "prereqs": [
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT typname FROM pg_type WHERE typname LIKE 'enum_%' ORDER BY typname LIMIT 10"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.row_count",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.rows[0].typname",
+                "expected_regex": "^enum_.*"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "EnumNaming",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "DB_INTERNAL_TABLES",
+      "description": "The internal collection tables exist (cms-preferences, cms-migrations, cms-locked-documents, etc.)",
+      "prereqs": [
+        "DEPLOY_DB_CONNECTION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT table_name FROM information_schema.tables WHERE table_schema='public' AND (table_name LIKE '%preference%' OR table_name LIKE '%migration%' OR table_name LIKE '%locked%') ORDER BY table_name"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.row_count",
+                "expected_gte": 3
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "InternalCollections",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_FIRST_USER_REGISTER",
+      "description": "First user registration (POST /api/users/first-register) returns user + token, status 200/201",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/first-register",
+            "timeout": 10,
+            "body": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.user.email",
+                "expected": "{{admin_email}}"
+              },
+              {
+                "path": "$.token",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "FirstUser",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_FIRST_USER_DUPLICATE_403",
+      "description": "Calling first-register again after a user already exists returns 403 (test_coverage #49)",
+      "prereqs": [
+        "AUTH_FIRST_USER_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/first-register",
+            "timeout": 10,
+            "body": {
+              "email": "another@test.com",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "FirstUser",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN_SUCCESS",
+      "description": "Logging in with correct credentials returns 200 + user + token + exp (test_coverage #50)",
+      "prereqs": [
+        "AUTH_FIRST_USER_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.user.email",
+                "expected": "{{admin_email}}"
+              },
+              {
+                "path": "$.token",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.exp",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Login",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN_FAIL_401",
+      "description": "Logging in with a wrong password returns 401",
+      "prereqs": [
+        "AUTH_FIRST_USER_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{admin_email}}",
+              "password": "WrongPassword!"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Login",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_JWT_PAYLOAD_FIELDS",
+      "description": "The JWT contains the id, email, and collection fields (test_coverage #53, KB-012)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users/me",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.user.email",
+                "expected": "{{admin_email}}"
+              },
+              {
+                "path": "$.user.id",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.collection",
+                "expected": "users"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "JWT",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "AUTH_ME_ENDPOINT",
+      "description": "GET /api/users/me returns the current user's information (test_coverage #52)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users/me",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "user",
+              "collection",
+              "token",
+              "exp"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.user.email",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.token",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Me",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGOUT",
+      "description": "POST /api/users/logout clears the cookie, after which /me returns unauthenticated",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/logout",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204,
+              302
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Logout",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_REFRESH_TOKEN",
+      "description": "POST /api/users/refresh-token returns a new token (test_coverage #56)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin_refresh"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/refresh-token",
+            "timeout": 10,
+            "send_token_cookie": true
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.refreshedToken",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.user.email",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Refresh",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "AUTH_REFRESH_INVALID_403",
+      "description": "Refreshing with an invalid token returns 403 (test_coverage #57)",
+      "prereqs": [
+        "AUTH_FIRST_USER_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/refresh-token",
+            "timeout": 10,
+            "headers": {
+              "Authorization": "Bearer INVALID_TOKEN_12345"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Refresh",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "AUTH_API_KEY",
+      "description": "API Key authentication works via the Authorization: {slug} API-Key {key} header (test_coverage #55)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/users/{{admin_id}}",
+            "timeout": 10,
+            "body": {
+              "enableAPIKey": true,
+              "apiKey": "eval-apikey-uybznoms-fixed-0001"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.apiKey",
+                "expected": "eval-apikey-uybznoms-fixed-0001"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/users/me",
+            "timeout": 10,
+            "headers": {
+              "Authorization": "users API-Key eval-apikey-uybznoms-fixed-0001"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.user.email",
+                "expected": "{{admin_email}}"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "APIKey",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "AUTH_ACCOUNT_LOCK",
+      "description": "The account is locked after multiple failed logins (test_coverage #62, KB-001)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users",
+            "timeout": 10,
+            "body": {
+              "email": "{{locktest_email}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{locktest_email}}",
+              "password": "Wrong1"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{locktest_email}}",
+              "password": "Wrong2"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{locktest_email}}",
+              "password": "Wrong3"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/login",
+            "timeout": 10,
+            "body": {
+              "email": "{{locktest_email}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors[0].message",
+                "expected_contains": "locked"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "AccountLock",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "AUTH_FORGOT_PASSWORD",
+      "description": "POST /api/users/forgot-password accepts an email and returns 200 (test_coverage #65)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users/forgot-password",
+            "timeout": 10,
+            "body": {
+              "email": "{{admin_email}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordReset",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_PASSWORD_HASH_PBKDF2",
+      "description": "Passwords are hashed with PBKDF2-HMAC-SHA256, and the hash and salt are stored as separate fields (KB-001)",
+      "prereqs": [
+        "AUTH_FIRST_USER_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT hash, salt FROM users WHERE email='{{admin_email}}' LIMIT 1"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.rows[0].hash",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.rows[0].hash",
+                "expected_min_length": 100
+              },
+              {
+                "path": "$.rows[0].salt",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.rows[0].salt",
+                "expected_min_length": 32
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordHash",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_CREATE_201",
+      "description": "POST /api/posts creates a document and returns 201 + the complete document (test_coverage #1)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS",
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Test Post",
+              "content": {
+                "root": {
+                  "children": []
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "Test Post"
+              },
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Create",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_FIND_PAGINATED",
+      "description": "GET /api/posts returns a paginated structure (docs/totalDocs/limit/page/totalPages/hasNextPage) (test_coverage #3, #17)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P06",
+          "inputs": {
+            "required_fields": [
+              "docs",
+              "totalDocs",
+              "page",
+              "limit",
+              "totalPages",
+              "hasNextPage",
+              "hasPrevPage"
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.limit",
+                "expected": 10
+              },
+              {
+                "path": "$.page",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Find",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_FINDBYID",
+      "description": "GET /api/posts/:id returns a single document",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected": "Test Post"
+              },
+              {
+                "path": "$.id",
+                "expected": "{{post_id}}"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "FindByID",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_UPDATE_PATCH",
+      "description": "PATCH /api/posts/:id only updates the specified fields while keeping the others unchanged (test_coverage #7)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "Updated Title"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "Updated Title"
+              },
+              {
+                "path": "$.doc.id",
+                "expected": "{{post_id}}"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Update",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_DELETE_BYID",
+      "description": "DELETE /api/posts/:id returns { doc, message } (test_coverage #14, KB-023)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "To Delete"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/posts/{{new_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "To Delete"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Delete",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_BULK_UPDATE",
+      "description": "PATCH /api/posts performs a batch update and returns docs + errors (test_coverage #8, #12)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Bulk1"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Bulk2"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts?where[title][like]=Bulk",
+            "timeout": 10,
+            "body": {
+              "title": "BulkUpdated"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.docs.length",
+                "expected_gte": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "BulkUpdate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_BULK_DELETE",
+      "description": "DELETE /api/posts performs a batch delete (test_coverage #13)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "DelBulk1"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "DelBulk2"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/posts?where[title][like]=DelBulk",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.docs.length",
+                "expected_gte": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "BulkDelete",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_COUNT",
+      "description": "GET /api/posts/count returns { totalDocs } (test_coverage #4, #48)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/count",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Count",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_DUPLICATE",
+      "description": "POST /api/posts/:id/duplicate duplicates a document and returns a new ID (test_coverage #235)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "DuplicateSource"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts/{{new_post_id}}/duplicate",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.doc.title",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Duplicate",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "CRUD_INVALID_JSON_400",
+      "description": "An invalid JSON request body returns 400 (test_coverage #2)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": "{ invalid json"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Validation",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "CRUD_PAGINATION_LIMITS",
+      "description": "Pagination: limit=0 returns all documents, and totalPages is correct when limit=4 (test_coverage #18, #19)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?limit=0",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs.length",
+                "expected_equals": "$.totalDocs",
+                "expected_gte": 0
+              },
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "CollectionCRUD",
+        "subcategory": "Pagination",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GLOBAL_READ",
+      "description": "GET /api/globals/site-settings returns the global document (KB-008)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/globals/site-settings",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.siteName",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GlobalAPI",
+        "subcategory": "Read",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "GLOBAL_UPDATE",
+      "description": "POST /api/globals/site-settings updates the global document and returns the updated data",
+      "prereqs": [
+        "GLOBAL_READ"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/globals/site-settings",
+            "timeout": 10,
+            "body": {
+              "siteTitle": "Test CMS Site",
+              "siteDescription": "A test site"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.siteTitle",
+                "expected": "Test CMS Site"
+              },
+              {
+                "path": "$.result.siteDescription",
+                "expected": "A test site"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/globals/site-settings",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.siteTitle",
+                "expected": "Test CMS Site"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GlobalAPI",
+        "subcategory": "Update",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "QUERY_EQUALS_NOT_EQUALS",
+      "description": "equals for exact matching + not_equals for exclusion matching (test_coverage #20, #21)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/categories",
+            "timeout": 10,
+            "body": {
+              "name": "QueryTest1",
+              "slug": "qt1"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/categories",
+            "timeout": 10,
+            "body": {
+              "name": "QueryTest2",
+              "slug": "qt2"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][equals]=QueryTest1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected": 1
+              },
+              {
+                "path": "$.docs[0].name",
+                "expected": "QueryTest1"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][not_equals]=QueryTest1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[*].name",
+                "expected_not_contains": "QueryTest1",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "ComparisonOps",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_IN_NOT_IN",
+      "description": "in matches values in an array + not_in excludes them (test_coverage #22, #23)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][in]=QueryTest1,QueryTest2",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 2
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][not_in]=QueryTest1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[*].name",
+                "expected_not_contains": "QueryTest1",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "SetOps",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_LIKE_CONTAINS",
+      "description": "like for substring matching + contains for containment matching (test_coverage #24, #25, #26)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][like]=QueryTest",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 2
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[name][contains]=Test1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "StringOps",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_GT_LT_GTE_LTE",
+      "description": "greater_than / less_than / gte / lte numeric comparisons (test_coverage #28, #29)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "NumTest1",
+              "views": 10
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "NumTest2",
+              "views": 20
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[views][greater_than]=15",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[*].views",
+                "expected_all_gt": 15,
+                "expected_type": "array"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[views][less_than_equal]=10",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[*].views",
+                "expected_all_lte": 10,
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "NumericComparison",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_EXISTS",
+      "description": "exists:true/false checks whether a field has a value (test_coverage #27)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "ExistsTest",
+              "description": "has desc"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "NoDesc"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[description][exists]=true",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "ExistsOp",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_GEO_NEAR",
+      "description": "near geolocation query sorts by distance (test_coverage #30, KB-017)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS",
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/geo-locations",
+            "timeout": 10,
+            "body": {
+              "name": "Point A",
+              "location": [
+                10,
+                20
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/geo-locations",
+            "timeout": 10,
+            "body": {
+              "name": "Point B",
+              "location": [
+                50,
+                50
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/geo-locations?where[location][near]=10,20,100000",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[0].name",
+                "expected": "Point A"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "GeoQuery",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_AND_OR",
+      "description": "and/or combined-condition queries (test_coverage #33, #34)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[or][0][name][equals]=QueryTest1&where[or][1][name][equals]=QueryTest2",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 2
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?where[and][0][name][equals]=QueryTest1&where[and][1][slug][equals]=qt1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "CompoundQuery",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_DEPTH",
+      "description": "The depth parameter controls the expansion level of relationships, defaulting to 2 (KB-003)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "DepthTest",
+              "author": "{{admin_id}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{depth_post_id}}?depth=1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.author",
+                "expected_type": "object"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{depth_post_id}}?depth=0",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.author",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "Depth",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_SORT",
+      "description": "The sort parameter supports ascending/descending/multi-field sorting (test_coverage #191, #192, #197)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?sort=name",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_sorted_by": "name",
+                "order": "asc",
+                "expected_type": "array"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/categories?sort=-name",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_sorted_by": "name",
+                "order": "desc",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "Sorting",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "QUERY_RELATIONSHIP_FILTER",
+      "description": "Query by the ID or nested properties of a relationship field (test_coverage #38, #39)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[author][equals]={{admin_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "QueryEngine",
+        "subcategory": "RelationFilter",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_TEXT_DEFAULT",
+      "description": "The default value of a text field takes effect automatically on creation: when title is not provided, the collection-configured default value is returned (test_coverage #93)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "defaultText"
+              },
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "TextDefault",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FIELD_RELATIONSHIP_POPULATE",
+      "description": "A relationship field returns the fully populated document object when depth>0 (test_coverage #103-108)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "RelPopulate",
+              "author": "{{admin_id}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{rel_post_id}}?depth=1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.author.email",
+                "expected": "{{admin_email}}"
+              },
+              {
+                "path": "$.author.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "Relationship",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_BLOCKS_CRUD",
+      "description": "blocks field CRUD: create blocks containing blockType, and reads return them in order (test_coverage #101, #114-118)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/pages",
+            "timeout": 10,
+            "body": {
+              "title": "Blocks Page",
+              "slug": "blocks-test",
+              "layout": [
+                {
+                  "blockType": "hero",
+                  "heading": "Welcome"
+                },
+                {
+                  "blockType": "content",
+                  "body": {
+                    "root": {
+                      "children": []
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.layout[0].blockType",
+                "expected": "hero"
+              },
+              {
+                "path": "$.doc.layout[0].heading",
+                "expected": "Welcome"
+              },
+              {
+                "path": "$.doc.layout[1].blockType",
+                "expected": "content"
+              },
+              {
+                "path": "$.doc.layout.length",
+                "expected": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "Blocks",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_ARRAY_CRUD",
+      "description": "array field CRUD: create an array containing subfields, and reads preserve the order (test_coverage #100)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/pages",
+            "timeout": 10,
+            "body": {
+              "title": "Array Page",
+              "slug": "array-test",
+              "meta": [
+                {
+                  "key": "description",
+                  "value": "A test page"
+                },
+                {
+                  "key": "keywords",
+                  "value": "test,array"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.meta[0].key",
+                "expected": "description"
+              },
+              {
+                "path": "$.doc.meta[1].key",
+                "expected": "keywords"
+              },
+              {
+                "path": "$.doc.meta.length",
+                "expected": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "Array",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_GROUP_PATCH_REPLACE",
+      "description": "A PATCH on a group field is a full replacement rather than a deep merge (KB-006)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "GroupTest",
+              "metadata": {
+                "key1": "v1",
+                "key2": "v2"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{group_post_id}}",
+            "timeout": 10,
+            "body": {
+              "metadata": {
+                "key1": "updated"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.metadata.key1",
+                "expected": "updated"
+              },
+              {
+                "path": "$.doc.metadata.key2",
+                "expected_absent_or_null": true,
+                "expected_absent": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "GroupUpdate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_POINT_GEO",
+      "description": "A point field stores [lng, lat] coordinates, and reads return the same coordinates (test_coverage #30)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS",
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/geo-locations",
+            "timeout": 10,
+            "body": {
+              "name": "GeoField",
+              "location": [
+                10,
+                20
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.location[0]",
+                "expected": 10,
+                "tolerance": 0.001
+              },
+              {
+                "path": "$.doc.location[1]",
+                "expected": 20,
+                "tolerance": 0.001
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "Point",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FIELD_RICHTEXT_JSON",
+      "description": "A richText field is stored as JSON (a Lexical node tree) and is returned as-is on read",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "RichTextTest",
+              "content": {
+                "root": {
+                  "type": "root",
+                  "children": [
+                    {
+                      "type": "paragraph",
+                      "children": [
+                        {
+                          "type": "text",
+                          "text": "Hello"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.content.root.type",
+                "expected": "root"
+              },
+              {
+                "path": "$.doc.content.root.children[0].type",
+                "expected": "paragraph"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "RichText",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FIELD_RELATIONSHIP_NULL",
+      "description": "Updating a relationship to null removes the association (test_coverage #190)",
+      "prereqs": [
+        "FIELD_RELATIONSHIP_POPULATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{rel_post_id}}",
+            "timeout": 10,
+            "body": {
+              "author": null
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.author",
+                "expected": null
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "FieldTypes",
+        "subcategory": "RelationshipNull",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ACCESS_COLLECTION_DENY_403",
+      "description": "A collection-level access denial returns 403 (KB-004)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{restricted_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "restricted_user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "CollectionDeny",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac",
+      "evidence": {
+        "logs": true
+      }
+    },
+    {
+      "id": "ACCESS_READ_DENIED_FIELD",
+      "description": "Fields without read permission do not appear in the response (test_coverage #83)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "AccessTest",
+              "restrictedField": "secret"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{editor_email}}",
+              "password": "{{editor_password}}"
+            },
+            "role": "editor"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{access_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.restrictedField",
+                "expected_absent": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "FieldRead",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_QUERY_DENIED_FIELD_400",
+      "description": "Running a where query on a field without read permission returns 400 (test_coverage #84, KB-044)",
+      "prereqs": [
+        "CRUD_CREATE_201",
+        "ACCESS_READ_DENIED_FIELD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{editor_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[restrictedField][equals]=secret",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors[0].message",
+                "expected_contains": "cannot be queried"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "QueryDenied",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_FIELD_UPDATE_DENIED",
+      "description": "Fields without update permission retain their original value on PATCH (test_coverage #81)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{editor_email}}",
+              "password": "{{editor_password}}"
+            },
+            "role": "editor"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "FieldUpdateDeny",
+              "description": "orig-desc",
+              "cannotMutate": "original",
+              "author": "{{editor_id}}"
+            },
+            "capture_id_as": "deny_post_id"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{deny_post_id}}",
+            "timeout": 10,
+            "body": {
+              "cannotMutate": "attempted_change",
+              "description": "changed-desc"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.cannotMutate",
+                "expected": "original"
+              },
+              {
+                "path": "$.doc.description",
+                "expected": "changed-desc"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{deny_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.cannotMutate",
+                "expected": "original"
+              },
+              {
+                "path": "$.description",
+                "expected": "changed-desc"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "FieldUpdate",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_BYID_WHERE_403",
+      "description": "A byID operation with a Where constraint that matches 0 documents returns 403 (KB-005)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{restricted_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "restricted_user"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              403,
+              404
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "RowLevel",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_HIDDEN_WHERE_FILTER",
+      "description": "When access returns a Where constraint, the results are filtered correctly (test_coverage #88, #89)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Visible",
+              "hidden": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Hidden",
+              "hidden": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts",
+            "timeout": 10,
+            "headers": {
+              "X-Role": "public"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs[*].hidden",
+                "expected_all_false_or_absent": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "WhereFilter",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_OVERRIDE_TRUE",
+      "description": "overrideAccess:true (Local API) can return restricted fields (test_coverage #85)",
+      "prereqs": [
+        "ACCESS_READ_DENIED_FIELD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "OverrideTest",
+              "restrictedField": "admin-visible"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{new_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.restrictedField",
+                "expected": "admin-visible"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "Override",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "VERSION_DRAFT_CREATE",
+      "description": "When creating a versioned document, _status=draft defaults to draft (test_coverage #119-123)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "Draft Post",
+              "_status": "draft"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc._status",
+                "expected": "draft"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "DraftCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_PUBLISH",
+      "description": "After updating _status from draft → published, the document becomes published (test_coverage #119-123)",
+      "prereqs": [
+        "VERSION_DRAFT_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "_status": "published"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc._status",
+                "expected": "published"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$._status",
+                "expected": "published"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "Publish",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_LIST",
+      "description": "GET /api/posts/versions returns the version list (test_coverage #126-128)",
+      "prereqs": [
+        "VERSION_PUBLISH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/versions?where[parent][equals]={{draft_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "List",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_RESTORE",
+      "description": "POST /api/posts/versions/:versionId restores a version and triggers the update hooks (test_coverage #129, KB-021)",
+      "prereqs": [
+        "VERSION_LIST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/versions?where[parent][equals]={{draft_post_id}}&limit=1",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts/versions/{{version_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "Restore",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_AUTOSAVE",
+      "description": "Autosave mode creates versions (with the autosave=true parameter) (test_coverage #130-133)",
+      "prereqs": [
+        "VERSION_DRAFT_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}?autosave=true",
+            "timeout": 10,
+            "body": {
+              "title": "Autosaved"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/versions?where[parent][equals]={{draft_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "Autosave",
+        "method": "weighted",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_MAX_PER_DOC",
+      "description": "maxPerDoc limits the number of versions, deleting the oldest version once exceeded (KB-021)",
+      "prereqs": [
+        "VERSION_PUBLISH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "V2"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "V3"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "V4"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "V5"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{draft_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "V6"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/versions?where[parent][equals]={{draft_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_lte": 5
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "MaxPerDoc",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "VERSION_LATEST_SNAPSHOT",
+      "description": "The latest and snapshot flags in version records are correct (KB-047)",
+      "prereqs": [
+        "VERSION_LIST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/versions?where[parent][equals]={{draft_post_id}}&where[latest][equals]=true",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Versioning",
+        "subcategory": "LatestSnapshot",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "HOOK_BEFORE_CHANGE_MODIFY",
+      "description": "The beforeChange hook can modify data, and the modified result is saved to the database (test_coverage #139-142)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/hooks-test",
+            "timeout": 10,
+            "body": {
+              "title": "HookTest"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.computedField",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.doc.computedField",
+                "expected_contains": "computed-"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HookSystem",
+        "subcategory": "BeforeChange",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "HOOK_AFTER_CHANGE_RECEIVES_DOC",
+      "description": "The afterChange hook receives the persisted document (including id and createdAt) (test_coverage #143-145)",
+      "prereqs": [
+        "HOOK_BEFORE_CHANGE_MODIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/hooks-test",
+            "timeout": 10,
+            "body": {
+              "title": "AfterChangeTest"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.doc.createdAt",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HookSystem",
+        "subcategory": "AfterChange",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "HOOK_FALSY_RETURN_PRESERVES",
+      "description": "When a hook returns a falsy value (null/undefined/0/false/''), the original data is retained (KB-011)",
+      "prereqs": [
+        "HOOK_BEFORE_CHANGE_MODIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/hooks-test",
+            "timeout": 10,
+            "body": {
+              "title": "FalsyHookTest",
+              "triggerFalsyReturn": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "FalsyHookTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HookSystem",
+        "subcategory": "FalsyReturn",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "HOOK_TX_ROLLBACK",
+      "description": "When a hook throws an exception, the transaction is rolled back and the document is not persisted (KB-010)",
+      "prereqs": [
+        "HOOK_BEFORE_CHANGE_MODIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/hooks-test",
+            "timeout": 10,
+            "body": {
+              "title": "TxRollback",
+              "triggerError": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 500
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM hooks_test WHERE title='TxRollback'",
+            "expected_result": {
+              "cnt": 0
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HookSystem",
+        "subcategory": "TransactionRollback",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "HOOK_AFTER_READ_MODIFY",
+      "description": "The afterRead hook can modify output data (e.g. adding computed fields) (test_coverage #146-148)",
+      "prereqs": [
+        "HOOK_BEFORE_CHANGE_MODIFY"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/hooks-test/{{hooks_test_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.readOnlyComputed",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "HookSystem",
+        "subcategory": "AfterRead",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_QUERY_FIND",
+      "description": "The GraphQL Posts query returns a docs array (test_coverage #239)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { Posts { docs { id title } totalDocs } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.Posts.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.data.Posts.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "QueryFind",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_MUTATION_CREATE",
+      "description": "The GraphQL createPost mutation returns id and title (test_coverage #236)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "mutation Create($title: String!) { createPost(data: { title: $title }) { id title } }",
+              "variables": {
+                "title": "GQL Created"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.createPost.title",
+                "expected": "GQL Created"
+              },
+              {
+                "path": "$.data.createPost.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "MutationCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_QUERY_SINGLE",
+      "description": "GraphQL Post(id) single-document query (test_coverage #238)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query GetPost($id: Int!) { Post(id: $id) { id title } }",
+              "variables": {
+                "id": "{{post_id}}"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.Post.id",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.data.Post.title",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "QuerySingle",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_WHERE_SORT",
+      "description": "GraphQL where/sort/pagination parameters (test_coverage #233, #240)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { Posts(where: { title: { equals: \"GQL Created\" } }, sort: \"title\") { docs { id title } totalDocs } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.Posts.totalDocs",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.data.Posts.docs[0].title",
+                "expected": "GQL Created"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "WhereSortPagination",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_COUNT_QUERY",
+      "description": "The GraphQL countPosts query returns totalDocs (test_coverage #242)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { countPosts { totalDocs } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.countPosts.totalDocs",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.data.countPosts.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "Count",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_BATCH_QUERY",
+      "description": "GraphQL batch of multiple queries in a single request (test_coverage #243)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { allPosts: Posts { docs { id } } countResult: countPosts { totalDocs } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.allPosts.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.data.countResult.totalDocs",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "BatchQuery",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_ERROR_FORMAT",
+      "description": "GraphQL error responses contain an errors array + message + locations (test_coverage #245, #246)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { Posts { docs { nonExistentField } } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.errors[0].message",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.errors[0].locations",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "ErrorFormat",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_TX_INDEPENDENCE",
+      "description": "GraphQL mutation independent transactions: partial success, partial rollback (test_coverage #244)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "mutation { success: createPost(data: { title: \"TX Success\" }) { id title } fail: createPost(data: { title: \"TX Fail\", category: 999999 }) { id title } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.success.title",
+                "expected": "TX Success"
+              },
+              {
+                "path": "$.data.fail",
+                "expected": null
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "TransactionIndependence",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_INTROSPECTION_DISABLED",
+      "description": "Production mode disables GraphQL introspection (test_coverage #229, KB-026)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "{ __schema { types { name } } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.__schema",
+                "expected_type": "object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "IntrospectionDisabled",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "GQL_LOCALE_PARAM",
+      "description": "The GraphQL locale parameter controls localized field values (test_coverage #248)",
+      "prereqs": [
+        "GQL_MUTATION_CREATE",
+        "LOCALE_FIELD_STORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/graphql",
+            "timeout": 10,
+            "body": {
+              "query": "query { Pages(locale: en) { docs { title } } }"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.Pages.docs",
+                "expected_type": "array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "GraphQL",
+        "subcategory": "Locale",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCALE_FIELD_STORE",
+      "description": "Localized fields are stored separately per locale, and ?locale=xx returns the corresponding language version (KB-009)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/pages",
+            "timeout": 10,
+            "body": {
+              "title": "English Title",
+              "slug": "locale-test"
+            },
+            "headers": {
+              "Accept-Language": "en"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/pages/{{locale_page_id}}?locale=es",
+            "timeout": 10,
+            "body": {
+              "title": "Título en Español"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/pages/{{locale_page_id}}?locale=en",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected": "English Title"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/pages/{{locale_page_id}}?locale=es",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected": "Título en Español"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Localization",
+        "subcategory": "FieldStore",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCALE_ALL_MODE",
+      "description": "?locale=all returns a locale-keyed object with all language versions (KB-051)",
+      "prereqs": [
+        "LOCALE_FIELD_STORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/pages/{{locale_page_id}}?locale=all",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title.en",
+                "expected": "English Title"
+              },
+              {
+                "path": "$.title.es",
+                "expected": "Título en Español"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Localization",
+        "subcategory": "AllLocales",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCALE_FALLBACK",
+      "description": "When the requested locale has no value, it falls back to the default language via fallbackLocale (KB-043)",
+      "prereqs": [
+        "LOCALE_FIELD_STORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/pages/{{locale_page_id}}?locale=fr&fallbackLocale=en",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected": "English Title"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Localization",
+        "subcategory": "Fallback",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCALE_DB_STRUCTURE",
+      "description": "Localized fields are stored in the database using the _locales join table",
+      "prereqs": [
+        "LOCALE_FIELD_STORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT _locale, title FROM pages_locales LIMIT 5"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.row_count",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.rows[0]._locale",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Localization",
+        "subcategory": "DBStructure",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "UPLOAD_CREATE_FILE",
+      "description": "POST multipart/form-data uploads a file and creates a document (test_coverage #149-153)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS",
+        "DB_TABLES_COLLECTIONS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/media",
+            "timeout": 10,
+            "body": {
+              "_payload": "multipart",
+              "file": "test.png",
+              "alt": "Test Image"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.filename",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.doc.mimeType",
+                "expected_contains": "image"
+              },
+              {
+                "path": "$.doc.filesize",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Upload",
+        "subcategory": "FileCreate",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "UPLOAD_IMAGE_SIZES",
+      "description": "Image uploads automatically generate size variants (the sizes object includes thumbnail, etc.) (test_coverage #154-157)",
+      "prereqs": [
+        "UPLOAD_CREATE_FILE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/media/{{media_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.sizes",
+                "expected_type": "object"
+              },
+              {
+                "path": "$.width",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.height",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Upload",
+        "subcategory": "ImageSizes",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "UPLOAD_SERVE_FILE",
+      "description": "GET /api/media/file/:filename serves file downloads (test_coverage #158-160)",
+      "prereqs": [
+        "UPLOAD_CREATE_FILE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/media/{{media_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              301,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Upload",
+        "subcategory": "ServeFile",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "TRASH_SOFT_DELETE",
+      "description": "When trash:true, DELETE sets deletedAt instead of actually deleting (test_coverage #198-200)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "TrashTest"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/posts/{{trash_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[title][equals]=TrashTest&trash=true",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.docs[0].deletedAt",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Trash",
+        "subcategory": "SoftDelete",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "TRASH_WITHOUT_PARAM",
+      "description": "Without the trash parameter, find does not return deleted documents (test_coverage #199, #203)",
+      "prereqs": [
+        "TRASH_SOFT_DELETE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[title][equals]=TrashTest",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected": 0
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Trash",
+        "subcategory": "ExcludeDeleted",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "TRASH_RESTORE",
+      "description": "Setting deletedAt:null restores a deleted document (test_coverage #201)",
+      "prereqs": [
+        "TRASH_SOFT_DELETE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{trash_post_id}}?trash=true",
+            "timeout": 10,
+            "body": {
+              "deletedAt": null
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[title][equals]=TrashTest",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Trash",
+        "subcategory": "Restore",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCK_PREVENTS_UPDATE",
+      "description": "A document locked by someone else cannot be updated (test_coverage #224, #227)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "LockTest"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{lock_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "Locked Update"
+            },
+            "headers": {
+              "X-User": "other-user"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              409,
+              423,
+              403,
+              422
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors[0].message",
+                "expected_contains": "locked"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DocumentLocking",
+        "subcategory": "PreventUpdate",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCK_OVERRIDE",
+      "description": "overrideLock:true can update a locked document (test_coverage #226)",
+      "prereqs": [
+        "LOCK_PREVENTS_UPDATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{lock_post_id}}?overrideLock=true",
+            "timeout": 10,
+            "body": {
+              "title": "Override Locked"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "Override Locked"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DocumentLocking",
+        "subcategory": "Override",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "LOCK_EXPIRATION",
+      "description": "After the lock expires, the document can be updated normally (test_coverage #225)",
+      "prereqs": [
+        "LOCK_PREVENTS_UPDATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/posts/{{lock_post_id}}",
+            "timeout": 10,
+            "body": {
+              "title": "After Expiry"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.title",
+                "expected": "After Expiry"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DocumentLocking",
+        "subcategory": "Expiration",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SELECT_FIELDS",
+      "description": "The select parameter limits the returned fields, and select:{} returns only id (test_coverage #214-216)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{post_id}}?select[title]=true",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.id",
+                "expected_type": "number"
+              },
+              {
+                "path": "$.content",
+                "expected_absent": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SelectAPI",
+        "subcategory": "BasicSelect",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "SELECT_EXCLUDE",
+      "description": "select:false excludes the specified fields (test_coverage #219)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{post_id}}?select[title]=false",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected_absent": true
+              },
+              {
+                "path": "$.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "SelectAPI",
+        "subcategory": "ExcludeSelect",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "FOLDER_CRUD_POPULATE",
+      "description": "Folder CRUD that populates subfolders and files (test_coverage #207-208)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/payload-folders",
+            "timeout": 10,
+            "body": {
+              "name": "Test Folder"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.doc.name",
+                "expected": "Test Folder"
+              },
+              {
+                "path": "$.doc.id",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Folders",
+        "subcategory": "CRUD",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FOLDER_CASCADE_DELETE",
+      "description": "Deleting a parent folder cascades to delete child folders (test_coverage #212)",
+      "prereqs": [
+        "FOLDER_CRUD_POPULATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/payload-folders",
+            "timeout": 10,
+            "body": {
+              "name": "Parent"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/payload-folders",
+            "timeout": 10,
+            "body": {
+              "name": "Child",
+              "parent": "{{parent_folder_id}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/payload-folders/{{parent_folder_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/payload-folders/{{child_folder_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "status_code",
+                "expected": 404
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Folders",
+        "subcategory": "CascadeDelete",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADMIN_ACCESSIBLE",
+      "description": "The /admin path returns an HTML page (basic accessibility of the Admin UI)",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/admin",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              301,
+              302,
+              307,
+              308
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminUI",
+        "subcategory": "Accessibility",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ADMIN_FIRST_USER_PAGE",
+      "description": "On first visit, the Admin UI shows the first-user registration page (KB-049)",
+      "prereqs": [
+        "ADMIN_ACCESSIBLE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/admin",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "response_body",
+                "expected_contains": "html"
+              },
+              {
+                "path": "response_body",
+                "expected_contains": "email"
+              },
+              {
+                "path": "response_body",
+                "expected_contains": "password"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminUI",
+        "subcategory": "FirstUserPage",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ERROR_FORMAT_REST",
+      "description": "REST error response format: { errors: [{ message, name }] } (KB-054)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/categories",
+            "timeout": 10,
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              400,
+              422
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.errors[0].message",
+                "expected_type": "string"
+              },
+              {
+                "path": "$.errors[0].name",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ErrorHandling",
+        "subcategory": "RESTFormat",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ERROR_VALIDATION_400",
+      "description": "Validation errors return 400 + field-level error details",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/users",
+            "timeout": 10,
+            "body": {
+              "email": "not-an-email",
+              "password": "x"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.errors",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.errors[0].message",
+                "expected_type": "string",
+                "expected_contains": "invalid"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ErrorHandling",
+        "subcategory": "ValidationError",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CODE_STRUCTURE",
+      "description": "Code architecture quality: modularity, separation of concerns, and separation of collection config from generation logic",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "rubric_prompt": "GOAL: Judge the architecture and organization of THIS Payload CMS application (collection modularization + config composition + hook usage + field/relationship modeling + access control + globals). NOTE: this is an APPLICATION built on the Payload framework, not the framework itself — judge how well the app is structured, not whether it re-implements framework internals.\n\nEVIDENCE: src/ layout, src/payload.config.ts, src/collections/*, src/globals/*, hook definitions, access-control functions.\n\nSCORE RANGE: 0-5 integer.\n\nCRITERIA:\n1. Each collection is defined in its own module under src/collections/ (not all inline in one config file).\n2. payload.config.ts composes collections/globals/db-adapter cleanly rather than defining everything inline.\n3. Lifecycle hooks (beforeChange/afterRead/afterChange/etc.) are used where appropriate (e.g. a collection wiring hooks).\n4. Field definitions use appropriate field types and typed relationships rather than loose/untyped structures.\n5. Access control is expressed via access functions on collections rather than left fully open.\n6. Globals are separated from collections.\n7. No single source file is unreasonably large (> 1500 LOC).\n\nSCORING ANCHORS:\n- 0 (none): everything inline in one file; no collection modules.\n- 2 (weak): some collection modules but config/hooks/access largely absent.\n- 4 (good): modular collections + clean config composition + some hooks/access control.\n- 5 (excellent): modular collections + clean config + lifecycle hooks + typed fields/relationships + access control + globals separated.\n\nOUTPUT: JSON object {\"score\": <int 0..5>, \"reason\": \"<short justification>\"}.",
+            "files_to_sample": [
+              "src/",
+              "config/"
+            ],
+            "score_range": [
+              0,
+              5
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "CodeStructure",
+        "method": "llm-judge",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_TYPE_SAFETY",
+      "description": "TypeScript type safety: whether the framework's core type definitions are exported (CollectionConfig, FieldConfig, etc.)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "rubric_prompt": "GOAL: Judge the TypeScript type safety of THIS Payload CMS application (use of generated types + typed collection/field configs + typed hooks + strict compiler + minimal any). NOTE: this is an APPLICATION built on Payload — judge the app's own typing, not whether it authors framework-level generic type libraries.\n\nEVIDENCE: src/payload-types.ts (generated types), src/collections/* configs, hook signatures, tsconfig strictness.\n\nSCORE RANGE: 0-3 integer.\n\nCRITERIA:\n1. Generated Payload types (payload-types.ts) are present and used (e.g. imported for typed access).\n2. Collection/field configs are typed via Payload's CollectionConfig/Field types (imported from 'payload').\n3. Hook function signatures carry typed arguments rather than any.\n4. No pervasive use of any / as any in the application source.\n5. tsconfig enables strict type checking.\n6. Relationship/field references are typed consistently with the collections.\n\nSCORING ANCHORS:\n- 0 (none): types are mostly any; generated types absent/unused.\n- 1 (weak): generated types present but configs/hooks loosely typed.\n- 2 (good): most criteria satisfied; a couple of any leaks.\n- 3 (excellent): generated types used throughout, typed configs + hooks, strict mode, minimal any.\n\nOUTPUT: JSON object {\"score\": <int 0..3>, \"reason\": \"<short justification>\"}.",
+            "files_to_sample": [
+              "src/"
+            ],
+            "score_range": [
+              0,
+              3
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "TypeSafety",
+        "method": "llm-judge",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ACCESS_COLLECTION_ALLOW_ADMIN",
+      "description": "The Admin role can access the collection; GET /api/posts returns 200 (corresponds to ACCESS_COLLECTION_DENY_403)",
+      "prereqs": [
+        "AUTH_LOGIN_SUCCESS",
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.docs",
+                "expected_type": "array"
+              },
+              {
+                "path": "$.totalDocs",
+                "expected_type": "number"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "CollectionAllow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_READ_ALLOWED_FIELD",
+      "description": "Admin can read the restricted field restrictedField (corresponds to ACCESS_READ_DENIED_FIELD)",
+      "prereqs": [
+        "ACCESS_READ_DENIED_FIELD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/posts",
+            "timeout": 10,
+            "body": {
+              "title": "AllowedFieldTest",
+              "restrictedField": "admin-can-see"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{new_post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.restrictedField",
+                "expected": "admin-can-see"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "FieldReadAllow",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_QUERY_ALLOWED_FIELD",
+      "description": "Admin can query a restricted field in where and get results (corresponds to ACCESS_QUERY_DENIED_FIELD_400)",
+      "prereqs": [
+        "ACCESS_READ_DENIED_FIELD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts?where[restrictedField][equals]=secret",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.totalDocs",
+                "expected_gte": 1
+              },
+              {
+                "path": "$.docs[0].restrictedField",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "QueryAllow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ACCESS_BYID_ALLOWED",
+      "description": "Admin can fetch a document byID; returns 200 (corresponds to ACCESS_BYID_WHERE_403)",
+      "prereqs": [
+        "CRUD_CREATE_201"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "api_login",
+            "login_path": "/api/users/login",
+            "credentials": {
+              "email": "{{admin_email}}",
+              "password": "{{admin_password}}"
+            },
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/posts/{{post_id}}",
+            "timeout": 10
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.id",
+                "expected": "{{post_id}}"
+              },
+              {
+                "path": "$.title",
+                "expected_type": "string"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AccessControl",
+        "subcategory": "ByIDAllow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+name: task-ubsmhopy
+
+services:
+  db:
+    container_name: db_ubsmhopy
+    image: postgres:16
+    restart: "no"
+    environment:
+      POSTGRES_USER: appubsmhopy
+      POSTGRES_PASSWORD: app123ubsmhopy
+      POSTGRES_DB: app_ubsmhopy
+    ports:
+      - "5456:5432"
+    volumes:
+      - pgdata_ubsmhopy:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appubsmhopy -d app_ubsmhopy"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    container_name: app_ubsmhopy
+    image: shadetocloak/task_ubsmhopy-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    restart: "no"
+    ports:
+      - "8035:8035"
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    command: ["bash", "-c", "tail -f /dev/null"]
+
+volumes:
+  pgdata_ubsmhopy:

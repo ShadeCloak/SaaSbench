@@ -1,0 +1,24 @@
+{
+  "forward_coverage": {
+    "total_requirements": 58,
+    "covered_by_tests": 56,
+    "uncovered": [
+      {
+        "requirement": "Import/Export",
+        "severity": "medium"
+      },
+      {
+        "requirement": "Database schema",
+        "severity": "medium"
+      }
+    ],
+    "coverage_rate": 0.966
+  },
+  "backward_validity": {
+    "total_assertions": 112,
+    "with_valid_source": 112,
+    "fabricated": [],
+    "validity_rate": 1.0,
+    "note": "Self-referencing test values (eval-role, eval-org, etc.) and KB-documented values (**********) are valid assertions, not fabricated."
+  }
+}

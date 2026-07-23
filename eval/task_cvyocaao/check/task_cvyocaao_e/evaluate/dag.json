@@ -1,0 +1,7609 @@
+{
+ "meta": {
+  "task_id": "task_cvyocaao",
+  "total_nodes": 107,
+  "source_prd": "task_gen/task_cvyocaao/task/task.md",
+  "generated_at": "2026-04-02T14:00:00Z"
+ },
+ "scoring_config": {
+  "categories": {
+   "AccountAPI": {
+    "maxScore": 4,
+    "node_count": 1
+   },
+   "ArchitectureQuality": {
+    "maxScore": 60,
+    "node_count": 10
+   },
+   "Authentication": {
+    "maxScore": 23,
+    "node_count": 6
+   },
+   "AuthenticationFlows": {
+    "maxScore": 9,
+    "node_count": 2
+   },
+   "AuthorizationServices": {
+    "maxScore": 21,
+    "node_count": 4
+   },
+   "BruteForceDetection": {
+    "maxScore": 15,
+    "node_count": 3
+   },
+   "ClientManagement": {
+    "maxScore": 21,
+    "node_count": 5
+   },
+   "ClientPolicies": {
+    "maxScore": 3,
+    "node_count": 1
+   },
+   "DataModel": {
+    "maxScore": 4,
+    "node_count": 4
+   },
+   "Deployment": {
+    "maxScore": 11,
+    "node_count": 4
+   },
+   "DeviceFlowCIBA": {
+    "maxScore": 5,
+    "node_count": 3
+   },
+   "Frontend": {
+    "maxScore": 19,
+    "node_count": 4
+   },
+   "IdentityProvider": {
+    "maxScore": 5,
+    "node_count": 1
+   },
+   "ImportExport": {
+    "maxScore": 5,
+    "node_count": 1
+   },
+   "KeyManagement": {
+    "maxScore": 4,
+    "node_count": 1
+   },
+   "OIDCProtocol": {
+    "maxScore": 21,
+    "node_count": 7
+   },
+   "OrganizationManagement": {
+    "maxScore": 9,
+    "node_count": 3
+   },
+   "PasswordPolicy": {
+    "maxScore": 16,
+    "node_count": 4
+   },
+   "ProtocolMappers": {
+    "maxScore": 8,
+    "node_count": 2
+   },
+   "RBAC": {
+    "maxScore": 44,
+    "node_count": 18
+   },
+   "RealmManagement": {
+    "maxScore": 19,
+    "node_count": 5
+   },
+   "RoleGroupManagement": {
+    "maxScore": 17,
+    "node_count": 4
+   },
+   "SAMLProtocol": {
+    "maxScore": 4,
+    "node_count": 2
+   },
+   "SessionEvents": {
+    "maxScore": 8,
+    "node_count": 3
+   },
+   "TokenExchange": {
+    "maxScore": 5,
+    "node_count": 2
+   },
+   "UserManagement": {
+    "maxScore": 25,
+    "node_count": 7
+   }
+  },
+  "normalization": "0-100"
+ },
+ "nodes": [
+  {
+   "id": "DEPLOY_HEALTH",
+   "description": "Application accessible on port 8027, returns HTTP response",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/",
+      "timeout": 15
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       301,
+       302,
+       404
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Accessibility",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DEPLOY_OIDC_DISCOVERY",
+   "description": "OIDC Discovery endpoint returns valid JSON with required fields",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/.well-known/openid-configuration"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "issuer",
+       "authorization_endpoint",
+       "token_endpoint",
+       "userinfo_endpoint",
+       "jwks_uri",
+       "grant_types_supported",
+       "response_types_supported",
+       "subject_types_supported"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.issuer",
+        "expected": "http://localhost:8027/realms/master",
+        "operator": "contains",
+        "match": "realms/master"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "OIDCDiscovery",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud",
+   "source_evidence": {
+    "behavior_verified": "OIDC discovery returns issuer matching realm URL"
+   }
+  },
+  {
+   "id": "DEPLOY_GRANT_TYPES",
+   "description": "OIDC Discovery lists all 9 supported grant types",
+   "prereqs": [
+    "DEPLOY_OIDC_DISCOVERY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/.well-known/openid-configuration"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.grant_types_supported",
+        "operator": "contains_all",
+        "expected": [
+         "authorization_code",
+         "client_credentials",
+         "password",
+         "refresh_token",
+         "urn:ietf:params:oauth:grant-type:device_code"
+        ]
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "GrantTypes",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Discovery lists 7+ grant types"
+   }
+  },
+  {
+   "id": "DEPLOY_DB_TABLES",
+   "description": "Liquibase migration created core tables: REALM, USER_ENTITY, CLIENT, APP_ROLE, APP_GROUP",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "realm",
+       "user_entity",
+       "client",
+       "app_role",
+       "app_group",
+       "client_scope",
+       "authentication_flow",
+       "authentication_execution",
+       "identity_provider",
+       "event_entity"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "DatabaseMigration",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_TABLE_REALM",
+   "description": "REALM table has all required columns",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "realm",
+      "expected_columns": [
+       "id",
+       "name",
+       "enabled",
+       "ssl_required",
+       "registration_allowed",
+       "verify_email",
+       "reset_password_allowed",
+       "login_with_email_allowed",
+       "duplicate_emails_allowed",
+       "remember_me",
+       "password_policy",
+       "sso_idle_timeout",
+       "sso_max_lifespan",
+       "access_token_lifespan",
+       "browser_flow",
+       "direct_grant_flow",
+       "master_admin_client",
+       "default_role",
+       "events_enabled",
+       "internationalization_enabled"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "RealmEntity",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_TABLE_USER_ENTITY",
+   "description": "USER_ENTITY table has all required columns",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "user_entity",
+      "expected_columns": [
+       "id",
+       "username",
+       "email",
+       "email_verified",
+       "enabled",
+       "first_name",
+       "last_name",
+       "realm_id",
+       "created_timestamp",
+       "service_account_client_link",
+       "federation_link",
+       "not_before"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "UserEntity",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_TABLE_CLIENT",
+   "description": "CLIENT table has all required columns including CLIENT_AUTHENTICATOR_TYPE",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "client",
+      "expected_columns": [
+       "id",
+       "client_id",
+       "name",
+       "enabled",
+       "secret",
+       "protocol",
+       "public_client",
+       "standard_flow_enabled",
+       "direct_access_grants_enabled",
+       "service_accounts_enabled",
+       "client_authenticator_type",
+       "consent_required",
+       "full_scope_allowed",
+       "realm_id",
+       "bearer_only"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "ClientEntity",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_TABLE_AUTHZ",
+   "description": "Authorization tables exist: RESOURCE_SERVER, RESOURCE_SERVER_RESOURCE, RESOURCE_SERVER_SCOPE, RESOURCE_SERVER_POLICY",
+   "prereqs": [
+    "DEPLOY_DB_TABLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "resource_server",
+       "resource_server_resource",
+       "resource_server_scope",
+       "resource_server_policy",
+       "resource_server_perm_ticket"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "AuthorizationEntities",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_ADMIN_TOKEN",
+   "description": "Obtain admin access token via password grant on master realm with admin-cli",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "password_grant",
+      "token_endpoint": "/realms/master/protocol/openid-connect/token",
+      "client_id": "admin-cli",
+      "username": "{{admin_username}}",
+      "password": "{{admin_password}}",
+      "role": "admin"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "AdminLogin",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_TOKEN_RESPONSE_FORMAT",
+   "description": "Password grant token response contains all required fields with correct types",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/master/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=admin&password=admin",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "access_token",
+       "expires_in",
+       "refresh_token",
+       "token_type",
+       "session_state",
+       "scope"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.token_type",
+        "expected": "Bearer"
+       },
+       {
+        "path": "$.expires_in",
+        "operator": "gt",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "TokenFormat",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Token response has access_token, expires_in, token_type=Bearer"
+   }
+  },
+  {
+   "id": "AUTH_INVALID_CREDENTIALS",
+   "description": "Wrong password returns HTTP 401 with error=invalid_grant",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/master/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=admin&password=WRONG"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400,
+       401
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "expected": "invalid_grant"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "ErrorHandling",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Wrong password returns 401 invalid_grant",
+    "api_response_path": "$.error"
+   }
+  },
+  {
+   "id": "AUTH_CLIENT_CREDENTIALS",
+   "description": "Client credentials grant returns token without refresh_token, refresh_expires_in=0",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.token_type",
+        "expected": "Bearer"
+       },
+       {
+        "path": "$.refresh_expires_in",
+        "expected": 0
+       },
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "sa_access_token"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "ClientCredentials",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Client credentials returns refresh_expires_in=0"
+   }
+  },
+  {
+   "id": "AUTH_TOKEN_INTROSPECTION",
+   "description": "Token introspection returns active=true with realm_access.roles and preferred_username",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "introspect_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token/introspect",
+      "body_form": "token={{introspect_token}}&client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.active",
+        "expected": true
+       },
+       {
+        "path": "$.client_id",
+        "expected": "eval-test-client"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Introspection",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Introspection returns active=true with realm_access.roles"
+   }
+  },
+  {
+   "id": "AUTH_TOKEN_REVOCATION",
+   "description": "After revoking refresh token, introspection returns active=false",
+   "prereqs": [
+    "AUTH_TOKEN_INTROSPECTION",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/revoke",
+      "body_form": "token={{refresh_token}}&client_id=eval-test-client&client_secret=eval-secret"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token/introspect",
+      "body_form": "token={{refresh_token}}&client_id=eval-test-client&client_secret=eval-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.active",
+        "expected": false
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Revocation",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "After revocation, introspection returns active=false"
+   }
+  },
+  {
+   "id": "OIDC_JWKS_KEYS",
+   "description": "JWKS endpoint returns at least 2 keys (signing RS256 + encryption RSA-OAEP)",
+   "prereqs": [
+    "DEPLOY_OIDC_DISCOVERY",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/certs"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.keys",
+        "operator": "array_min_length",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "JWKS",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "OIDC_USERINFO",
+   "description": "UserInfo endpoint returns user claims including preferred_username, email",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=eval-test-client&client_secret=eval-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "ui_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/userinfo",
+      "headers": {
+       "Authorization": "Bearer {{ui_token}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       403
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "UserInfo",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "OIDC_REFRESH_TOKEN",
+   "description": "Refresh token grant returns new access_token with valid expires_in",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/master/protocol/openid-connect/token",
+      "body_form": "grant_type=refresh_token&client_id=admin-cli&refresh_token={{refresh_token}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "access_token",
+       "refresh_token",
+       "expires_in"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.expires_in",
+        "operator": "gt",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "RefreshToken",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "OIDC_UMA_DISCOVERY",
+   "description": "UMA 2.0 well-known endpoint returns valid configuration",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/.well-known/uma2-configuration"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "issuer",
+       "token_endpoint",
+       "authorization_endpoint"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "UMADiscovery",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "OIDC_SESSION_TIMEOUT",
+   "description": "Access token lifespan defaults to 300s per realm config",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.accessTokenLifespan",
+        "expected_in": [
+         300,
+         600
+        ]
+       },
+       {
+        "path": "$.ssoSessionIdleTimeout",
+        "expected": 1800
+       },
+       {
+        "path": "$.ssoSessionMaxLifespan",
+        "expected": 36000
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "SessionConfig",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Default accessTokenLifespan=300, ssoSessionIdleTimeout=1800"
+   }
+  },
+  {
+   "id": "OIDC_ERROR_RESPONSE_FORMAT",
+   "description": "OAuth error responses follow RFC 6749 format {error, error_description}",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/master/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=nonexistent&username=x&password=y"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       401
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "error"
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "is_string"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "ErrorFormat",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "OIDC_PAR_ENDPOINT",
+   "description": "Pushed Authorization Request endpoint exists and returns request_uri",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/ext/par/request",
+      "body_form": "client_id=eval-test-client&client_secret=eval-secret&response_type=code&redirect_uri=http://localhost/callback&scope=openid",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       400
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OIDCProtocol",
+    "subcategory": "PAR",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SAML_METADATA",
+   "description": "SAML IdP metadata endpoint returns valid XML EntityDescriptor with SSO endpoints",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/protocol/saml/descriptor"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "EntityDescriptor"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "SingleSignOnService"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "SingleLogoutService"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SAMLProtocol",
+    "subcategory": "Metadata",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SAML_ENCRYPTION_DEFAULTS",
+   "description": "SAML metadata advertises signing key with RSA algorithm",
+   "prereqs": [
+    "SAML_METADATA"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/protocol/saml/descriptor"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "KeyDescriptor"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "X509Certificate"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "match_type": "contains",
+      "pattern": "WantAuthnRequestsSigned"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SAMLProtocol",
+    "subcategory": "Signing",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REALM_CREATE_DEFAULTS",
+   "description": "Creating realm auto-creates 6 default clients (account, account-console, admin-cli, broker, realm-management, security-admin-console)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms",
+      "body": {
+       "realm": "eval-test-realm",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?max=20"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.clientId=='account')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.clientId=='account-console')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.clientId=='admin-cli')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.clientId=='broker')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.clientId=='realm-management')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.clientId=='security-admin-console')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RealmManagement",
+    "subcategory": "DefaultClients",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "6 default clients auto-created"
+   }
+  },
+  {
+   "id": "REALM_DEFAULT_ROLES",
+   "description": "New realm has default roles: uma_authorization, offline_access, default-roles-{realm}",
+   "prereqs": [
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.name=='uma_authorization')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='offline_access')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='default-roles-eval-test-realm')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RealmManagement",
+    "subcategory": "DefaultRoles",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Default roles: uma_authorization, offline_access"
+   }
+  },
+  {
+   "id": "REALM_UPDATE_CONFIG",
+   "description": "Update realm config (enable brute force, change token lifespan) persists correctly",
+   "prereqs": [
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "bruteForceProtected": true,
+       "failureFactor": 5,
+       "accessTokenLifespan": 600
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.bruteForceProtected",
+        "expected": true
+       },
+       {
+        "path": "$.failureFactor",
+        "expected": 5
+       },
+       {
+        "path": "$.accessTokenLifespan",
+        "expected": 600
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RealmManagement",
+    "subcategory": "ConfigUpdate",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "REALM_SMTP_PASSWORD_MASKED",
+   "description": "Realm SMTP password is masked as '**********' in API response",
+   "prereqs": [
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "smtpServer": {
+        "host": "smtp.test.com",
+        "port": "587",
+        "password": "mysecret",
+        "from": "test@test.com"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.smtpServer.password",
+        "operator": "not_equals",
+        "expected": "mysecret"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RealmManagement",
+    "subcategory": "SecretMasking",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "SMTP password masked as **********"
+   }
+  },
+  {
+   "id": "REALM_MASTER_UNDELETABLE",
+   "description": "Cannot delete master realm — returns 400",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/master"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errorMessage",
+        "operator": "contains",
+        "expected": "master"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RealmManagement",
+    "subcategory": "MasterProtection",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "CRUD_USER",
+   "description": "Full user CRUD: create with username → read → update firstName/lastName → delete",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "evaluser1",
+       "email": "eval@test.com",
+       "enabled": true,
+       "firstName": "Eval",
+       "lastName": "User",
+       "emailVerified": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=evaluser1"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].username",
+        "expected": "evaluser1"
+       },
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "uid"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "USER_DUPLICATE_USERNAME",
+   "description": "Creating user with duplicate username returns 409 'User exists with same username'",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "evaluser1",
+       "email": "eval2@test.com",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 409
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errorMessage",
+        "operator": "contains",
+        "expected": "User exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "DuplicateValidation",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Duplicate returns 409 User exists"
+   }
+  },
+  {
+   "id": "USER_CASE_INSENSITIVE",
+   "description": "Username uniqueness is case-insensitive: 'EvalUser1' conflicts with 'evaluser1'",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "evaluser1",
+       "email": "ci@test.com",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "EvalUser1",
+       "email": "ci2@test.com",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 409
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "CaseInsensitive",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "USER_SEARCH_PAGINATION",
+   "description": "User search with first/max pagination returns correct subset; offset beyond total returns empty array",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?first=0&max=1"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_length",
+        "expected": 1
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?first=9999&max=10"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_length",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "Pagination",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "USER_ROLE_MAPPING_EFFECTIVE",
+   "description": "Assigning composite role to user makes child roles appear in effective role list",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=evaluser1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "ure_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users/{{ure_uid}}/role-mappings/realm/composite"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       },
+       {
+        "path": "$",
+        "operator": "array_min_length",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "EffectiveRoles",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "USER_TEMP_PASSWORD_BLOCKS_GRANT",
+   "description": "User with temporary password (requiredActions=UPDATE_PASSWORD) cannot use password grant — returns 400",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "tempuser",
+       "firstName": "Temp",
+       "lastName": "User",
+       "email": "temp@test.com",
+       "emailVerified": true,
+       "enabled": true,
+       "credentials": [
+        {
+         "type": "password",
+         "value": "TempPass1!",
+         "temporary": true
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       400,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=tempuser&password=TempPass1!"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "expected": "invalid_grant"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "TemporaryPassword",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Temp password blocks grant with 400"
+   }
+  },
+  {
+   "id": "USER_SERVICE_ACCOUNT_FORMAT",
+   "description": "Service account user has username 'service-account-{clientId}'",
+   "prereqs": [
+    "AUTH_CLIENT_CREDENTIALS",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{test_client_uuid}}/service-account-user"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.username",
+        "operator": "starts_with",
+        "expected": "service-account-"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "UserManagement",
+    "subcategory": "ServiceAccount",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CRUD_CLIENT",
+   "description": "Full client CRUD: create confidential OIDC client → read → update → delete",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/clients",
+      "body": {
+       "clientId": "eval-test-client",
+       "enabled": true,
+       "publicClient": false,
+       "directAccessGrantsEnabled": true,
+       "serviceAccountsEnabled": true,
+       "secret": "eval-secret",
+       "protocol": "openid-connect"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=eval-test-client"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].clientId",
+        "expected": "eval-test-client"
+       },
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "test_client_uuid"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientManagement",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CLIENT_SECRET_ROTATION",
+   "description": "Regenerating client secret returns different value than original",
+   "prereqs": [
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{client_uuid}}/client-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.value",
+        "operator": "store_as",
+        "key": "old_secret"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/clients/{{client_uuid}}/client-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.value",
+        "operator": "not_equals",
+        "expected": "{{old_secret}}"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientManagement",
+    "subcategory": "SecretRotation",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CLIENT_SCOPE_DUPLICATE_NAME",
+   "description": "Creating client scope with duplicate name returns 409",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/client-scopes",
+      "body": {
+       "name": "eval-scope",
+       "protocol": "openid-connect"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/client-scopes",
+      "body": {
+       "name": "eval-scope",
+       "protocol": "openid-connect"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 409
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errorMessage",
+        "operator": "contains",
+        "expected": "already exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientManagement",
+    "subcategory": "ScopeDuplicate",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Duplicate scope returns 409"
+   }
+  },
+  {
+   "id": "CLIENT_DEFAULT_OPTIONAL_SCOPES",
+   "description": "New realm has correct default vs optional client scopes assignment",
+   "prereqs": [
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/default-default-client-scopes"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.name=='profile')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='email')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='roles')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/default-optional-client-scopes"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.name=='offline_access')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='address')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientManagement",
+    "subcategory": "DefaultScopes",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CRUD_ROLE",
+   "description": "Realm role CRUD: create → read → update → delete",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/roles",
+      "body": {
+       "name": "eval-role",
+       "description": "Eval test role"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles/eval-role"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.name",
+        "expected": "eval-role"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/eval-test-realm/roles/eval-role"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RoleGroupManagement",
+    "subcategory": "RoleCRUD",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ROLE_COMPOSITE",
+   "description": "Create composite role: parent contains child; verify isComposite=true and composites list",
+   "prereqs": [
+    "CRUD_ROLE",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/roles",
+      "body": {
+       "name": "eval-composite"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/roles",
+      "body": {
+       "name": "eval-child-role"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles/eval-child-role"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "operator": "store_as",
+        "key": "child_role_id"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/roles/eval-composite/composites",
+      "body": [
+       {
+        "id": "{{child_role_id}}",
+        "name": "eval-child-role"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles/eval-composite"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.composite",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RoleGroupManagement",
+    "subcategory": "CompositeRoles",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "ROLE_DEFAULT_UNDELETABLE",
+   "description": "Cannot delete default-roles-{realm} — returns 400/BadRequest",
+   "prereqs": [
+    "REALM_CREATE_DEFAULTS",
+    "REALM_DEFAULT_ROLES"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/eval-test-realm/roles/default-roles-eval-test-realm"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errorMessage",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RoleGroupManagement",
+    "subcategory": "DefaultProtection",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "CRUD_GROUP",
+   "description": "Group CRUD: create top-level → read → create child → verify hierarchy → delete",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/groups",
+      "body": {
+       "name": "eval-parent-group"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/groups"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.name=='eval-parent-group')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.name=='eval-parent-group')].id",
+        "operator": "store_as",
+        "key": "parent_group_id"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/groups/{{parent_group_id}}/children",
+      "body": {
+       "name": "eval-child-group"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RoleGroupManagement",
+    "subcategory": "GroupHierarchy",
+    "method": "weighted",
+    "maxScore": 6
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ORG_CREATE_WITH_DOMAIN",
+   "description": "Create organization with domain; list returns org with domain verified=false",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "organizationsEnabled": true
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/organizations",
+      "body": {
+       "name": "eval-org",
+       "domains": [
+        {
+         "name": "evalorg.com",
+         "verified": false
+        }
+       ],
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/organizations"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OrganizationManagement",
+    "subcategory": "CreateWithDomain",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ORG_DUPLICATE_NAME",
+   "description": "Creating organization with duplicate name returns 409",
+   "prereqs": [
+    "ORG_CREATE_WITH_DOMAIN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/organizations",
+      "body": {
+       "name": "eval-org",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 409
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.errorMessage",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OrganizationManagement",
+    "subcategory": "DuplicateValidation",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ORG_MEMBER_MANAGEMENT",
+   "description": "Add member to org (201), duplicate add returns 409",
+   "prereqs": [
+    "CRUD_USER",
+    "ORG_CREATE_WITH_DOMAIN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/organizations"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/organizations"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_min_length",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "OrganizationManagement",
+    "subcategory": "MemberManagement",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "BRUTE_FORCE_LOCKOUT",
+   "description": "After failureFactor(2) wrong passwords, correct password still rejected with invalid_grant",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS",
+    "REALM_UPDATE_CONFIG"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "bruteForceProtected": true,
+       "failureFactor": 2,
+       "waitIncrementSeconds": 20
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "bfuser2",
+       "enabled": true,
+       "firstName": "BF",
+       "lastName": "U",
+       "email": "bf2@t.com",
+       "emailVerified": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=bfuser2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "bf2_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{bf2_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "BfPass2!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfuser2&password=WRONG",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfuser2&password=WRONG",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfuser2&password=BfPass2!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       401
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "expected": "invalid_grant"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BruteForceDetection",
+    "subcategory": "TemporaryLockout",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "After failureFactor failures, correct password rejected"
+   }
+  },
+  {
+   "id": "BRUTE_FORCE_CLEAR_FAILURES",
+   "description": "After clearing failures via admin API, user can login again",
+   "prereqs": [
+    "BRUTE_FORCE_LOCKOUT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=bfuser2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "bfc_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/eval-test-realm/attack-detection/brute-force/users/{{bfc_uid}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{bfc_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "NewBfP1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfuser2&password=NewBfP1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BruteForceDetection",
+    "subcategory": "ClearFailures",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "After clearing, user can login again"
+   }
+  },
+  {
+   "id": "BRUTE_FORCE_STATUS_API",
+   "description": "Attack detection API returns numFailures, disabled status for locked user",
+   "prereqs": [
+    "BRUTE_FORCE_LOCKOUT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "bruteForceProtected": true,
+       "failureFactor": 2,
+       "waitIncrementSeconds": 20
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "bfstatus",
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "Bf",
+       "lastName": "Status",
+       "email": "bfstatus@t.com",
+       "requiredActions": [],
+       "credentials": [
+        {
+         "type": "password",
+         "value": "BfStat1!",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=bfstatus"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "bfstatus_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/eval-test-realm/attack-detection/brute-force/users/{{bfstatus_uid}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfstatus&password=WRONG",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=bfstatus&password=WRONG",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/attack-detection/brute-force/users/{{bfstatus_uid}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.numFailures",
+        "operator": "gte",
+        "expected": 1
+       },
+       {
+        "path": "$.disabled",
+        "operator": "equals",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "BruteForceDetection",
+    "subcategory": "StatusAPI",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Attack detection returns numFailures/disabled"
+   }
+  },
+  {
+   "id": "AUTHZ_RESOURCE_SERVER_AUTO_CREATE",
+   "description": "Enabling authorizationServicesEnabled on client auto-creates resource server with ENFORCING mode",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/clients",
+      "body": {
+       "clientId": "authz-client2",
+       "authorizationServicesEnabled": true,
+       "serviceAccountsEnabled": true,
+       "publicClient": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=authz-client2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "authz_rs_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_rs_uuid}}/authz/resource-server"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.policyEnforcementMode",
+        "operator": "equals",
+        "expected": "ENFORCING"
+       },
+       {
+        "path": "$.decisionStrategy",
+        "operator": "equals",
+        "expected": "UNANIMOUS"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthorizationServices",
+    "subcategory": "AutoCreation",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac",
+   "source_evidence": {
+    "behavior_verified": "Auto-creates with ENFORCING/UNANIMOUS"
+   }
+  },
+  {
+   "id": "AUTHZ_ROLE_POLICY_PERMIT",
+   "description": "Role policy: user with required role gets PERMIT for resource",
+   "prereqs": [
+    "AUTHZ_RESOURCE_SERVER_AUTO_CREATE",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=authz-client2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "authz_uuid2"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid2}}/authz/resource-server/resource"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthorizationServices",
+    "subcategory": "RolePolicyPermit",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "AUTHZ_DECISION_AFFIRMATIVE_VS_UNANIMOUS",
+   "description": "AFFIRMATIVE strategy permits when any policy allows; UNANIMOUS requires all",
+   "prereqs": [
+    "AUTHZ_ROLE_POLICY_PERMIT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=authz-client2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "authz_uuid3"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid3}}/authz/resource-server"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.decisionStrategy",
+        "operator": "equals",
+        "expected": "UNANIMOUS"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid3}}/authz/resource-server",
+      "body": {
+       "policyEnforcementMode": "ENFORCING",
+       "decisionStrategy": "AFFIRMATIVE",
+       "allowRemoteResourceManagement": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid3}}/authz/resource-server"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.decisionStrategy",
+        "operator": "equals",
+        "expected": "AFFIRMATIVE"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid3}}/authz/resource-server",
+      "body": {
+       "policyEnforcementMode": "ENFORCING",
+       "decisionStrategy": "UNANIMOUS",
+       "allowRemoteResourceManagement": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthorizationServices",
+    "subcategory": "DecisionStrategy",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "AUTHZ_INVALID_RESOURCE_400",
+   "description": "Requesting an entitlement/permission for a non-existent resource is denied (4xx, no RPT issued) — authz enforcement rejects bogus resources",
+   "prereqs": [
+    "AUTHZ_RESOURCE_SERVER_AUTO_CREATE",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=authz-client2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "authz_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{authz_uuid}}/client-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.value",
+        "operator": "store_as",
+        "key": "authz_secret"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=authz-client2&client_secret={{authz_secret}}",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "authz_cc_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=urn:ietf:params:oauth:grant-type:uma-ticket&audience=authz-client2&permission=nonexistent-resource-xyz",
+      "headers": {
+       "Authorization": "Bearer {{authz_cc_token}}"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400,
+       403
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "exists"
+       },
+       {
+        "path": "$.access_token",
+        "operator": "not_exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthorizationServices",
+    "subcategory": "InvalidResource",
+    "method": "binary",
+    "maxScore": 6
+   },
+   "complexity_tier": "marketplace_rbac",
+   "source_evidence": {
+    "behavior_verified": "Non-existent resource returns 400"
+   }
+  },
+  {
+   "id": "TOKEN_EXCHANGE_AUTHORIZED",
+   "description": "Authorized client can perform internal token exchange (200); unauthorized returns 403",
+   "prereqs": [
+    "DEPLOY_OIDC_DISCOVERY",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/eval-test-realm/.well-known/openid-configuration"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.grant_types_supported",
+        "operator": "contains",
+        "expected": "urn:ietf:params:oauth:grant-type:token-exchange"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TokenExchange",
+    "subcategory": "InternalExchange",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "TOKEN_EXCHANGE_EXPIRED_SUBJECT",
+   "description": "Token exchange with expired subject_token returns 400",
+   "prereqs": [
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS",
+    "TOKEN_EXCHANGE_AUTHORIZED"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=urn:ietf:params:oauth:grant-type:token-exchange&client_id=eval-test-client&client_secret=eval-secret&subject_token=expired.invalid.token&subject_token_type=urn:ietf:params:oauth:token-type:access_token",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       400,
+       401,
+       403
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TokenExchange",
+    "subcategory": "ExpiredToken",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "DEVICE_FLOW_CODE",
+   "description": "Device authorization returns device_code, user_code, verification_uri with expires_in=600, interval=5",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/auth/device",
+      "body_form": "client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       400
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DeviceFlowCIBA",
+    "subcategory": "DeviceCode",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Device code includes interval=5"
+   }
+  },
+  {
+   "id": "DEVICE_FLOW_PENDING",
+   "description": "Polling before user approval returns 400 authorization_pending",
+   "prereqs": [
+    "DEPLOY_OIDC_DISCOVERY",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/eval-test-realm/.well-known/openid-configuration"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.grant_types_supported",
+        "operator": "contains",
+        "expected": "device_code"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DeviceFlowCIBA",
+    "subcategory": "Pending",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Polling returns 400 authorization_pending"
+   }
+  },
+  {
+   "id": "CIBA_DEFAULTS",
+   "description": "Realm device code defaults: lifespan=600, interval=5",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.oauth2DeviceCodeLifespan",
+        "expected": 60,
+        "operator": "gte"
+       },
+       {
+        "path": "$.oauth2DevicePollingInterval",
+        "expected": 1,
+        "operator": "gte"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DeviceFlowCIBA",
+    "subcategory": "CIBADefaults",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SESSION_LIST_LOGOUT",
+   "description": "List user sessions, then logout user — sessions cleared",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=evaluser1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "sl_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users/{{sl_uid}}/sessions"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SessionEvents",
+    "subcategory": "SessionManagement",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EVENT_QUERY_DEFAULT_MAX",
+   "description": "Event query returns max 100 results by default",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/events/config"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P06",
+     "inputs": {
+      "required_fields": [
+       "eventsEnabled",
+       "eventsListeners"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SessionEvents",
+    "subcategory": "EventConfig",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "EVENT_ADMIN_EVENTS",
+   "description": "Admin events endpoint returns array (empty when none yet)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/admin-events"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SessionEvents",
+    "subcategory": "AdminEvents",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "RBAC_NO_TOKEN_RETURNS_401",
+   "description": "Admin API without authentication returns 401",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "contains",
+        "expected": "Unauthorized"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "NoAuthDenied",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_CREATE_REALM",
+   "description": "Admin with master realm token can create new realm",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms",
+      "body": {
+       "realm": "rbac-test-realm",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminCreateRealm",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_CREATE_USER",
+   "description": "Admin can create user in managed realm",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "rbac-test-user",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminCreateUser",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_DELETE_REALM",
+   "description": "Admin can delete non-master realm",
+   "prereqs": [
+    "RBAC_ADMIN_CAN_CREATE_REALM"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/rbac-test-realm"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminDeleteRealm",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_INVALID_TOKEN_REJECTED",
+   "description": "Request with invalid/expired Bearer token returns 401",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/master/users",
+      "headers": {
+       "Authorization": "Bearer invalid.token.here"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "contains",
+        "expected": "401"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "InvalidTokenRejected",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_CROSS_REALM_ISOLATION",
+   "description": "Users from realm A are not visible in realm B — verifies realm data isolation",
+   "prereqs": [
+    "CRUD_USER",
+    "RBAC_ADMIN_CAN_CREATE_REALM"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms",
+      "body": {
+       "realm": "isolation-test",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/isolation-test/users?search=evaluser1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_length",
+        "expected": 0
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "RealmIsolation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "PWD_POLICY_MIN_LENGTH",
+   "description": "Password policy length(8): 7-char password rejected with 400, 8-char accepted",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS",
+    "REALM_UPDATE_CONFIG"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "passwordPolicy": "length(8)"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "pwdtestuser",
+       "enabled": true,
+       "credentials": [
+        {
+         "type": "password",
+         "value": "Short1!",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error_description",
+        "operator": "contains",
+        "expected": "minimum length"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PasswordPolicy",
+    "subcategory": "MinLength",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "length(8) rejects 7-char password"
+   }
+  },
+  {
+   "id": "PWD_POLICY_NOT_USERNAME",
+   "description": "Password policy notUsername: password same as username rejected",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "passwordPolicy": "notUsername"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "notusrtest",
+       "enabled": true,
+       "credentials": [
+        {
+         "type": "password",
+         "value": "notusrtest",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 400
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PasswordPolicy",
+    "subcategory": "NotUsername",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "PWD_POLICY_COMPOSITE",
+   "description": "Composite policy 'length(8) and digits(2) and upperCase(2)': weak password rejected, strong accepted",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "passwordPolicy": "length(8) and digits(2) and upperCase(2)"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204,
+       400,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "pwdcomp",
+       "enabled": true,
+       "credentials": [
+        {
+         "type": "password",
+         "value": "abcdefgh",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "pwdcomp",
+       "enabled": true,
+       "credentials": [
+        {
+         "type": "password",
+         "value": "abCD12ef",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       400,
+       409
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PasswordPolicy",
+    "subcategory": "CompositePolicies",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "FRONTEND_ADMIN_CONSOLE",
+   "description": "Admin Console React SPA is accessible and renders realm management UI",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/master/console/"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       302
+      ]
+     }
+    },
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 2000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/admin/master/console/",
+      "login_first": true,
+      "login_url": "{{base_url}}/realms/master/protocol/openid-connect/auth?client_id=security-admin-console&response_type=code&scope=openid&redirect_uri={{base_url}}/admin/master/console/",
+      "login_username": "admin",
+      "login_password": "admin",
+      "wait_for_selector": "div[id=\"root\"], div[id=\"app\"], div[class*=\"kc-page\"]"
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the admin console as a functional SPA.\n\nScoring criteria:\n- 5: Fully functional React SPA with root element, JS bundles loaded, clear navigation for realm/user/client/role/group management, sidebar and content area rendered.\n- 4: React SPA loads with JS bundles, navigation covers most admin areas but may be missing 1-2 sections.\n- 3: SPA shell renders with React root and some JS, navigation structure partially present but incomplete.\n- 2: HTML loads with React root element but JS bundles fail or navigation is minimal/broken.\n- 1: Page loads but is mostly static HTML, no SPA behavior or React rendering.\n- 0: No admin console page, returns error, or completely empty.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "AdminConsole",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "FRONTEND_LOGIN_THEME",
+   "description": "Login page renders with username/password form fields and proper HTML structure",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/protocol/openid-connect/auth?client_id=admin-cli&response_type=code&redirect_uri=http://localhost:8027/admin/master/console/"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       304
+      ],
+      "expected_status": [
+       200,
+       302
+      ]
+     }
+    },
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 2000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/realms/master/protocol/openid-connect/auth?client_id=security-admin-console&response_type=code&scope=openid&redirect_uri={{base_url}}/admin/master/console/"
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the login page quality.\n\nScoring criteria:\n- 5: Complete login form with username input, password input, submit button, proper form action, CSRF protection, and clean semantic HTML structure.\n- 4: Login form with username/password/submit and form action present, minor structural issues (e.g., missing CSRF or non-semantic tags).\n- 3: Login form with username and password fields and a submit button, but form action missing or incorrect, or HTML poorly structured.\n- 2: Page has input fields but missing submit button or password field, or form is non-functional.\n- 1: Page renders but contains only minimal HTML with no recognizable login form elements.\n- 0: No login page, returns error, or blank page.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "LoginTheme",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ARCH_OIDC_PROTOCOL_QUALITY",
+   "description": "OAuth2/OIDC protocol implementation follows standards: proper token format, discovery, error handling",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "DEPLOY_OIDC_DISCOVERY"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "api_responses",
+      "rubric_prompt": "Evaluate OIDC/OAuth2 standards compliance based on observed API responses.\n\nScoring criteria:\n- 5: Fully compliant — discovery document has all required fields per OpenID Connect Discovery spec, JWKS correctly exposes keys with proper kid/alg/use, token responses follow RFC 6749 exactly, error responses use standard error/error_description format.\n- 4: Mostly compliant — discovery and JWKS correct, minor deviations in token or error response format (e.g., extra non-standard fields).\n- 3: Core flows work — tokens issued correctly, discovery present, but JWKS has issues (missing fields) or error responses deviate from RFC format.\n- 2: Partial implementation — some endpoints work but discovery incomplete, JWKS missing or malformed, or token format non-standard.\n- 1: Minimal — only token endpoint partially works, no proper discovery or JWKS.\n- 0: No OIDC implementation or all endpoints return errors.",
+      "score_range": [
+       0,
+       5
+      ],
+      "api_path_filters": [
+       "/.well-known/openid-configuration",
+       "/.well-known/uma2-configuration",
+       "/protocol/openid-connect/certs",
+       "/protocol/openid-connect/token",
+       "/protocol/openid-connect/userinfo",
+       "/protocol/openid-connect/par"
+      ],
+      "max_evidence_chars": 30000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "OIDCCompliance",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_MULTI_REALM_DESIGN",
+   "description": "Multi-tenant realm isolation is properly architected with clean data separation",
+   "prereqs": [
+    "RBAC_CROSS_REALM_ISOLATION"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/RealmModel*.java",
+       "**/RealmRepresentation*.java",
+       "**/RealmProvider*.java",
+       "**/realm/**/*.java",
+       "**/RealmManager*.java",
+       "**/RealmResource*.java"
+      ],
+      "rubric_prompt": "Evaluate the multi-tenant realm architecture design.\n\nScoring criteria:\n- 6: Excellent — complete realm isolation with realm ID foreign keys on all resource tables, no cross-realm data leakage possible, clean tenant-scoped queries, realm-aware caching, and consistent realm parameter propagation through all service layers.\n- 5: Strong — realm scoping correct on all major entities, data isolation enforced, minor gaps in edge-case resources (e.g., shared global config not realm-scoped).\n- 4: Good — most resources properly realm-scoped, data model has realm FK on core tables, but some secondary tables or caches lack realm awareness.\n- 3: Adequate — realm concept exists and core entities are scoped, but isolation is incomplete (some queries don't filter by realm, or some tables share data across realms).\n- 2: Weak — realm exists as a concept but scoping is inconsistent, multiple tables lack realm FK, cross-realm data exposure possible.\n- 1: Minimal — single hardcoded realm or realm parameter exists but is not enforced in data access.\n- 0: No multi-tenancy — single flat namespace with no realm concept.",
+      "score_range": [
+       0,
+       6
+      ],
+      "prefer_keywords": [
+       "realm",
+       "tenant",
+       "realm_id"
+      ],
+      "max_evidence_chars": 32000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "MultiTenancy",
+    "method": "llm-judge",
+    "maxScore": 6
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "ARCH_AUTH_FLOW_DESIGN",
+   "description": "Authentication flow engine: composable sub-flows, conditionals, configurable requirements",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/AuthenticationFlow*.java",
+       "**/AuthenticationProcessor*.java",
+       "**/AuthenticationExecution*.java",
+       "**/Authenticator.java",
+       "**/AuthenticatorFactory.java",
+       "**/authentication/**/*.java"
+      ],
+      "rubric_prompt": "Evaluate the authentication flow architecture.\n\nScoring criteria:\n- 8: Exceptional — flow processor iterates execution list, sub-flows supported recursively with correct nesting, all 4 requirement types (REQUIRED/ALTERNATIVE/CONDITIONAL/DISABLED) implemented with correct logic, authenticator providers are pluggable via SPI, flow bindings configurable per-client, and execution ordering is manageable.\n- 7: Excellent — all 4 requirement types work, sub-flow recursion supported, authenticator providers pluggable, minor gaps in client-level flow binding or execution ordering.\n- 6: Strong — flow processor with execution iteration, 3-4 requirement types implemented correctly, sub-flows supported but limited nesting depth, authenticator providers configurable.\n- 5: Good — flow processor exists, REQUIRED and ALTERNATIVE work correctly, sub-flows partially supported, authenticator providers are selectable but not fully pluggable.\n- 4: Adequate — basic flow execution with REQUIRED/ALTERNATIVE, no sub-flow support, authenticator selection from a fixed list.\n- 3: Basic — single linear authentication chain, only REQUIRED requirement type, no sub-flows or alternatives.\n- 2: Minimal — hardcoded authentication steps, no flow abstraction, no requirement model.\n- 1: Rudimentary — single username/password check with no flow concept.\n- 0: No authentication flow architecture.",
+      "score_range": [
+       0,
+       8
+      ],
+      "prefer_keywords": [
+       "authentication",
+       "flow",
+       "authenticator",
+       "requirement",
+       "execution"
+      ],
+      "max_evidence_chars": 35000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "AuthFlowDesign",
+    "method": "llm-judge",
+    "maxScore": 8
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_SPI_PLUGIN_SYSTEM",
+   "description": "SPI plugin system: Provider/ProviderFactory pattern with discovery mechanism",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/Provider.java",
+       "**/ProviderFactory.java",
+       "**/spi/**/*.java",
+       "**/META-INF/services/**",
+       "**/Spi.java"
+      ],
+      "rubric_prompt": "Evaluate the SPI/plugin extensibility system.\n\nScoring criteria:\n- 7: Comprehensive — ProviderFactory pattern with proper lifecycle (create/init/close), all 5 extension points pluggable (authenticators, protocol mappers, user storage, identity providers, event listeners), service discovery/registration mechanism (e.g., ServiceLoader or custom registry), and provider configuration persistence.\n- 6: Strong — ProviderFactory pattern used, 4-5 extension points pluggable, discovery mechanism present, minor gaps in lifecycle management or configuration.\n- 5: Good — clear SPI interfaces for 3-4 extension points, factory pattern used, basic registration mechanism but no auto-discovery.\n- 4: Adequate — SPI interfaces for 2-3 extension points, factory pattern partially applied, manual registration required.\n- 3: Basic — some extensibility via interfaces for 1-2 areas, no factory pattern or formal SPI structure.\n- 2: Minimal — extensibility exists via class inheritance/override in 1 area, no formal plugin system.\n- 1: Rudimentary — all providers hardcoded, extensibility only via source code modification.\n- 0: No extensibility architecture.",
+      "score_range": [
+       0,
+       7
+      ],
+      "prefer_keywords": [
+       "spi",
+       "provider",
+       "factory",
+       "metainf",
+       "serviceloader"
+      ],
+      "max_evidence_chars": 32000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "SPIDesign",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_PASSWORD_SECURITY",
+   "description": "Password hashing security: Argon2id with appropriate parameters, random salt",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/Argon2*.java",
+       "**/Pbkdf2*.java",
+       "**/PasswordPolicy*.java",
+       "**/credential/**/*Hash*.java",
+       "**/credential/**/*Password*.java"
+      ],
+      "rubric_prompt": "Evaluate password security implementation.\n\nScoring criteria:\n- 6: Excellent — Argon2id (or bcrypt/scrypt) with strong parameters (memory>=4MB, iterations>=3 for Argon2, cost>=12 for bcrypt), cryptographically random salt >=16 bytes per password, plaintext never stored or logged, password policy validators composable (chain of validators), and credential storage uses dedicated entity with versioning.\n- 5: Strong — secure adaptive hash used with reasonable parameters, random salt, no plaintext, policy validators exist but not fully composable (e.g., fixed chain).\n- 4: Good — secure hash algorithm used, proper salting, no plaintext storage, basic password policy validation (length/complexity) but not composable.\n- 3: Adequate — password hashing present (e.g., PBKDF2) but parameters may be weak, salting exists, basic length validation only.\n- 2: Weak — hashing used but with weak algorithm (MD5/SHA1) or insufficient iterations, salt may be short or static, minimal validation.\n- 1: Poor — passwords hashed but with known vulnerabilities (no salt, weak hash), or plaintext visible in logs/debug output.\n- 0: Passwords stored in plaintext or no hashing mechanism.",
+      "score_range": [
+       0,
+       6
+      ],
+      "prefer_keywords": [
+       "argon2",
+       "pbkdf2",
+       "password",
+       "hash",
+       "credential",
+       "policy"
+      ],
+      "max_evidence_chars": 32000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "PasswordSecurity",
+    "method": "llm-judge",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_TOKEN_SECURITY",
+   "description": "JWT signing quality, key management, algorithm support",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/TokenManager*.java",
+       "**/AccessToken*.java",
+       "**/RefreshToken*.java",
+       "**/jose/**/*.java",
+       "**/keys/**/*.java",
+       "**/KeyManager*.java",
+       "**/protocol/oidc/**/*Token*.java"
+      ],
+      "rubric_prompt": "Evaluate JWT/token security architecture.\n\nScoring criteria:\n- 6: Excellent — tokens signed with asymmetric keys (RS256+), key rotation supported with graceful rollover (old keys still verify during transition), token lifespans configurable per-realm and per-client, token revocation implemented (revocation endpoint + revoked token checking), and refresh token rotation enabled.\n- 5: Strong — asymmetric signing, key rotation mechanism exists, configurable lifespans, revocation endpoint present but may lack proactive checking on all paths.\n- 4: Good — asymmetric signing (RS256), key rotation possible but manual, configurable lifespans at realm level, basic revocation via session invalidation.\n- 3: Adequate — asymmetric signing works, no key rotation, lifespans configurable at realm level only, no dedicated revocation mechanism (relies on expiration).\n- 2: Weak — symmetric signing (HS256 with shared secret), no key rotation, fixed or hardcoded lifespans, no revocation.\n- 1: Poor — tokens generated but signing is weak or misconfigured, no lifespan management.\n- 0: No token signing, tokens are unsigned/unverified, or no JWT implementation.",
+      "score_range": [
+       0,
+       6
+      ],
+      "prefer_keywords": [
+       "token",
+       "jwt",
+       "jwk",
+       "key",
+       "rs256",
+       "es256",
+       "rotate"
+      ],
+      "max_evidence_chars": 35000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "TokenSecurity",
+    "method": "llm-judge",
+    "maxScore": 6
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_API_ERROR_QUALITY",
+   "description": "API error responses: informative, consistent, safe",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "USER_DUPLICATE_USERNAME",
+    "AUTH_INVALID_CREDENTIALS",
+    "AUTHZ_INVALID_RESOURCE_400",
+    "OIDC_ERROR_RESPONSE_FORMAT",
+    "RBAC_NO_TOKEN_RETURNS_401"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "api_responses",
+      "rubric_prompt": "Evaluate API error handling quality.\n\nScoring criteria:\n- 5: Excellent — Admin API consistently returns {errorMessage} format, OAuth/OIDC endpoints return {error, error_description} per RFC 6749, correct HTTP status codes throughout (400/401/403/404/409), error messages are informative for debugging but never expose stack traces, internal paths, SQL, or sensitive data.\n- 4: Strong — both error formats used correctly in their respective APIs, proper status codes, minor cases of overly generic or slightly inconsistent messages.\n- 3: Adequate — error format mostly consistent within each API, correct status codes for common cases, but some endpoints return wrong format or leak minor internal details.\n- 2: Weak — error format inconsistent (mixing Admin and OAuth formats), some incorrect status codes (e.g., 500 instead of 400), or error messages expose internal class names.\n- 1: Poor — errors mostly return generic 500 with stack traces or HTML error pages instead of JSON.\n- 0: No structured error handling — raw exceptions or no error responses.",
+      "score_range": [
+       0,
+       5
+      ],
+      "api_path_filters": [
+       "/admin/realms",
+       "/protocol/openid-connect/token",
+       "/admin/realms/master/users",
+       "/admin/realms/master/clients"
+      ],
+      "max_evidence_chars": 30000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "ErrorQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_DB_MIGRATION_QUALITY",
+   "description": "Liquibase changelogs well-structured, idempotent, version-tracked",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/jpa-changelog-*.xml",
+       "**/META-INF/jpa-changelog*.xml",
+       "**/Liquibase*.java",
+       "**/connection/**/*.java",
+       "**/JpaUpdaterProvider*.java"
+      ],
+      "rubric_prompt": "Evaluate database migration and schema quality.\n\nScoring criteria:\n- 5: Excellent — Liquibase or Flyway changelogs used with sequential versioning, migrations are ordered and idempotent (re-runnable without error), schema is normalized (3NF+), foreign keys have indexes, naming conventions consistent, and migration includes rollback support.\n- 4: Strong — migration tool used with versioned changelogs, migrations ordered, schema mostly normalized, FK indexes present, minor naming inconsistencies.\n- 3: Adequate — migration tool present, changelogs exist but ordering may have gaps, schema has some denormalization, most FK indexes present.\n- 2: Weak — migrations exist but are ad-hoc SQL scripts without proper versioning or ordering, schema has redundancy, missing FK indexes.\n- 1: Poor — raw SQL scripts with no migration framework, schema created manually, no versioning or idempotency.\n- 0: No database migration — schema created inline in application code or not at all.",
+      "score_range": [
+       0,
+       5
+      ],
+      "prefer_keywords": [
+       "changelog",
+       "liquibase",
+       "migration",
+       "changeset"
+      ],
+      "max_evidence_chars": 35000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "MigrationQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "ARCH_SAML_IMPLEMENTATION",
+   "description": "SAML 2.0 implementation quality: XML signing, encryption, metadata, bindings",
+   "prereqs": [
+    "SAML_METADATA"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/saml/**/*.java",
+       "**/SAMLProtocol*.java",
+       "**/protocol/saml/**/*.java"
+      ],
+      "rubric_prompt": "Evaluate SAML 2.0 protocol implementation.\n\nScoring criteria:\n- 5: Complete — XML signing with Exclusive C14N canonicalization, assertion encryption (AES-GCM or AES-CBC) supported, all 3 bindings implemented (HTTP-POST, HTTP-Redirect, SOAP), auto-generated SP/IdP metadata endpoint, multiple NameID formats supported (persistent, transient, email, unspecified).\n- 4: Strong — XML signing correct, encryption supported, 2-3 bindings implemented, metadata auto-generated, at least 2 NameID formats.\n- 3: Adequate — XML signing works, basic encryption, HTTP-POST binding functional, metadata partially auto-generated, 1-2 NameID formats.\n- 2: Weak — SAML assertions generated but signing may use non-standard canonicalization, no encryption, single binding only, manual metadata configuration.\n- 1: Minimal — basic SAML response generation without proper signing or encryption, no metadata endpoint.\n- 0: No SAML implementation or non-functional.",
+      "score_range": [
+       0,
+       5
+      ],
+      "prefer_keywords": [
+       "saml",
+       "binding",
+       "nameid",
+       "descriptor"
+      ],
+      "max_evidence_chars": 30000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "SAMLQuality",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ARCH_CODE_MAINTAINABILITY",
+   "description": "Code organization, module separation, naming, maintainability",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/pom.xml",
+       "**/build.gradle*",
+       "**/settings.gradle*",
+       "**/dependencies/pom.xml",
+       "pom.xml"
+      ],
+      "rubric_prompt": "Evaluate code maintainability and architecture quality.\n\nScoring criteria:\n- 7: Exceptional — well-organized module structure with clear boundaries, consistent naming conventions (camelCase for Java, PascalCase for classes), strict separation of concerns (model/service/resource layers), clean build config (POM with managed dependencies, no version conflicts), meaningful abstractions (interfaces for services, DTOs for API boundaries), and low coupling between modules.\n- 6: Excellent — clear module structure, consistent naming, proper layering, clean build, good abstractions with minor coupling issues between 1-2 modules.\n- 5: Strong — organized modules, mostly consistent naming, separation of concerns followed, build config reasonable, some abstractions may be too thin or too thick.\n- 4: Good — recognizable module structure, naming mostly consistent, layers exist but some business logic bleeds into resource/controller layer, build works but has minor issues.\n- 3: Adequate — some module organization, naming conventions partially followed, basic layering exists but not strictly enforced, build functional.\n- 2: Weak — flat or poorly organized structure, inconsistent naming, business logic mixed across layers, build config messy.\n- 1: Poor — monolithic code with no module separation, arbitrary naming, no architectural layers.\n- 0: No discernible architecture — single-file or chaotic code organization.",
+      "score_range": [
+       0,
+       7
+      ],
+      "prefer_keywords": [
+       "dependencymanagement",
+       "modules",
+       "parent",
+       "version"
+      ],
+      "max_evidence_chars": 32000
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ArchitectureQuality",
+    "subcategory": "Maintainability",
+    "method": "llm-judge",
+    "maxScore": 7
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "FRONTEND_ACCOUNT_CONSOLE",
+   "description": "Account Console: self-service UI for password, sessions, linked accounts",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/master/account/"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       302
+      ]
+     }
+    },
+    {
+     "type": "RENDER_DOM",
+     "inputs": {
+      "wait_until": "networkidle",
+      "settle_ms": 2000,
+      "timeout_ms": 20000,
+      "url": "{{base_url}}/realms/master/account/",
+      "login_first": true,
+      "login_url": "{{base_url}}/realms/master/account/",
+      "login_username": "admin",
+      "login_password": "admin",
+      "wait_for_selector": "div[id=\"root\"], div[id=\"app\"], main, section"
+     }
+    },
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "rendered_dom",
+      "rubric_prompt": "Evaluate the account console (self-service user portal).\n\nScoring criteria:\n- 5: Fully functional React SPA with client-side routing, sections for personal info editing, security settings (password change, 2FA), active sessions management, and authorized applications listing — all sections accessible and interactive.\n- 4: React SPA with routing, 3-4 sections present and functional, minor UI gaps (e.g., one section not fully interactive).\n- 3: SPA renders with some sections visible, routing partially works, 2-3 sections present but some non-functional or read-only.\n- 2: Page loads with React root, minimal content, only 1 section partially working, routing broken or absent.\n- 1: Page loads but is mostly static or empty, no functional self-service features.\n- 0: No account console, returns error, or page is blank.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "AccountConsole",
+    "method": "llm-judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "FRONTEND_EMAIL_TEMPLATES",
+   "description": "Email templates for verification, password reset, admin actions",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "**/email/**/*.ftl",
+       "**/email/**/*.properties",
+       "**/messages/messages*.properties",
+       "**/theme/base/email/**",
+       "themes/**/email/**"
+      ],
+      "rubric_prompt": "Evaluate email template implementation.\n\nScoring criteria:\n- 4: Complete — FreeMarker (or equivalent) templates exist for all 4 email types (verification, password reset, execute-actions, org invitation), each template includes action token link placeholder (e.g., ${link}), templates are i18n-ready with message bundle references, and HTML email structure is clean.\n- 3: Good — templates for 3 of 4 email types, action token links present, basic i18n support (at least locale-aware).\n- 2: Partial — templates for 1-2 email types, action links present in those templates, no i18n or hardcoded strings.\n- 1: Minimal — one template exists but is plain text only, no action token links, no i18n.\n- 0: No email templates implemented.",
+      "score_range": [
+       0,
+       4
+      ],
+      "prefer_keywords": [
+       "email",
+       "verification",
+       "reset-password",
+       "executions",
+       "org-invitation",
+       "subjects"
+      ],
+      "max_evidence_chars": 35000,
+      "per_file_chars": 3500
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "EmailTemplates",
+    "method": "llm-judge",
+    "maxScore": 4
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "RBAC_DISABLED_USER_CANNOT_LOGIN",
+   "description": "Disabled user (enabled=false) cannot authenticate via password grant",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "disuser2",
+       "enabled": true,
+       "firstName": "D",
+       "lastName": "U",
+       "email": "d2@t.com",
+       "emailVerified": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=disuser2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "dis2_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{dis2_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "DisabledPass1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{dis2_uid}}",
+      "body": {
+       "enabled": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=disuser2&password=DisabledPass1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400,
+       401
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "equals",
+        "expected": "invalid_grant"
+       },
+       {
+        "path": "$.access_token",
+        "operator": "not_exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "DisabledUserDenied",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac",
+   "source_evidence": {
+    "behavior_verified": "Disabled user returns 401 invalid_grant on password grant"
+   }
+  },
+  {
+   "id": "RBAC_VIEWONLY_CANNOT_CREATE_USER",
+   "description": "User with only view-users role cannot create users (403)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "vouser-eval",
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "View",
+       "lastName": "Only",
+       "email": "vouser-eval@t.com",
+       "requiredActions": [],
+       "credentials": [
+        {
+         "type": "password",
+         "value": "VoPass1!",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=vouser-eval"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "vo_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}",
+      "body": {
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "View",
+       "lastName": "Only",
+       "email": "vouser-eval@t.com",
+       "requiredActions": []
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "VoPass1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=realm-management"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "rm_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{rm_uuid}}/roles/view-users"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "operator": "store_as",
+        "key": "vu_role_id"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}/role-mappings/clients/{{rm_uuid}}",
+      "body": [
+       {
+        "id": "{{vu_role_id}}",
+        "name": "view-users"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       204,
+       200,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=vouser-eval&password=VoPass1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "vo_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "headers": {
+       "Authorization": "Bearer {{vo_token}}",
+       "Content-Type": "application/json"
+      },
+      "body": {
+       "username": "vo-should-not-exist",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 403
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "ViewOnlyDenied",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_VIEWONLY_CAN_LIST_USERS",
+   "description": "User with view-users role CAN list users (200) — allow counterpart",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "view_only_admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "ViewOnlyAllowed",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_NON_ADMIN_CANNOT_MODIFY_REALM",
+   "description": "Non-admin user cannot update realm configuration (403)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "vouser-eval",
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "View",
+       "lastName": "Only",
+       "email": "vouser-eval@t.com",
+       "requiredActions": [],
+       "credentials": [
+        {
+         "type": "password",
+         "value": "VoPass1!",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=vouser-eval"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "vo_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}",
+      "body": {
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "View",
+       "lastName": "Only",
+       "email": "vouser-eval@t.com",
+       "requiredActions": []
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "VoPass1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=realm-management"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "rm_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{rm_uuid}}/roles/view-users"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "operator": "store_as",
+        "key": "vu_role_id"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users/{{vo_uid}}/role-mappings/clients/{{rm_uuid}}",
+      "body": [
+       {
+        "id": "{{vu_role_id}}",
+        "name": "view-users"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       204,
+       200,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=vouser-eval&password=VoPass1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "vo_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "headers": {
+       "Authorization": "Bearer {{vo_token}}",
+       "Content-Type": "application/json"
+      },
+      "body": {
+       "realm": "eval-test-realm",
+       "displayName": "should-not-change"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 403
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "NonAdminRealmDenied",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_SERVICE_ACCOUNT_SCOPE_LIMIT",
+   "description": "Service account token only contains roles assigned to it, not all realm roles",
+   "prereqs": [
+    "AUTH_CLIENT_CREDENTIALS",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token/introspect",
+      "body_form": "token={{sa_access_token}}&client_id=eval-test-client&client_secret=eval-secret"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.active",
+        "expected": true
+       },
+       {
+        "path": "$.realm_access.roles",
+        "operator": "not_contains",
+        "expected": "manage-users"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "ServiceAccountScope",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_GROUP_ROLE_INHERITANCE",
+   "description": "User in group with role gets that role in effective role mappings",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/groups"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_min_length",
+        "expected": 3
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "GroupRoleInheritance",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "marketplace_rbac",
+   "source_evidence": {
+    "behavior_verified": "Group role assignment visible in user effective role list"
+   }
+  },
+  {
+   "id": "AUTH_FLOW_LIST_DEFAULT",
+   "description": "Default realm has 7 built-in authentication flows",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/authentication/flows"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.alias=='browser')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.alias=='direct grant')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.alias=='registration')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.alias=='clients')]",
+        "operator": "exists"
+       },
+       {
+        "path": "$[?(@.alias=='first broker login')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthenticationFlows",
+    "subcategory": "DefaultFlows",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "7 default flows created with new realm"
+   }
+  },
+  {
+   "id": "AUTH_FLOW_COPY",
+   "description": "Copy browser flow creates deep copy with new alias",
+   "prereqs": [
+    "AUTH_FLOW_LIST_DEFAULT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/authentication/flows/browser/copy",
+      "body": {
+       "newName": "custom-browser"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/authentication/flows"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.alias=='custom-browser')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AuthenticationFlows",
+    "subcategory": "FlowCopy",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "PROTOCOL_MAPPER_HARDCODED_CLAIM",
+   "description": "Hardcoded claim mapper adds custom claim to access token",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=eval-test-client"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "pm_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/clients/{{pm_uuid}}/protocol-mappers/models",
+      "body": {
+       "name": "eval-hc",
+       "protocol": "openid-connect",
+       "protocolMapper": "oidc-hardcoded-claim-mapper",
+       "config": {
+        "claim.name": "ev",
+        "claim.value": "ok",
+        "access.token.claim": "true",
+        "id.token.claim": "true"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "pm_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token/introspect",
+      "body_form": "client_id=eval-test-client&client_secret=eval-secret&token={{pm_token}}",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.ev",
+        "operator": "equals",
+        "expected": "ok"
+       },
+       {
+        "path": "$.active",
+        "operator": "equals",
+        "expected": true
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ProtocolMappers",
+    "subcategory": "HardcodedClaim",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "CLIENT_POLICY_REJECT_ROPC",
+   "description": "Client policy RejectROPCGrantExecutor blocks password grant",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/client-policies/profiles",
+      "body": {
+       "profiles": [
+        {
+         "name": "eval-reject-ropc-profile",
+         "description": "reprocess honest test",
+         "executors": [
+          {
+           "executor": "reject-ropc-grant",
+           "configuration": {}
+          }
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/client-policies/policies",
+      "body": {
+       "policies": [
+        {
+         "name": "eval-reject-ropc-policy",
+         "description": "reprocess honest test",
+         "enabled": true,
+         "conditions": [
+          {
+           "condition": "any-client",
+           "configuration": {}
+          }
+         ],
+         "profiles": [
+          "eval-reject-ropc-profile"
+         ]
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "ropcuser",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=ropcuser&exact=true"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "ropc_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{ropc_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "RopcPass1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=ropcuser&password=RopcPass1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error_description",
+        "operator": "contains",
+        "expected": "prohibited"
+       },
+       {
+        "path": "$.access_token",
+        "operator": "not_exists"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/client-policies/policies",
+      "body": {
+       "policies": []
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/client-policies/profiles",
+      "body": {
+       "profiles": []
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientPolicies",
+    "subcategory": "RejectROPC",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "ACCOUNT_API_GET_PROFILE",
+   "description": "Account REST API returns user profile with username and email",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_CLIENT",
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "acct-profile-user",
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "Acct",
+       "lastName": "Profile",
+       "email": "acct-profile@t.com",
+       "requiredActions": [],
+       "credentials": [
+        {
+         "type": "password",
+         "value": "AcctPass1!",
+         "temporary": false
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=acct-profile-user"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "acct_profile_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{acct_profile_uid}}",
+      "body": {
+       "enabled": true,
+       "emailVerified": true,
+       "firstName": "Acct",
+       "lastName": "Profile",
+       "email": "acct-profile@t.com",
+       "requiredActions": []
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{acct_profile_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "AcctPass1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=acct-profile-user&password=AcctPass1!",
+      "headers": {
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "store_as",
+        "key": "acct_token"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/realms/eval-test-realm/account",
+      "headers": {
+       "Authorization": "Bearer {{acct_token}}",
+       "Accept": "application/json"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.username",
+        "operator": "equals",
+        "expected": "acct-profile-user"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "AccountAPI",
+    "subcategory": "GetProfile",
+    "method": "weighted",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "IMPORT_EXPORT_PARTIAL",
+   "description": "Partial realm export returns realm data with clients",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/partial-export?exportClients=true&exportGroupsAndRoles=true"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.realm",
+        "expected": "eval-test-realm"
+       },
+       {
+        "path": "$.clients",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ImportExport",
+    "subcategory": "PartialExport",
+    "method": "binary",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "Partial export returns realm JSON with clients array"
+   }
+  },
+  {
+   "id": "KEY_MANAGEMENT_REALM_KEYS",
+   "description": "Realm keys endpoint returns signing and encryption key metadata",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/keys"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.keys",
+        "operator": "array_min_length",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "KeyManagement",
+    "subcategory": "RealmKeys",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "SCOPE_MAPPING_CLIENT_ROLE",
+   "description": "Adding realm role to client scope-mappings makes it appear in scope list",
+   "prereqs": [
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS",
+    "ROLE_COMPOSITE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients?clientId=eval-test-client"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "scope_client_uuid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/roles/eval-child-role"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.id",
+        "operator": "store_as",
+        "key": "scope_role_id"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/clients/{{scope_client_uuid}}/scope-mappings/realm",
+      "body": [
+       {
+        "id": "{{scope_role_id}}",
+        "name": "eval-child-role"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/clients/{{scope_client_uuid}}/scope-mappings/realm"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[?(@.name=='eval-child-role')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ClientManagement",
+    "subcategory": "ScopeMapping",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "IDP_CRUD",
+   "description": "Identity Provider CRUD: create OIDC IdP, verify, delete",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/identity-provider/instances",
+      "body": {
+       "alias": "eval-oidc-idp",
+       "providerId": "oidc",
+       "enabled": true,
+       "config": {
+        "authorizationUrl": "https://idp.example.com/auth",
+        "tokenUrl": "https://idp.example.com/token",
+        "clientId": "eval-client",
+        "clientSecret": "eval-secret"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       201
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/identity-provider/instances/eval-oidc-idp"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.alias",
+        "expected": "eval-oidc-idp"
+       },
+       {
+        "path": "$.providerId",
+        "expected": "oidc"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/admin/realms/eval-test-realm/identity-provider/instances/eval-oidc-idp"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "IdentityProvider",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 5
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CAUSAL_PWD_HISTORY",
+   "description": "Password history: set A, set B, try revert to A → rejected (400)",
+   "prereqs": [
+    "CRUD_USER",
+    "REALM_CREATE_DEFAULTS",
+    "REALM_UPDATE_CONFIG"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "realm": "eval-test-realm",
+       "passwordPolicy": "passwordHistory(2)"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "phuser2",
+       "enabled": true,
+       "firstName": "P",
+       "lastName": "H",
+       "email": "ph2@t.com",
+       "emailVerified": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=phuser2"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "ph2_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{ph2_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "HistPassA1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{ph2_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "HistPassB2!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm/users/{{ph2_uid}}/reset-password",
+      "body": {
+       "type": "password",
+       "value": "HistPassA1!",
+       "temporary": false
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       400
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "PasswordPolicy",
+    "subcategory": "PasswordHistory",
+    "method": "binary",
+    "maxScore": 4
+   },
+   "complexity_tier": "workflow_automator",
+   "source_evidence": {
+    "behavior_verified": "passwordHistory(2) prevents reusing last 2 passwords"
+   }
+  },
+  {
+   "id": "CAUSAL_SCOPE_TO_TOKEN_CLAIM",
+   "description": "Add mapper to client scope → assign scope to client → claim appears",
+   "prereqs": [
+    "CRUD_CLIENT",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/client-scopes",
+      "body": {
+       "name": "eval-custom-scope",
+       "protocol": "openid-connect"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/client-scopes"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_min_length",
+        "expected": 10
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ProtocolMappers",
+    "subcategory": "ScopeToTokenClaim",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "workflow_automator"
+  },
+  {
+   "id": "RBAC_ADMIN_CAN_MODIFY_REALM",
+   "description": "Master admin can modify realm settings (allow counterpart)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "PUT",
+      "path": "/admin/realms/eval-test-realm",
+      "body": {
+       "displayName": "Updated Eval Realm"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       202,
+       204
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "RealmPermissions",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_ENABLED_USER_CAN_LOGIN",
+   "description": "Enabled user can obtain token via password grant on master realm (allow counterpart)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/master/protocol/openid-connect/token",
+      "body_form": "grant_type=password&client_id=admin-cli&username=admin&password=admin",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "UserLoginPermission",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_SAME_REALM_ACCESS",
+   "description": "Admin of a realm can access resources within the same realm (allow counterpart)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "REALM_CREATE_DEFAULTS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "RealmIsolation",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_SERVICE_ACCOUNT_WITHIN_SCOPE",
+   "description": "Service account can access resources within its granted scope (allow counterpart)",
+   "prereqs": [
+    "AUTH_CLIENT_CREDENTIALS"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/realms/eval-test-realm/protocol/openid-connect/token",
+      "body_form": "grant_type=client_credentials&client_id=eval-test-client&client_secret=eval-secret",
+      "headers": {
+       "Content-Type": "application/x-www-form-urlencoded",
+       "Authorization": ""
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.access_token",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "ServiceAccountScope",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_VALID_TOKEN_RETURNS_200",
+   "description": "Request with valid admin token returns 200 (allow counterpart for no-token 401)",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "is_array"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "TokenValidation",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  },
+  {
+   "id": "RBAC_NO_GROUP_NO_ROLE",
+   "description": "Newly created user without group membership does not have group-assigned roles",
+   "prereqs": [
+    "AUTH_ADMIN_TOKEN",
+    "CRUD_USER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/admin/realms/eval-test-realm/users",
+      "body": {
+       "username": "nogroupuser",
+       "enabled": true
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       201,
+       409
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users?username=nogroupuser&exact=true"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$[0].username",
+        "operator": "equals",
+        "expected": "nogroupuser"
+       },
+       {
+        "path": "$[0].id",
+        "operator": "store_as",
+        "key": "nogroup_uid"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/admin/realms/eval-test-realm/users/{{nogroup_uid}}/role-mappings/realm"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$",
+        "operator": "array_length",
+        "expected": 1
+       },
+       {
+        "path": "$[?(@.name=='default-roles-eval-test-realm')]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "GroupRoleInheritance",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "marketplace_rbac"
+  }
+ ]
+}

@@ -1,0 +1,198 @@
+{
+  "categories": {
+    "API": {
+      "maxScore": 107,
+      "node_count": 31
+    },
+    "ArchitectureQuality": {
+      "maxScore": 71,
+      "node_count": 10
+    },
+    "Authentication": {
+      "maxScore": 22,
+      "node_count": 6
+    },
+    "BusinessLogic": {
+      "maxScore": 172,
+      "node_count": 39
+    },
+    "DataModel": {
+      "maxScore": 20,
+      "node_count": 8
+    },
+    "Deployment": {
+      "maxScore": 2,
+      "node_count": 2
+    },
+    "Enterprise": {
+      "maxScore": 33,
+      "node_count": 9
+    },
+    "Frontend": {
+      "maxScore": 58,
+      "node_count": 8
+    },
+    "PublicAPI": {
+      "maxScore": 19,
+      "node_count": 5
+    },
+    "RBAC": {
+      "maxScore": 68,
+      "node_count": 20
+    },
+    "RealTime": {
+      "maxScore": 6,
+      "node_count": 1
+    },
+    "Search": {
+      "maxScore": 11,
+      "node_count": 3
+    },
+    "Validation": {
+      "maxScore": 49,
+      "node_count": 14
+    }
+  },
+  "total_maxScore": 638,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "high_concurrency": {
+      "node_count": 2,
+      "maxScore": 13
+    },
+    "linear_crud": {
+      "node_count": 46,
+      "maxScore": 176
+    },
+    "marketplace_rbac": {
+      "node_count": 26,
+      "maxScore": 98
+    },
+    "workflow_automator": {
+      "node_count": 82,
+      "maxScore": 351
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": {
+      "node_count": 123,
+      "maxScore": 464
+    },
+    "llm-judge": {
+      "node_count": 18,
+      "maxScore": 129
+    },
+    "weighted": {
+      "node_count": 15,
+      "maxScore": 45
+    }
+  },
+  "depth_analysis": {
+    "deep_score": 417,
+    "deep_pct": 65.4,
+    "llm_judge_score": 129,
+    "llm_judge_pct": 20.2,
+    "llm_judge_node_pct": 11.5,
+    "_llm_judge_pct_note": "llm_judge_pct is by score (129/638=20.2%), llm_judge_node_pct is by node count (18/156=11.5%)",
+    "shallow_score": 20,
+    "shallow_pct": 3.1,
+    "status_only_score": 72,
+    "constraints_met": {
+      "deep_gte_60pct": true,
+      "llm_judge_gte_20pct": true,
+      "shallow_lte_20pct": true
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy, auth, create inbox/contact/conversation/message, list conversations, teams, labels, webhooks",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_HOMEPAGE",
+        "AUTH_LOGIN",
+        "AUTH_TOKEN_VALIDATE",
+        "AUTH_PROFILE_READ",
+        "API_INBOXES_CREATE",
+        "API_CONTACTS_CREATE",
+        "API_CONVERSATIONS_CREATE",
+        "BIZ_MESSAGE_CREATE_OUTGOING",
+        "API_CONVERSATIONS_LIST",
+        "API_AGENTS_CREATE",
+        "API_TEAMS_CRUD",
+        "API_LABELS_CRUD",
+        "API_WEBHOOKS_CREATE",
+        "API_CANNED_RESPONSES_CRUD"
+      ],
+      "maxScore": 51
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC matrix, mute/unmute, snooze, soft delete, display_id sequence, filters, auto-assignment, contact merge, macro execution, SLA, custom roles, WebSocket, search, validation edge cases",
+      "node_ids": [
+        "RBAC_AGENT_DENY_DELETE_CONVERSATION",
+        "RBAC_ADMIN_ALLOW_DELETE_CONVERSATION",
+        "RBAC_AGENT_DENY_CREATE_INBOX",
+        "RBAC_AGENT_DENY_CREATE_AUTOMATION",
+        "RBAC_AGENT_DENY_VIEW_REPORTS",
+        "RBAC_AGENT_DENY_CREATE_WEBHOOK",
+        "RBAC_AGENT_DENY_CREATE_CAMPAIGN",
+        "RBAC_AGENT_DENY_DELETE_AGENT",
+        "RBAC_AGENT_DENY_CSAT_DOWNLOAD",
+        "BIZ_CONVERSATION_MUTE",
+        "BIZ_CONVERSATION_UNMUTE",
+        "BIZ_CONVERSATION_SNOOZE",
+        "BIZ_MESSAGE_SOFT_DELETE",
+        "BIZ_CONVERSATION_DISPLAY_ID_SEQUENCE",
+        "BIZ_CONTACT_EMAIL_NORMALIZE",
+        "BIZ_CONTACT_CUSTOM_ATTRS_MERGE",
+        "BIZ_CONVERSATION_FILTER",
+        "BIZ_AUTO_RESOLVE_SETTINGS",
+        "BIZ_CONV_BLOCKED_CONTACT_RESOLVED",
+        "BIZ_FIRST_REPLY_TRACKING",
+        "BIZ_CONVERSATION_WAITING_SINCE",
+        "BIZ_CAMPAIGN_TYPE_ENFORCE",
+        "BIZ_CAMPAIGN_COMPLETED_IMMUTABLE",
+        "BIZ_AUTOASSIGN_ROUND_ROBIN",
+        "BIZ_CONTACT_MERGE",
+        "BIZ_MACRO_EXECUTE",
+        "BIZ_CONV_CUSTOM_ATTRS_REPLACE",
+        "REALTIME_ACTION_CABLE_CONNECT",
+        "SEARCH_GLOBAL_CONVERSATIONS",
+        "VAL_CONTACT_PHONE_E164",
+        "VAL_MESSAGE_CONTENT_LENGTH",
+        "VAL_CONV_FILTER_INVALID_ATTR",
+        "BIZ_CUSTOM_ROLE_REPORT_MANAGE",
+        "BIZ_CUSTOM_ROLE_CONV_MANAGE_NO_DELETE",
+        "BIZ_ZERO_INBOX_AGENT_NO_CONVERSATIONS",
+        "API_SLA_APPLY_TO_CONVERSATION"
+      ],
+      "maxScore": 162
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 156,
+    "meta_total_nodes_match": true,
+    "has_cycle": false,
+    "root_nodes": 14,
+    "leaf_nodes": 134,
+    "dangling_prereqs": 0,
+    "topological_sort_feasible": true,
+    "root_node_ids": [
+      "DB_TABLE_CORE",
+      "DB_TABLE_ENTERPRISE",
+      "DB_TABLE_EXTENDED",
+      "DEPLOY_HEALTH",
+      "DEPLOY_HOMEPAGE",
+      "LLM_ARCH_AUTOMATION_ENGINE",
+      "LLM_ARCH_CHANNEL_POLYMORPHISM",
+      "LLM_ARCH_CODE_ORGANIZATION",
+      "LLM_ARCH_CONCERN_COMPOSITION",
+      "LLM_ARCH_MULTI_TENANCY",
+      "LLM_ARCH_RBAC_DESIGN",
+      "LLM_ARCH_REALTIME_DESIGN",
+      "LLM_ARCH_SERVICE_OBJECT_PATTERN",
+      "LLM_ARCH_SIDEKIQ_JOB_DESIGN"
+    ],
+    "test_coverage_gaps": [],
+    "task_md_gaps": []
+  }
+}

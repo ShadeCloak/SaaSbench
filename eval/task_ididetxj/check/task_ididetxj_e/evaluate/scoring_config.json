@@ -1,0 +1,340 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 13,
+      "node_count": 5
+    },
+    "DataModel": {
+      "maxScore": 104,
+      "node_count": 40
+    },
+    "Authentication": {
+      "maxScore": 25,
+      "node_count": 8
+    },
+    "API": {
+      "maxScore": 94,
+      "node_count": 40
+    },
+    "BusinessLogic": {
+      "maxScore": 99,
+      "node_count": 38
+    },
+    "RBAC": {
+      "maxScore": 116,
+      "node_count": 49
+    },
+    "Realtime": {
+      "maxScore": 14,
+      "node_count": 4
+    },
+    "AsyncQueue": {
+      "maxScore": 13,
+      "node_count": 4
+    },
+    "OAuthProvider": {
+      "maxScore": 11,
+      "node_count": 3
+    },
+    "Search": {
+      "maxScore": 9,
+      "node_count": 3
+    },
+    "Webhook": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "Email": {
+      "maxScore": 5,
+      "node_count": 2
+    },
+    "EdgeCases": {
+      "maxScore": 19,
+      "node_count": 8
+    },
+    "Frontend": {
+      "maxScore": 16,
+      "node_count": 8
+    },
+    "ArchitectureQuality": {
+      "maxScore": 24,
+      "node_count": 6
+    },
+    "CLI": {
+      "maxScore": 6,
+      "node_count": 2
+    }
+  },
+  "total_maxScore": 574,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "maxScore": 316,
+      "node_count": 127
+    },
+    "workflow_automator": {
+      "maxScore": 89,
+      "node_count": 31
+    },
+    "marketplace_rbac": {
+      "maxScore": 150,
+      "node_count": 59
+    },
+    "high_concurrency": {
+      "maxScore": 19,
+      "node_count": 5
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 162,
+    "weighted": 54,
+    "llm-judge": 6
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Minimal usable: deploy → core schema → first user → token → CRUD → dual storage.",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DB_REACHABLE",
+        "DEPLOY_REDIS_REACHABLE",
+        "DEPLOY_PG_EXTENSIONS",
+        "DB_TABLE_USER",
+        "DB_TABLE_TEAM",
+        "DB_TABLE_COLLECTION",
+        "DB_TABLE_DOCUMENT",
+        "AUTH_CREATE_FIRST_USER",
+        "AUTH_API_TOKEN_CREATE",
+        "API_COLLECTIONS_CREATE",
+        "API_DOCUMENTS_CREATE",
+        "API_DOCUMENTS_PUBLISH",
+        "BIZ_DOCUMENT_DUAL_STORAGE_CONTENT_VS_STATE",
+        "API_COLLECTIONS_LIST",
+        "API_DOCUMENTS_LIST"
+      ],
+      "maxScore": 58
+    },
+    "advanced_workflows": {
+      "description": "Hard properties: RBAC, EdgeCases, Architecture, Realtime, AsyncQueue, OAuth Provider, Webhook, Search + the Document lifecycle multi-step chain.",
+      "node_ids": [
+        "BIZ_DOCUMENT_LIFECYCLE_FULL_CHAIN",
+        "RBAC_DOCUMENT_ARCHIVE_VIEWER_DENIED",
+        "RBAC_DOCUMENT_ARCHIVE_ADMIN_ALLOWED",
+        "RBAC_DOCUMENT_DELETE_VIEWER_DENIED",
+        "RBAC_DOCUMENT_DELETE_ADMIN_ALLOWED",
+        "RBAC_DOCUMENT_PERMANENT_DELETE_MEMBER_DENIED",
+        "RBAC_DOCUMENT_PERMANENT_DELETE_ADMIN_ALLOWED",
+        "RBAC_DOCUMENT_SHARE_VIEWER_DENIED",
+        "RBAC_DOCUMENT_SHARE_ADMIN_ALLOWED",
+        "RBAC_DOCUMENT_PUBLISH_GUEST_DENIED",
+        "RBAC_DOCUMENT_PUBLISH_MEMBER_ALLOWED",
+        "RBAC_COLLECTION_CREATE_VIEWER_DENIED",
+        "RBAC_COLLECTION_CREATE_ADMIN_ALLOWED",
+        "RBAC_COLLECTION_DELETE_MEMBER_DENIED",
+        "RBAC_COLLECTION_DELETE_ADMIN_ALLOWED",
+        "RBAC_COLLECTION_UPDATE_PERMISSION_VIEWER_DENIED",
+        "RBAC_COLLECTION_UPDATE_PERMISSION_ADMIN_ALLOWED",
+        "RBAC_COLLECTION_ADD_USER_VIEWER_DENIED",
+        "RBAC_COLLECTION_ADD_USER_ADMIN_ALLOWED",
+        "RBAC_COLLECTION_EXPORT_GUEST_DENIED",
+        "RBAC_COLLECTION_EXPORT_ADMIN_ALLOWED",
+        "RBAC_USER_SUSPEND_MEMBER_DENIED",
+        "RBAC_USER_SUSPEND_ADMIN_ALLOWED",
+        "RBAC_USER_UPDATE_ROLE_MEMBER_DENIED",
+        "RBAC_USER_UPDATE_ROLE_ADMIN_ALLOWED",
+        "RBAC_USER_INVITE_VIEWER_DENIED",
+        "RBAC_USER_INVITE_ADMIN_ALLOWED",
+        "RBAC_USER_DELETE_MEMBER_DENIED",
+        "RBAC_USER_DELETE_ADMIN_ALLOWED",
+        "RBAC_TEAM_UPDATE_MEMBER_DENIED",
+        "RBAC_TEAM_UPDATE_ADMIN_ALLOWED",
+        "RBAC_TEAM_ADD_DOMAIN_MEMBER_DENIED",
+        "RBAC_TEAM_ADD_DOMAIN_ADMIN_ALLOWED",
+        "RBAC_WEBHOOK_CREATE_MEMBER_DENIED",
+        "RBAC_WEBHOOK_CREATE_ADMIN_ALLOWED",
+        "RBAC_OAUTH_CLIENT_CREATE_MEMBER_DENIED",
+        "RBAC_OAUTH_CLIENT_CREATE_ADMIN_ALLOWED",
+        "RBAC_INTEGRATION_CREATE_VIEWER_DENIED",
+        "RBAC_INTEGRATION_CREATE_ADMIN_ALLOWED",
+        "RBAC_APIKEY_CREATE_VIEWER_DENIED",
+        "RBAC_APIKEY_CREATE_ADMIN_ALLOWED",
+        "RBAC_GROUP_CREATE_VIEWER_DENIED",
+        "RBAC_GROUP_CREATE_ADMIN_ALLOWED",
+        "RBAC_GROUP_DELETE_MEMBER_DENIED",
+        "RBAC_GROUP_DELETE_ADMIN_ALLOWED",
+        "RBAC_GROUP_ADD_USER_MEMBER_DENIED",
+        "RBAC_GROUP_ADD_USER_ADMIN_ALLOWED",
+        "RBAC_CROSS_TEAM_ISOLATION_OTHER_TEAM_ADMIN_DENIED",
+        "RBAC_CROSS_TEAM_ISOLATION_ADMIN_ALLOWED",
+        "RBAC_404_NOT_403_LEAKAGE",
+        "REALTIME_HOCUSPOCUS_CONNECT",
+        "REALTIME_YJS_TWO_CLIENT_SYNC",
+        "REALTIME_SOCKETIO_PRESENCE",
+        "REALTIME_AWARENESS_EPHEMERAL",
+        "QUEUE_REVISION_CREATED_ON_SAVE",
+        "QUEUE_NOTIFICATION_FOR_MENTION",
+        "QUEUE_FILE_OPERATION_EXPORT_ASYNC",
+        "QUEUE_DELETED_USER_CASCADES",
+        "OAUTH_AUTHORIZE_REQUIRES_LOGIN",
+        "OAUTH_CLIENT_CRUD_ADMIN_ONLY",
+        "OAUTH_FULL_FLOW_PKCE",
+        "SEARCH_TITLE_AUTOCOMPLETE",
+        "SEARCH_HIDES_OTHER_USERS_DRAFTS",
+        "SEARCH_RANKING_TITLE_FIRST",
+        "WEBHOOK_REGISTER_AND_DELIVER",
+        "WEBHOOK_DELIVERY_LOG_EXISTS",
+        "EDGE_COLLECTION_EMPTY_NAME_REJECTED",
+        "EDGE_DUPLICATE_COLLECTION_NAMES_OK",
+        "EDGE_STAR_REQUIRES_READ",
+        "EDGE_LAST_ADMIN_DEMOTION_BLOCKED",
+        "EDGE_ATTACHMENT_TOO_LARGE_REJECTED",
+        "EDGE_API_TOKEN_DELETED_IS_IMMEDIATELY_INVALID",
+        "EDGE_DOCUMENT_INVALID_COLLECTION_ID_REJECTED",
+        "EDGE_OAUTH_DCR_DISABLED_RETURNS_404",
+        "ARCH_CANCAN_POLICY_PATTERN",
+        "ARCH_PRESENTER_LAYER",
+        "ARCH_COMMAND_PATTERN",
+        "ARCH_HOCUSPOCUS_INTEGRATION",
+        "ARCH_PROSEMIRROR_SCHEMA_MODULAR",
+        "ARCH_PLUGIN_MANAGER_HOOKS"
+      ],
+      "maxScore": 220
+    },
+    "crud_baseline": {
+      "description": "Schema + API CRUD coverage across all 40 entities and 13 core resources.",
+      "node_ids": [
+        "DB_TABLE_APIKEY",
+        "DB_TABLE_AUTHENTICATIONPROVIDER",
+        "DB_TABLE_TEAM",
+        "DB_TABLE_TEAMDOMAIN",
+        "DB_TABLE_USER",
+        "DB_TABLE_USERAUTHENTICATION",
+        "DB_TABLE_USERPASSKEY",
+        "DB_TABLE_ATTACHMENT",
+        "DB_TABLE_COLLECTION",
+        "DB_TABLE_DOCUMENT",
+        "DB_TABLE_EMOJI",
+        "DB_TABLE_PIN",
+        "DB_TABLE_REVISION",
+        "DB_TABLE_SEARCHQUERY",
+        "DB_TABLE_STAR",
+        "DB_TABLE_VIEW",
+        "DB_TABLE_COMMENT",
+        "DB_TABLE_NOTIFICATION",
+        "DB_TABLE_REACTION",
+        "DB_TABLE_SHARE",
+        "DB_TABLE_SHARESUBSCRIPTION",
+        "DB_TABLE_SUBSCRIPTION",
+        "DB_TABLE_EVENT",
+        "DB_TABLE_FILEOPERATION",
+        "DB_TABLE_IMPORT",
+        "DB_TABLE_IMPORTTASK",
+        "DB_TABLE_INTEGRATION",
+        "DB_TABLE_INTEGRATIONAUTHENTICATION",
+        "DB_TABLE_WEBHOOKDELIVERY",
+        "DB_TABLE_WEBHOOKSUBSCRIPTION",
+        "DB_TABLE_EXTERNALGROUP",
+        "DB_TABLE_GROUP",
+        "DB_TABLE_GROUPMEMBERSHIP",
+        "DB_TABLE_GROUPUSER",
+        "DB_TABLE_USERMEMBERSHIP",
+        "DB_TABLE_RELATIONSHIP",
+        "DB_TABLE_OAUTHAUTHENTICATION",
+        "DB_TABLE_OAUTHAUTHORIZATIONCODE",
+        "DB_TABLE_OAUTHCLIENT",
+        "DB_TABLE_APIKEYS_CAMELCASE_VERIFY",
+        "API_DOCUMENTS_CREATE",
+        "API_DOCUMENTS_LIST",
+        "API_DOCUMENTS_INFO",
+        "API_DOCUMENTS_UPDATE",
+        "API_DOCUMENTS_ARCHIVE",
+        "API_DOCUMENTS_DELETE",
+        "API_DOCUMENTS_RESTORE",
+        "API_COLLECTIONS_CREATE",
+        "API_COLLECTIONS_LIST",
+        "API_COLLECTIONS_UPDATE",
+        "API_COLLECTIONS_MEMBERSHIPS",
+        "API_USERS_LIST",
+        "API_USERS_INFO",
+        "API_COMMENTS_CREATE",
+        "API_COMMENTS_LIST",
+        "API_COMMENTS_RESOLVE",
+        "API_SHARES_CREATE",
+        "API_SHARES_REVOKE",
+        "API_STARS_CREATE",
+        "API_STARS_LIST",
+        "API_PINS_CREATE",
+        "API_GROUPS_CREATE",
+        "API_GROUPS_LIST",
+        "API_WEBHOOKSUBSCRIPTIONS_CREATE",
+        "API_OAUTHCLIENTS_CREATE",
+        "API_INTEGRATIONS_CREATE",
+        "API_NOTIFICATIONS_LIST",
+        "API_FILEOPERATIONS_LIST",
+        "API_AUTHENTICATIONPROVIDERS_LIST",
+        "API_TEMPLATES_LIST",
+        "API_USERMEMBERSHIPS_LIST",
+        "API_GROUPMEMBERSHIPS_LIST",
+        "API_OAUTHAUTHENTICATIONS_LIST",
+        "API_SEARCHES_LIST",
+        "API_SUGGESTIONS_LIST",
+        "API_URLS_UNFURL",
+        "API_SUBSCRIPTIONS_CREATE",
+        "API_DOCUMENTS_PUBLISH",
+        "API_DOCUMENTS_PERMANENT_DELETE_TWO_STEP",
+        "API_REJECTS_GET_REQUESTS"
+      ],
+      "maxScore": 198
+    },
+    "auth_security": {
+      "description": "Authentication + OAuth Provider + RBAC pieces that determine 'is access control implemented'.",
+      "node_ids": [
+        "AUTH_CREATE_FIRST_USER",
+        "AUTH_API_TOKEN_CREATE",
+        "AUTH_API_TOKEN_HASHED_AT_REST",
+        "AUTH_JWT_PER_USER_SECRET",
+        "AUTH_SUSPENDED_BLOCKS_TOKEN",
+        "AUTH_OAUTH_PROVIDER_DISCOVERY",
+        "AUTH_PASSKEY_CREDENTIAL_CREATE",
+        "AUTH_RATE_LIMIT_MAGIC_LINK",
+        "OAUTH_AUTHORIZE_REQUIRES_LOGIN",
+        "OAUTH_CLIENT_CRUD_ADMIN_ONLY",
+        "OAUTH_FULL_FLOW_PKCE"
+      ],
+      "maxScore": 36
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 222,
+    "has_cycle": false,
+    "topological_sort_feasible": true,
+    "topological_order_first_5": [
+      "DEPLOY_HEALTH",
+      "DEPLOY_DB_REACHABLE",
+      "DEPLOY_REDIS_REACHABLE",
+      "DEPLOY_NODE_VERSION",
+      "AUTH_OAUTH_PROVIDER_DISCOVERY"
+    ],
+    "roots_count": 4,
+    "roots": [
+      "DEPLOY_HEALTH",
+      "DEPLOY_DB_REACHABLE",
+      "DEPLOY_REDIS_REACHABLE",
+      "DEPLOY_NODE_VERSION"
+    ],
+    "leaves_count": 201,
+    "dangling_prereqs": [],
+    "status_only_violations": [],
+    "score_distribution": {
+      "shallow_score": 70,
+      "shallow_pct": 12.2,
+      "deep_score": 480,
+      "deep_pct": 83.6,
+      "llm_score": 24,
+      "llm_pct": 4.2,
+      "total": 574
+    },
+    "rbac_unpaired_deny_nodes": [],
+    "p13_admin_reset_missing": [],
+    "well_named_nodes": 219
+  }
+}

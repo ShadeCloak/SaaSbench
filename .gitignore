@@ -1,0 +1,25 @@
+# --- Python ---
+__pycache__/
+*.py[cod]
+.pytest_cache/
+*.egg-info/
+.venv/
+venv/
+
+# --- OS cruft ---
+.DS_Store
+Thumbs.db
+
+# --- Evaluation / run artifacts (generated per run) ---
+_harness/logs/
+**/eval_reports/
+**/workspace_snapshot/
+**/result.json
+**/evaluation_output.json
+**/*_output.json
+**/codex_events.jsonl
+
+# --- Local overrides ---
+# Task inputs are fetched from Hugging Face on first setup (see eval/README.md).
+# Real per-machine secrets belong in a local, untracked copy; the shipped
+# docker/.env files carry placeholder keys + fixed test credentials only.

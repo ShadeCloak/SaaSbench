@@ -1,0 +1,29 @@
+# =============================================================================
+# Dockerfile.model — generic Ruby development environment for the model under
+# test. Provides Ruby + Bundler so the agent can `bundle install` any Gemfile
+# it generates inside the workspace.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        ruby-full ruby-dev libyaml-dev \
+ && rm -rf /var/lib/apt/lists/* \
+ && ruby --version
+
+# Optional Ruby gem mirror — enable via build-arg in regions with restricted
+# access to rubygems.org. Default empty = use the upstream rubygems.org.
+ARG RUBY_GEM_MIRROR=""
+RUN if [ -n "$RUBY_GEM_MIRROR" ]; then \
+        gem sources --remove https://rubygems.org/ 2>/dev/null || true; \
+        gem sources -a "$RUBY_GEM_MIRROR"; \
+        bundle config mirror.https://rubygems.org "$RUBY_GEM_MIRROR"; \
+    fi \
+ && gem install bundler --no-document
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

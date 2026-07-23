@@ -1,0 +1,4 @@
+requests>=2.31,<3
+psycopg2-binary>=2.9,<3
+websockets>=12.0,<14
+openai>=1.30,<3

@@ -1,0 +1,29 @@
+# task_ididetxj — open-source distribution .gitignore
+#
+# Excludes evaluator runtime artefacts and any locally-mounted workspace
+# state. None of these paths should ever be tracked.
+
+# Evaluator runtime output
+check/task_ididetxj_e/evaluate/results/
+check/task_ididetxj_e/evaluate/results_audit/
+check/task_ididetxj_e/evaluate/results_smoke/
+check/task_ididetxj_e/evaluate/__pycache__/
+check/task_ididetxj_e/evaluate/**/__pycache__/
+check/task_ididetxj_e/evaluate/**/*.pyc
+
+# Candidate workspace + filestorage + historical model runs
+tasks/task_ididetxj/docker/workspace/
+tasks/task_ididetxj/docker/workspace_history/
+tasks/task_ididetxj/docker/filestorage/
+tasks/task_ididetxj/docker/data/
+
+# Secret-bearing local overrides — keep only .env.example in the public repo
+tasks/task_ididetxj/docker/.env.local
+tasks/task_ididetxj/docker/.env.*.local
+
+# Misc temp / backup
+*.bak
+*.bak.*
+*.tmp
+*.swp
+.DS_Store

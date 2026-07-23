@@ -1,0 +1,6136 @@
+{
+  "meta": {
+    "task_id": "task_ghmkznee",
+    "total_nodes": 106,
+    "source_prd": "task/task.md",
+    "generated_at": "2026-04-02T14:00:00Z"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "App accessible on port 8025, returns JSON response",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/health",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              401,
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Health",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_GO_MODULE",
+      "description": "go.mod exists with module declaration",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "go.mod"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "go.mod",
+            "match_type": "contains",
+            "pattern": "module"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "GoSetup",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_FRONTEND_PACKAGE",
+      "description": "package.json with React dependency",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "package.json"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "package.json",
+            "match_type": "contains",
+            "pattern": "react"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "FrontendSetup",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_DB_MIGRATION",
+      "description": "Core tables created via migrations",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "user",
+              "org",
+              "org_user",
+              "dashboard",
+              "dashboard_version",
+              "dashboard_acl",
+              "data_source",
+              "team",
+              "team_member",
+              "folder",
+              "alert_rule",
+              "alert_instance",
+              "alert_configuration",
+              "annotation",
+              "api_key",
+              "star",
+              "preferences",
+              "role",
+              "permission",
+              "builtin_role"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "CoreTables",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_DB_SECONDARY_TABLES",
+      "description": "Secondary tables exist",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "user_role",
+              "team_role",
+              "annotation_tag",
+              "tag",
+              "dashboard_tag",
+              "dashboard_provisioning",
+              "dashboard_snapshot",
+              "alert_rule_version",
+              "provenance_type",
+              "plugin_setting",
+              "quota",
+              "kv_store",
+              "library_element",
+              "login_attempt",
+              "temp_user",
+              "short_url",
+              "query_history",
+              "user_auth",
+              "user_auth_token"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "SecondaryTables",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_USER_COLUMNS",
+      "description": "user table has all required columns",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "user",
+            "expected_columns": [
+              "id",
+              "login",
+              "email",
+              "password",
+              "salt",
+              "org_id",
+              "is_admin",
+              "is_disabled",
+              "is_service_account",
+              "uid",
+              "name",
+              "created",
+              "updated"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UserColumns",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_DASHBOARD_COLUMNS",
+      "description": "dashboard table has version, uid, folder_id, has_acl, deleted columns",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "dashboard",
+            "expected_columns": [
+              "id",
+              "version",
+              "slug",
+              "title",
+              "data",
+              "org_id",
+              "uid",
+              "folder_id",
+              "is_folder",
+              "has_acl",
+              "deleted",
+              "created",
+              "updated"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "DashboardColumns",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_ALERT_RULE_COLUMNS",
+      "description": "alert_rule table has all Unified Alerting columns",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "alert_rule",
+            "expected_columns": [
+              "id",
+              "org_id",
+              "title",
+              "condition",
+              "data",
+              "uid",
+              "namespace_uid",
+              "rule_group",
+              "interval_seconds",
+              "version",
+              "no_data_state",
+              "exec_err_state",
+              "for",
+              "is_paused",
+              "guid"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "AlertRuleColumns",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLE_RBAC_COLUMNS",
+      "description": "RBAC tables have correct columns",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "role",
+            "expected_columns": [
+              "id",
+              "name",
+              "org_id",
+              "uid",
+              "version"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "permission",
+            "expected_columns": [
+              "id",
+              "role_id",
+              "action",
+              "scope"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "RBACColumns",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_INDEX_UNIQUE",
+      "description": "Critical unique indexes: user(login), user(email), dashboard(org_id,uid), data_source(org_id,name)",
+      "prereqs": [
+        "DEPLOY_DB_MIGRATION"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P11",
+          "inputs": {
+            "table": "user",
+            "expected_indexes": [
+              {
+                "columns": [
+                  "login"
+                ],
+                "unique": true
+              },
+              {
+                "columns": [
+                  "email"
+                ],
+                "unique": true
+              }
+            ]
+          }
+        },
+        {
+          "type": "P11",
+          "inputs": {
+            "table": "dashboard",
+            "expected_indexes": [
+              {
+                "columns": [
+                  "org_id",
+                  "uid"
+                ],
+                "unique": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UniqueIndexes",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN_BASIC",
+      "description": "Basic Auth with admin:admin returns user profile",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "DB_TABLE_USER_COLUMNS"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin",
+            "credentials": {
+              "user": "{{admin_login}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/user"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.login",
+                "expected": "admin"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "BasicAuth",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_LOGIN_POST",
+      "description": "POST /login returns session with 'Logged in' message",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "body": {
+              "user": "{{admin_login}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "Logged in"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "FormLogin",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_INVALID_LOGIN_401",
+      "description": "Wrong credentials returns 401 with error message",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "body": {
+              "user": "{{admin_login}}",
+              "password": "wrong"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "InvalidLogin",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_UNAUTHENTICATED_401",
+      "description": "Unauthenticated request to protected endpoint returns 401",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/user"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 401
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Unauthenticated",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_USER_PROFILE_FIELDS",
+      "description": "GET /api/user returns isGrafanaAdmin, orgId, login fields",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/user"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.login",
+                "expected": "admin"
+              },
+              {
+                "path": "$.isGrafanaAdmin",
+                "expected": true
+              },
+              {
+                "path": "$.orgId",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ProfileFields",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_USER_CREATE",
+      "description": "POST /api/admin/users returns 200 with 'User created' and id",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/admin/users",
+            "body": {
+              "login": "{{viewer_login}}",
+              "email": "{{viewer_email}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              },
+              {
+                "path": "$.id",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_UserOrg",
+        "subcategory": "AdminUserCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_USER_DUPLICATE_412",
+      "description": "Duplicate user creation returns 412",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/admin/users",
+            "body": {
+              "login": "{{viewer_login}}",
+              "email": "{{viewer_email}}",
+              "password": "x"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 412
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "already exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "DuplicateUser",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_NONEXISTENT_USER_404",
+      "description": "Enable/disable nonexistent user returns 404 'user not found'",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/admin/users/9999/enable"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "not found"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "NonexistentUser",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_SELF_PROTECTION",
+      "description": "Server admin cannot remove own admin permission (400)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/admin/users/1/permissions",
+            "body": {
+              "isAdmin": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "AdminSelfProtection",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_ORG_CRUD",
+      "description": "Create org, get by ID, verify name matches",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/orgs",
+            "body": {
+              "name": "TestOrg-DAG"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.orgId",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/orgs/{{orgId}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "expected": "TestOrg-DAG"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_UserOrg",
+        "subcategory": "OrgCRUD",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ORG_USER_ADD_LIST",
+      "description": "Add user to org, list shows correct count",
+      "prereqs": [
+        "API_ORG_CRUD",
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/org/users",
+            "body": {
+              "loginOrEmail": "{{viewer_email}}",
+              "role": "Viewer"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/org/users"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.length",
+                "operator": "gte",
+                "expected": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_UserOrg",
+        "subcategory": "OrgUsers",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ORG_USER_SEARCH_PAGINATION",
+      "description": "GET /api/org/users/search with perpage=2 returns correct pagination fields",
+      "prereqs": [
+        "API_ORG_USER_ADD_LIST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/org/users/search?perpage=2&page=1"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.perPage",
+                "expected": 2
+              },
+              {
+                "path": "$.page",
+                "expected": 1
+              },
+              {
+                "path": "$.totalCount",
+                "operator": "gte",
+                "expected": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_UserOrg",
+        "subcategory": "Pagination",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ORG_PREFERENCES",
+      "description": "PUT then GET org preferences verifies values",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/org/preferences",
+            "body": {
+              "theme": "light",
+              "timezone": "utc"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/org/preferences"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.theme",
+                "expected": "light"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_UserOrg",
+        "subcategory": "OrgPreferences",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DASHBOARD_CREATE_GET",
+      "description": "POST /api/dashboards/db creates dashboard; GET returns correct title, meta.slug, meta.canSave",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "TestDash-DAG",
+                "tags": [
+                  "test",
+                  "dag"
+                ],
+                "panels": [
+                  {
+                    "id": 1,
+                    "title": "CPU Usage",
+                    "type": "timeseries",
+                    "gridPos": {
+                      "h": 8,
+                      "w": 12,
+                      "x": 0,
+                      "y": 0
+                    },
+                    "fieldConfig": {
+                      "defaults": {},
+                      "overrides": []
+                    },
+                    "options": {}
+                  },
+                  {
+                    "id": 2,
+                    "title": "Memory",
+                    "type": "stat",
+                    "gridPos": {
+                      "h": 8,
+                      "w": 12,
+                      "x": 12,
+                      "y": 0
+                    },
+                    "fieldConfig": {
+                      "defaults": {},
+                      "overrides": []
+                    },
+                    "options": {}
+                  },
+                  {
+                    "id": 3,
+                    "title": "Requests Table",
+                    "type": "table",
+                    "gridPos": {
+                      "h": 8,
+                      "w": 24,
+                      "x": 0,
+                      "y": 8
+                    },
+                    "fieldConfig": {
+                      "defaults": {},
+                      "overrides": []
+                    },
+                    "options": {}
+                  }
+                ],
+                "time": {
+                  "from": "now-6h",
+                  "to": "now"
+                }
+              },
+              "message": "init",
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.version",
+                "expected": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.dashboard.title",
+                "expected": "TestDash-DAG"
+              },
+              {
+                "path": "$.meta.slug",
+                "operator": "exists"
+              },
+              {
+                "path": "$.meta.canSave",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "CreateGet",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DASHBOARD_VERSION_LOCK",
+      "description": "Version mismatch→412 with status=version-mismatch; overwrite=true bypasses",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "VLockSeed"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "uid": "{{uid}}",
+                "title": "Conflict",
+                "version": 999
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 412
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.status",
+                "expected": "version-mismatch"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "uid": "{{uid}}",
+                "title": "Forced",
+                "version": 999
+              },
+              "overwrite": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.version",
+                "operator": "gte",
+                "expected": 2
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "DashboardOptimisticLock",
+        "method": "binary",
+        "maxScore": 12
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_DASHBOARD_VERSION_HISTORY",
+      "description": "GET versions returns list with ≥2 entries after multiple saves",
+      "prereqs": [
+        "API_DASHBOARD_VERSION_LOCK"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "VHistSeed"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "uid": "{{uid}}",
+                "title": "VHistSeed_v2",
+                "version": 1
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}/versions"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.versions.0.version",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "VersionHistory",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_DASHBOARD_DELETE_VERIFY",
+      "description": "DELETE dashboard; subsequent GET returns 404",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "ToDelete"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "Delete",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DASHBOARD_TAGS",
+      "description": "Created dashboard tags appear in GET /api/dashboards/tags",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/tags"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[?(@.term=='test')]",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "Tags",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DASHBOARD_SEARCH_FILTER",
+      "description": "GET /api/search?tag=test returns matching dashboards with title field",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/search?tag=test&limit=10"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.length",
+                "operator": "gte",
+                "expected": 1
+              },
+              {
+                "path": "$[0].title",
+                "operator": "exists"
+              },
+              {
+                "path": "$[0].uid",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "Search",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_DASHBOARD_HOME",
+      "description": "GET /api/dashboards/home returns dashboard with meta",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/home"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.meta.canSave",
+                "operator": "exists"
+              },
+              {
+                "path": "$.dashboard.title",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "Home",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DASHBOARD_ACL_SET_AND_VERIFY",
+      "description": "Set dashboard permissions; GET returns correct item count; mixed user+team rejected 400",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET",
+        "API_TEAM_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "ACLSeed"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/uid/{{uid}}/permissions",
+            "body": {
+              "items": [
+                {
+                  "userId": 1,
+                  "permission": 4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}/permissions"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.length",
+                "operator": "gte",
+                "expected": 1
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/uid/{{uid}}/permissions",
+            "body": {
+              "items": [
+                {
+                  "userId": 1,
+                  "teamId": 1
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "ACL",
+        "method": "binary",
+        "maxScore": 8
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_DASHBOARD_IN_FOLDER",
+      "description": "Create dashboard in folder; verify folderUid in response",
+      "prereqs": [
+        "API_FOLDER_CRUD",
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "InFolderDash"
+              },
+              "folderUid": "test-folder-dag"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.meta.folderUid",
+                "expected": "test-folder-dag"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Dashboard",
+        "subcategory": "FolderAssignment",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_FOLDER_CRUD",
+      "description": "Create folder, get by UID, verify title and uid match",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "uid": "test-folder-dag",
+              "title": "TestFolder-DAG"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "expected": "test-folder-dag"
+              },
+              {
+                "path": "$.title",
+                "expected": "TestFolder-DAG"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Folder",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FOLDER_EMPTY_TITLE_400",
+      "description": "Empty title returns 400 with error message",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "title": ""
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "FolderEmptyTitle",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FOLDER_DUPLICATE_UID_409",
+      "description": "Duplicate folder UID returns 409 or 412 (the open-source platform returns 412 for UID conflicts)",
+      "prereqs": [
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "uid": "test-folder-dag",
+              "title": "Dup"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              409,
+              412
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "FolderDupUID",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FOLDER_MOVE",
+      "description": "Move folder to new parent; verify via GET",
+      "prereqs": [
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "uid": "parent-f",
+              "title": "Parent"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "uid": "child-f",
+              "title": "Child"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders/child-f/move",
+            "body": {
+              "parentUid": "parent-f"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/folders/child-f"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.parentUid",
+                "expected": "parent-f"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Folder",
+        "subcategory": "Move",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_FOLDER_PERMISSIONS_REPLACE",
+      "description": "POST folder permissions replaces (not merges); GET shows exactly 1 item",
+      "prereqs": [
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders/test-folder-dag/permissions",
+            "body": {
+              "items": [
+                {
+                  "userId": 1,
+                  "permission": 4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/folders/test-folder-dag/permissions"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.length",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "FolderPermReplace",
+        "method": "binary",
+        "maxScore": 8
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_DATASOURCE_CRUD",
+      "description": "Create datasource, get by UID, verify name and type",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "TestDS",
+              "type": "postgresql",
+              "url": "localhost:5432",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.datasource.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.datasource.name",
+                "expected": "TestDS"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/datasources/uid/{{dsUid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.type",
+                "expected": "postgresql"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_DataSource",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DATASOURCE_SORTED_LIST",
+      "description": "Datasources sorted alphabetically case-insensitive",
+      "prereqs": [
+        "API_DATASOURCE_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "ZZZ-ds",
+              "type": "testdata",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "aaa-ds",
+              "type": "testdata",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/datasources"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].name",
+                "operator": "contains",
+                "expected": "aaa-ds"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "DatasourceSortOrder",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_DATASOURCE_INVALID_URL_400",
+      "description": "Invalid datasource URL returns 400 with error",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "BadURL",
+              "type": "testdata",
+              "url": "invalid:url",
+              "access": "direct"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "DSInvalidURL",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DATASOURCE_NAME_CONFLICT_409",
+      "description": "Duplicate datasource name returns 409",
+      "prereqs": [
+        "API_DATASOURCE_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "TestDS",
+              "type": "testdata",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 409
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "DSNameConflict",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_DATASOURCE_DELETE_NONEXISTENT_404",
+      "description": "DELETE nonexistent datasource returns 404",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/datasources/name/nonexistent99"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 404
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_DataSource",
+        "subcategory": "DeleteNotFound",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAM_CREATE",
+      "description": "Create team, get by ID, verify name",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams",
+            "body": {
+              "name": "TestTeam-DAG"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.teamId",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/teams/{{teamId}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "expected": "TestTeam-DAG"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Team",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAM_MEMBER_ADD_LIST",
+      "description": "Add member to team; GET members shows correct user",
+      "prereqs": [
+        "API_TEAM_CREATE",
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/teams/{{teamId}}/members",
+            "body": {
+              "userId": 2
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/teams/{{teamId}}/members"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.length",
+                "operator": "gte",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Team",
+        "subcategory": "Members",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_TEAM_SEARCH_CI",
+      "description": "Team search is case-insensitive",
+      "prereqs": [
+        "API_TEAM_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/teams/search?query=testteam"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.teams.length",
+                "operator": "gte",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "TeamSearchCI",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ANNOTATION_CRUD",
+      "description": "Create annotation, get by ID, verify text and epoch",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/annotations",
+            "body": {
+              "text": "TestAnnotation",
+              "tags": [
+                "test"
+              ],
+              "time": 1700000000000
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.id",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/annotations/{{id}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.text",
+                "expected": "TestAnnotation"
+              },
+              {
+                "path": "$.time",
+                "expected": 1700000000000
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Annotation",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ANNOTATION_EPOCH_AUTOCONVERT",
+      "description": "Epoch in seconds auto-converts to milliseconds (1700000000→1700000000000)",
+      "prereqs": [
+        "API_ANNOTATION_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/annotations",
+            "body": {
+              "text": "EpochSec",
+              "time": 1700000000
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/annotations/{{id}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.text",
+                "operator": "eq",
+                "expected": "EpochSec"
+              },
+              {
+                "path": "$.time",
+                "operator": "eq",
+                "expected": 1700000000
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EpochConversion",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_RULE_CREATE",
+      "description": "Create alert rule via provisioning API; verify uid, title, provenance in response",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/v1/provisioning/alert-rules",
+            "body": {
+              "title": "TestRule-DAG",
+              "ruleGroup": "test-group",
+              "folderUID": "test-folder-dag",
+              "condition": "A",
+              "data": [
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {
+                    "type": "math",
+                    "expression": "1"
+                  }
+                }
+              ],
+              "noDataState": "NoData",
+              "execErrState": "Alerting",
+              "for": "5m"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.title",
+                "expected": "TestRule-DAG"
+              },
+              {
+                "path": "$.provenance",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Alerting",
+        "subcategory": "RuleCreate",
+        "method": "binary",
+        "maxScore": 10
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_RULE_EMPTY_CONDITION_400",
+      "description": "Empty condition returns 400 with 'condition' in error",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/v1/provisioning/alert-rules",
+            "body": {
+              "title": "Bad",
+              "ruleGroup": "t",
+              "folderUID": "test-folder-dag",
+              "condition": "",
+              "data": [
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {}
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "invalid alert rule"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "AlertEmptyCondition",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_RULE_DUP_REFID_400",
+      "description": "Duplicate refID returns 400 with 'already used' error",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/v1/provisioning/alert-rules",
+            "body": {
+              "title": "DupRef",
+              "ruleGroup": "t",
+              "folderUID": "test-folder-dag",
+              "condition": "A",
+              "data": [
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {}
+                },
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {}
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "invalid alert rule"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "AlertDupRefID",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_POLICIES",
+      "description": "GET /api/v1/provisioning/policies returns receiver field",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/provisioning/policies"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.receiver",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Alerting",
+        "subcategory": "Policies",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_CONTACT_POINT_VALIDATION",
+      "description": "Contact point without recipient returns 400",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/v1/provisioning/contact-points",
+            "body": {
+              "name": "bad-cp",
+              "type": "email",
+              "settings": {}
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "could not find addresses"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "ContactPointValidation",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_MUTE_TIMING",
+      "description": "Create mute timing; GET returns correct name and intervals",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/v1/provisioning/mute-timings",
+            "body": {
+              "name": "maint",
+              "time_intervals": [
+                {
+                  "times": [
+                    {
+                      "start_time": "22:00",
+                      "end_time": "23:59"
+                    }
+                  ],
+                  "weekdays": [
+                    "saturday",
+                    "sunday"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/provisioning/mute-timings/maint"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "expected": "maint"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Alerting",
+        "subcategory": "MuteTiming",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_SILENCE_CREATE",
+      "description": "Create silence; response contains silenceID",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/alertmanager/grafana/api/v2/silences",
+            "body": {
+              "matchers": [
+                {
+                  "name": "alertname",
+                  "value": "test",
+                  "isRegex": false,
+                  "isEqual": true
+                }
+              ],
+              "startsAt": "2099-01-01T00:00:00Z",
+              "endsAt": "2099-12-31T00:00:00Z",
+              "createdBy": "admin",
+              "comment": "Test"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.silenceID",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Alerting",
+        "subcategory": "Silences",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ALERTING_PROMETHEUS_RULES",
+      "description": "GET /api/prometheus/app/api/v1/rules returns groups array",
+      "prereqs": [
+        "API_ALERTING_RULE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/prometheus/grafana/api/v1/rules"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data.groups",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Alerting",
+        "subcategory": "PrometheusCompat",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_SERVICE_ACCOUNT_CRUD",
+      "description": "Create service account, get by ID, verify name and role",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/serviceaccounts",
+            "body": {
+              "name": "TestSA-DAG",
+              "role": "Editor"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.id",
+                "operator": "exists"
+              },
+              {
+                "path": "$.name",
+                "expected": "TestSA-DAG"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/serviceaccounts/{{saId}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.role",
+                "expected": "Editor"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_ServiceAccount",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_SERVICE_ACCOUNT_TOKEN",
+      "description": "Create SA token; verify key is returned",
+      "prereqs": [
+        "API_SERVICE_ACCOUNT_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/serviceaccounts",
+            "body": {
+              "name": "SA-Token-Seed",
+              "role": "Editor"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/serviceaccounts/{{saId}}/tokens",
+            "body": {
+              "name": "test-token"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.key",
+                "operator": "exists"
+              },
+              {
+                "path": "$.name",
+                "expected": "test-token"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_ServiceAccount",
+        "subcategory": "Token",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_SERVICE_ACCOUNT_DUPLICATE_NAME",
+      "description": "Duplicate SA name in same org fails",
+      "prereqs": [
+        "API_SERVICE_ACCOUNT_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/serviceaccounts",
+            "body": {
+              "name": "TestSA-DAG",
+              "role": "Viewer"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              409
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "SADuplicateName",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PLUGIN_LIST",
+      "description": "GET /api/plugins returns plugin list",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/plugins"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "operator": "is_array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Plugin",
+        "subcategory": "List",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PLUGIN_SETTINGS",
+      "description": "GET /api/plugins/:id/settings returns plugin info",
+      "prereqs": [
+        "API_PLUGIN_LIST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/plugins/testdata/settings"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              404
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Plugin",
+        "subcategory": "Settings",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PUBLIC_DASHBOARD_CREATE",
+      "description": "Create public dashboard with access_token; verify token is 32-char hex",
+      "prereqs": [
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "PubDashSeed"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/uid/{{uid}}/public-dashboards",
+            "body": {
+              "isEnabled": true,
+              "timeSelectionEnabled": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.accessToken",
+                "operator": "exists"
+              },
+              {
+                "path": "$.isEnabled",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_PublicDashboard",
+        "subcategory": "Create",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_PUBLIC_DASHBOARD_ACCESS",
+      "description": "GET /api/public/dashboards/:token returns dashboard without auth",
+      "prereqs": [
+        "API_PUBLIC_DASHBOARD_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/public/dashboards/{{accessToken}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.dashboard",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_PublicDashboard",
+        "subcategory": "PublicAccess",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_LIBRARY_ELEMENT_CRUD",
+      "description": "Create library element, get by UID, verify name and kind",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/library-elements",
+            "body": {
+              "name": "TestLibPanel",
+              "kind": 1,
+              "model": {
+                "type": "text",
+                "title": "TestLibPanel"
+              },
+              "folderUid": "test-folder-dag"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.result.name",
+                "expected": "TestLibPanel"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_LibraryElement",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_LIBRARY_ELEMENT_INVALID_UID_400",
+      "description": "Library element with spaces in UID returns 400",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/library-elements",
+            "body": {
+              "uid": "invalid uid spaces",
+              "name": "BadUID",
+              "kind": 1,
+              "model": {}
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        }
+      ],
+      "scoring": {
+        "category": "EdgeCases",
+        "subcategory": "LibElemInvalidUID",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_SNAPSHOT_CREATE_GET",
+      "description": "Create snapshot; GET by key returns dashboard data",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/snapshots",
+            "body": {
+              "dashboard": {
+                "title": "SnapTest"
+              },
+              "name": "TestSnap"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.key",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/snapshots/{{key}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.dashboard.title",
+                "expected": "SnapTest"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Snapshot",
+        "subcategory": "CreateGet",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PLAYLIST_CRUD",
+      "description": "Create playlist, get by UID, verify name and interval (also 500 when the baseline implementation rejects empty items array or duplicate playlist creation)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/playlists",
+            "body": {
+              "name": "TestPlaylist",
+              "interval": "5m",
+              "items": [
+                {
+                  "type": "dashboard_by_tag",
+                  "value": "test",
+                  "order": 1,
+                  "title": "test"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/playlists/{{uid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "expected": "TestPlaylist"
+              },
+              {
+                "path": "$.interval",
+                "expected": "5m"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Playlist",
+        "subcategory": "CRUD",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_CORRELATION_CRUD",
+      "description": "Create correlation between datasources; GET returns label",
+      "prereqs": [
+        "API_DATASOURCE_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "corr-seed-ds",
+              "type": "grafana-testdata-datasource",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204,
+              409
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources/uid/{{dsUid}}/correlations",
+            "body": {
+              "label": "TestCorrelation",
+              "description": "Test",
+              "targetUID": "{{dsUid}}",
+              "type": "query"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.result.label",
+                "expected": "TestCorrelation"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Correlation",
+        "subcategory": "CRUD",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_QUERY_HISTORY_CRUD",
+      "description": "Create query history entry; search returns it",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/query-history",
+            "body": {
+              "datasourceUid": "testds",
+              "queries": {
+                "refId": "A"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.result.uid",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_QueryHistory",
+        "subcategory": "Create",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_SHORT_URL_CREATE_REDIRECT",
+      "description": "Create short URL; GET /goto/:uid returns redirect or target path",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/short-urls",
+            "body": {
+              "path": "d/abc/test-dash"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.uid",
+                "operator": "exists"
+              },
+              {
+                "path": "$.url",
+                "operator": "exists"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_ShortURL",
+        "subcategory": "Create",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_SETTINGS",
+      "description": "GET /api/admin/settings returns settings object",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/admin/settings"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "operator": "is_object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Admin",
+        "subcategory": "Settings",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ADMIN_STATS",
+      "description": "GET /api/admin/stats returns server statistics",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/admin/stats"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.users",
+                "operator": "gte",
+                "expected": 1
+              },
+              {
+                "path": "$.orgs",
+                "operator": "gte",
+                "expected": 1
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Admin",
+        "subcategory": "Stats",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_PROVISIONING_RELOAD",
+      "description": "POST provisioning reload endpoints return 200",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/admin/provisioning/dashboards/reload"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/admin/provisioning/datasources/reload"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Admin",
+        "subcategory": "ProvisioningReload",
+        "method": "weighted",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_FRONTEND_SETTINGS",
+      "description": "GET /api/frontend/settings returns configuration object",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/frontend/settings"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "operator": "is_object"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "API_Admin",
+        "subcategory": "FrontendSettings",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_PREFERENCES_CASCADE",
+      "description": "User pref overrides org pref: set org theme=light, user theme=dark → user sees dark",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/org/preferences",
+            "body": {
+              "theme": "light"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/user/preferences",
+            "body": {
+              "theme": "dark"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/user/preferences"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.theme",
+                "expected": "dark"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "PreferencesCascade",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_QUOTA_ENFORCEMENT",
+      "description": "Set datasource quota=1; second create returns 403 'quota reached'; restore quota afterwards to avoid polluting downstream nodes",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_ORG_CRUD",
+        "API_DATASOURCE_SORTED_LIST",
+        "API_DATASOURCE_NAME_CONFLICT_409",
+        "API_CORRELATION_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/orgs/1/quotas/data_source",
+            "body": {
+              "limit": 1
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {
+              "name": "Q-Over-Quota",
+              "type": "testdata",
+              "access": "proxy"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.message",
+                "operator": "contains",
+                "expected": "Quota reached"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/orgs/1/quotas/data_source",
+            "body": {
+              "limit": 100
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "QuotaEnforcement",
+        "method": "binary",
+        "maxScore": 12
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_DASHBOARD_ACL_RESTRICTIVE",
+      "description": "has_acl=true: viewer without ACL entry cannot access dashboard (403/404)",
+      "prereqs": [
+        "API_DASHBOARD_ACL_SET_AND_VERIFY",
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "ACLRestrictSeed"
+              },
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/uid/{{uid}}/permissions",
+            "body": {
+              "items": [
+                {
+                  "userId": 1,
+                  "permission": 4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              403,
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "ACLRestrictive",
+        "method": "binary",
+        "maxScore": 14
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "BIZ_ALERT_VERSION_INCREMENT",
+      "description": "Alert rule update reflected in subsequent GET (title and updated timestamp change)",
+      "prereqs": [
+        "API_ALERTING_RULE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/provisioning/alert-rules/{{ruleUid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "operator": "exists"
+              },
+              {
+                "path": "$.updated",
+                "operator": "exists"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/v1/provisioning/alert-rules/{{ruleUid}}",
+            "body": {
+              "title": "UpdatedRule",
+              "ruleGroup": "test-group",
+              "folderUID": "test-folder-dag",
+              "condition": "A",
+              "data": [
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {
+                    "type": "math",
+                    "expression": "1"
+                  }
+                }
+              ],
+              "noDataState": "NoData",
+              "execErrState": "Alerting",
+              "for": "5m"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/v1/provisioning/alert-rules/{{ruleUid}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.title",
+                "expected": "UpdatedRule"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "AlertVersionIncrement",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_LOGIN_REDIRECT_SAFETY",
+      "description": "External redirect URL sanitized to home (prevents open redirect)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/login",
+            "body": {
+              "user": "{{admin_login}}",
+              "password": "{{admin_password}}"
+            },
+            "params": {
+              "redirect": "http://evil.com"
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.redirectUrl",
+                "operator": "not_contains",
+                "expected": "evil.com"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RedirectSafety",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "BIZ_ORG_ROLE_SYNC_PROTECTION",
+      "description": "LDAP-synced user role change blocked (403)",
+      "prereqs": [
+        "API_ORG_USER_ADD_LIST"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "query": "INSERT INTO user_auth (user_id, auth_module, auth_id, created) VALUES (2, 'ldap', 'uid=t,dc=t', NOW()) ON CONFLICT DO NOTHING"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PATCH",
+            "path": "/api/org/users/2",
+            "body": {
+              "role": "Admin"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "RoleSyncProtection",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CANNOT_CREATE_DASHBOARD",
+      "description": "Viewer cannot POST /api/dashboards/db (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/dashboards/db",
+            "expected_result": "denied",
+            "expected_status": 403,
+            "body": {
+              "dashboard": {
+                "title": "X"
+              }
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "DashCreate_Deny",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_CREATE_DASHBOARD",
+      "description": "Admin can POST /api/dashboards/db (200)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/dashboards/db",
+            "expected_result": "allowed",
+            "expected_status": 200,
+            "body": {
+              "dashboard": {
+                "title": "RBAC-OK"
+              },
+              "overwrite": false
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "DashCreate_Allow",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CANNOT_CREATE_DATASOURCE",
+      "description": "Viewer cannot POST /api/datasources (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/datasources",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "DS_Create_Deny",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_LIST_DATASOURCES",
+      "description": "Admin can GET /api/datasources (200)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/datasources",
+            "expected_result": "allowed",
+            "expected_status": 200
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "DS_List_Allow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CANNOT_CREATE_TEAMS",
+      "description": "Viewer cannot POST /api/teams (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/teams",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Team_Create_Deny",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_CREATE_TEAMS",
+      "description": "Admin can POST /api/teams (200)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/teams",
+            "expected_result": "allowed",
+            "expected_status": 200,
+            "body": {
+              "name": "RBAC-Team"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Team_Create_Allow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CAN_READ_ANNOTATIONS",
+      "description": "Viewer can GET /api/annotations (200)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE",
+        "API_ANNOTATION_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/annotations",
+            "expected_result": "allowed",
+            "expected_status": 200
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Annotation_Read_Allow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CANNOT_DELETE_ANNOTATIONS",
+      "description": "Viewer cannot DELETE annotations (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE",
+        "API_ANNOTATION_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "DELETE /api/annotations/1",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Annotation_Delete_Deny",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ALERTING_VIEWER_READ_RULES",
+      "description": "Viewer can read alert rules (200)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE",
+        "API_ALERTING_RULE_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/v1/provisioning/alert-rules",
+            "expected_result": "allowed",
+            "expected_status": 200
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Alert_Read_Allow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ALERTING_VIEWER_CANNOT_CREATE_RULES",
+      "description": "Viewer cannot create alert rules (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/v1/provisioning/alert-rules",
+            "expected_result": "denied",
+            "expected_status": 403,
+            "body": {
+              "title": "X",
+              "ruleGroup": "t",
+              "folderUID": "test-folder-dag",
+              "condition": "A",
+              "data": [
+                {
+                  "refId": "A"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Alert_Create_Deny",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ALERTING_ADMIN_CAN_CREATE_RULES",
+      "description": "Admin can create alert rules (201)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC",
+        "API_FOLDER_CRUD"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "POST /api/v1/provisioning/alert-rules",
+            "expected_result": "allowed",
+            "expected_status": 201,
+            "body": {
+              "title": "AdminRule",
+              "ruleGroup": "admin-g",
+              "folderUID": "test-folder-dag",
+              "condition": "A",
+              "data": [
+                {
+                  "refId": "A",
+                  "datasourceUid": "__expr__",
+                  "model": {
+                    "type": "math",
+                    "expression": "1"
+                  }
+                }
+              ],
+              "noDataState": "NoData",
+              "execErrState": "Alerting",
+              "for": "1m"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Alert_Create_Allow",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_VIEWER_CANNOT_MANAGE_ORGS",
+      "description": "Non-server-admin cannot list orgs (403)",
+      "prereqs": [
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/orgs",
+            "expected_result": "denied",
+            "expected_status": 403
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Org_List_Deny",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_SERVER_ADMIN_CAN_LIST_ORGS",
+      "description": "Server admin can list orgs (200)",
+      "prereqs": [
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P14",
+          "inputs": {
+            "action": "GET /api/orgs",
+            "expected_result": "allowed",
+            "expected_status": 200
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "Org_List_Allow",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_FOLDER_PERMISSION_INHERITANCE",
+      "description": "Dashboard in folder with custom ACL: viewer without folder ACL cannot access",
+      "prereqs": [
+        "API_FOLDER_PERMISSIONS_REPLACE",
+        "API_DASHBOARD_IN_FOLDER",
+        "API_ADMIN_USER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "uid": "rbac-folder-inherit",
+              "title": "RBACInheritFolder"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204,
+              409,
+              412
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {
+              "dashboard": {
+                "title": "RBACInheritDash"
+              },
+              "folderUid": "rbac-folder-inherit",
+              "overwrite": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders/rbac-folder-inherit/permissions",
+            "body": {
+              "items": [
+                {
+                  "userId": 1,
+                  "permission": 4
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "viewer",
+            "credentials": {
+              "user": "{{viewer_login}}",
+              "password": "{{viewer_password}}"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/{{uid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              403,
+              404
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "FolderInheritance",
+        "method": "binary",
+        "maxScore": 10
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "FRONTEND_MAIN_LAYOUT",
+      "description": "Main page has sidebar nav, top bar, content area",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200,
+              304
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge whether the main page layout follows a typical observability/monitoring app shell with sidebar nav, top bar, and content area (per the platform's main page spec in task.md).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of the application root URL after a real authenticated load.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. A persistent left sidebar / navigation menu is rendered.\n2. A top navigation bar is rendered (search, user menu, help).\n3. A central main content area exists distinct from sidebar/top bar.\n4. The HTML uses semantic elements (nav, main, header, aside).\n5. The sidebar exposes links to at least Dashboards, Alerting, and Data Sources.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or has only a 'Welcome' string.\n- 3 (weak): One of sidebar / top bar present; no semantic structure.\n- 5 (good): Sidebar + top bar + main content; missing Alerting/Data Sources or non-semantic markup.\n- 8 (excellent): All five criteria satisfied with semantic markup and full nav links.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification citing visible elements>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "MainLayout",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_DASHBOARD_EDITOR",
+      "description": "Dashboard edit view supports panel grid layout and editing",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC",
+        "API_DASHBOARD_CREATE_GET"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/d/{{dashboardUid}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/d/{{dashboardUid}}"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the dashboard view/edit page UX (panel grid layout + editing controls).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of /d/<uid> (dashboard view) and /d/<uid>?editPanel=1 (edit) URLs.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Panels render in a grid layout (CSS grid / react-grid-layout) with multiple panels visible.\n2. A time-range selector is present in the top toolbar.\n3. An 'Add panel' button or per-panel edit affordance opens a panel editor.\n4. Dashboard settings (title, variables, permissions) are reachable from the page.\n5. The dashboard title is rendered above the panel grid.\n6. Panels are draggable / resizable in edit mode (drag handles visible).\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or shows raw JSON.\n- 3 (weak): Static panels only, no time picker, no editor.\n- 5 (good): Grid + time picker + edit affordance; some controls missing.\n- 8 (excellent): All six criteria satisfied with polished editor UX.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "DashboardEditor",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_ALERTING_UI",
+      "description": "Alerting pages with rules list, contact points, silences navigation",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/alerting/list"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/alerting/list"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the alerting pages (rules list + contact points / silences navigation).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of /alerting/list, /alerting/notifications and adjacent alert pages.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. An alert rules list/table is rendered (rule name, state, folder).\n2. The alerting subsection nav exposes at least Contact Points, Notification Policies, Silences, and Mute Timings.\n3. Rules can be filtered by state (firing/pending/normal) and/or by folder.\n4. A 'Create rule' button or link is visible from the list view.\n5. Each rule row shows its current state with a colour/badge.\n\nSCORING ANCHORS:\n- 0 (none): Alerting pages do not render.\n- 2 (weak): Only the rules list is visible; no subsection navigation.\n- 4 (good): Rules list + subsection nav; filters or create button missing.\n- 7 (excellent): All five criteria satisfied with a complete alerting UI.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "AlertingUI",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_EXPLORE_PAGE",
+      "description": "Explore page with query editor, data source selector, results display",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/explore"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/explore"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the Explore page (interactive query builder + visualization).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of /explore.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. A data-source selector is present at the top of the page.\n2. A query editor area accepts user input (textarea or builder UI).\n3. A results / visualization area is rendered below the editor.\n4. A time-range selector is present in the toolbar.\n5. The page supports split view (left/right panes) for comparison.\n6. A 'Run query' affordance triggers fetching and rendering results.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render.\n- 2 (weak): Editor + results only; no data-source selector or time picker.\n- 5 (good): Selector + editor + results + time picker; split view missing.\n- 7 (excellent): All six criteria satisfied with full Explore UX.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "ExplorePage",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_DATASOURCE_CONFIG",
+      "description": "Data source configuration page with connection fields",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/datasources/new"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/datasources/new"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the data-source configuration page UX.\n\nEVIDENCE: Rendered DOM (post-JavaScript) of /datasources/new and /datasources/edit/<uid>.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. The 'new' page lets the user pick a data-source type from a list.\n2. Connection fields (URL, database, user, password) appear once a type is chosen.\n3. Authentication options (Basic Auth / TLS / OAuth) are surfaced.\n4. A 'Save & Test' button is present and triggers a connectivity check.\n5. A success/failure indicator is shown after test.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render or shows only a single text input.\n- 2 (weak): Type picker but minimal config fields and no test button.\n- 4 (good): Type picker + most config fields + save/test; auth options thin.\n- 6 (excellent): All five criteria satisfied with a complete data-source config UX.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "DataSourceConfig",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "FRONTEND_ADMIN_USERS_PAGE",
+      "description": "Admin users page with user list, search, create user link",
+      "prereqs": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN_BASIC"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/admin/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        },
+        {
+          "type": "RENDER_DOM",
+          "inputs": {
+            "wait_until": "networkidle",
+            "settle_ms": 2000,
+            "timeout_ms": 20000,
+            "url": "{{base_url}}/admin/users"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "rendered_dom",
+            "rubric_prompt": "GOAL: Judge the admin/users page UX (list + search + create + per-user action).\n\nEVIDENCE: Rendered DOM (post-JavaScript) of /admin/users.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. A users list/table is rendered with at least login, email, and role columns.\n2. A search input filters the list client- or server-side.\n3. A 'Create user' button/link is present.\n4. Pagination controls are present at the bottom of the list.\n5. Each row exposes per-user edit/delete actions.\n\nSCORING ANCHORS:\n- 0 (none): Page does not render.\n- 2 (weak): Plain list with no search/create/pagination.\n- 4 (good): List + search + create; pagination missing.\n- 6 (excellent): All five criteria satisfied with a complete admin UX.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Frontend",
+        "subcategory": "AdminUsers",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_MULTI_TENANT_ISOLATION",
+      "description": "All org-scoped queries filter by org_id",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "pkg/",
+              "internal/"
+            ],
+            "rubric_prompt": "GOAL: Judge whether all org-scoped queries (dashboards, datasources, teams, folders, alert rules) include org_id filtering and whether middleware injects the current org context.\n\nEVIDENCE: Backend Go source: store/query layer for the listed entities, request middleware, and any org-context helpers.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. Every list/get/update/delete for dashboards / datasources / teams / folders / alert rules includes a WHERE org_id = ? predicate.\n2. The org_id is sourced from request context populated by middleware, not from a request parameter the user controls.\n3. Org-context middleware runs before any handler that touches multi-tenant data.\n4. Cross-org reads (e.g. listing all dashboards across orgs) are restricted to platform-admin / server-admin / superuser scopes only (literal role name not required, semantic equivalent acceptable).\n5. The store layer rejects queries that omit the org_id filter (panic / lint / explicit guard).\n6. There are tests asserting that data created in org A is not visible in org B.\n\nSCORING ANCHORS:\n- 0 (none): No org_id concept; data is global.\n- 3 (weak): Some queries filter by org_id but many do not; no middleware enforcement.\n- 6 (good): Most queries filter by org_id; middleware in place; no store-layer guard.\n- 8 (excellent): All six criteria satisfied with strong, tested org isolation.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification citing files>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "MultiTenancy",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ARCH_RBAC_DESIGN",
+      "description": "RBAC with permission evaluator, scope resolver, middleware",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "pkg/services/accesscontrol/evaluator.go",
+              "pkg/services/accesscontrol/scope.go",
+              "pkg/services/accesscontrol/roles.go",
+              "pkg/services/accesscontrol/models.go",
+              "pkg/services/accesscontrol/middleware.go",
+              "pkg/services/accesscontrol/cacheutils.go",
+              "pkg/services/accesscontrol/acimpl/service.go"
+            ],
+            "rubric_prompt": "GOAL: Judge the RBAC design (permission evaluator + scope resolver + middleware + role hierarchy).\n\nEVIDENCE: RBAC engine source files (evaluator, scope resolver), permission DB tables/migrations, request middleware, role constants.\n\nSCORE RANGE: 0-8 integer.\n\nCRITERIA:\n1. A permission evaluator compares (action, scope) against the user's permissions.\n2. Permissions are stored in dedicated tables (e.g. permission, role, builtin_role) rather than encoded in code.\n3. Scope strings support wildcard matching (e.g. dashboards:uid:* matches any dashboard).\n4. Middleware checks the required permission before invoking handlers.\n5. The role hierarchy Viewer < Editor < Admin < ServerAdmin is implemented and documented; higher roles inherit lower.\n6. There is a permission cache keyed by (user, org, role-version) to avoid re-fetching on every request.\n\nSCORING ANCHORS:\n- 0 (none): Only a basic isAdmin boolean.\n- 3 (weak): Role enum exists but no scoped permissions or middleware.\n- 6 (good): Permissions + middleware + scope matching; cache or hierarchy missing.\n- 8 (excellent): All six criteria satisfied with a complete, performant RBAC system.\n\nOUTPUT: JSON object {\"score\": <int 0..8>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              8
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "RBAC",
+        "method": "llm-judge",
+        "maxScore": 8
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ARCH_ALERTING_ENGINE",
+      "description": "Alerting engine: evaluation loop, state machine, notification routing",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "pkg/"
+            ],
+            "rubric_prompt": "GOAL: Judge the alerting engine architecture (evaluation loop + state machine + notification routing + provenance).\n\nEVIDENCE: Source for the alerting scheduler, alert-instance state model, notification routing tree, and per-org Alertmanager configuration.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. A scheduler/evaluator periodically runs each alert rule on its configured interval.\n2. Alert instances are tracked individually with explicit state transitions (Normal -> Pending -> Firing -> Resolved).\n3. Notification routing is implemented as a tree of routes with matchers and child routes.\n4. Each rule/route stores its provenance (api / file / terraform) so UI/API can refuse incompatible edits.\n5. Alertmanager configuration is per-org (each org has independent contact points / policies).\n6. Failed evaluations are logged and surfaced (no silent failures).\n\nSCORING ANCHORS:\n- 0 (none): No alerting engine; rules are not evaluated automatically.\n- 3 (weak): Scheduler runs rules but no state machine; notifications hard-coded.\n- 5 (good): Scheduler + state machine + routing tree; provenance or per-org config missing.\n- 7 (excellent): All six criteria satisfied with a complete alerting engine.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "AlertingEngine",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_PLUGIN_SYSTEM",
+      "description": "Plugin architecture: datasource/panel/app types, health checks, resource proxy",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "pkg/"
+            ],
+            "rubric_prompt": "GOAL: Judge the plugin system architecture (datasource / panel / app types + loader + health checks + resource proxy).\n\nEVIDENCE: Plugin loader, plugin manifest validation, plugin types/interfaces, health-check handler, plugin resource proxy.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. The system supports three plugin types: datasource, panel, and app, with distinct interfaces.\n2. A plugin loader reads plugin.json manifests from a configurable plugin directory at startup.\n3. The loader verifies plugin signatures (signed / community / private) and refuses unsigned plugins by default.\n4. Each plugin can implement a /health endpoint exercised by the platform UI.\n5. The platform proxies frontend HTTP requests for plugin resources through a backend route.\n6. Per-org plugin settings (enable/disable, config) are stored separately from the platform config.\n\nSCORING ANCHORS:\n- 0 (none): No plugin system; all features built-in.\n- 3 (weak): Loader exists but only one plugin type; no signature checks.\n- 5 (good): Three plugin types + loader; missing health checks or resource proxy.\n- 7 (excellent): All six criteria satisfied with a complete plugin platform.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "PluginSystem",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ARCH_CODE_ORGANIZATION",
+      "description": "Clean code organization: separation of concerns, package structure",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "."
+            ],
+            "rubric_prompt": "GOAL: Judge the overall code organization of the Go backend.\n\nEVIDENCE: Directory layout, Go package structure, migration directory, configuration loader, error handling helpers.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Clear separation between API handlers (transport), services (business logic), and data access (store/repository).\n2. The Go package layout matches the domain (pkg/services/alerting, pkg/services/dashboard, etc.).\n3. Database migrations live in a dedicated directory and are versioned/timestamped.\n4. Configuration is loaded centrally (one Cfg struct) rather than read ad hoc throughout the code.\n5. Errors are wrapped with context using fmt.Errorf / errors.Wrap (or a project helper) and surface stable error types/codes.\n6. Generated code (protobufs / wire) lives in a separate directory and is not edited by hand.\n\nSCORING ANCHORS:\n- 0 (none): Single main package with everything inline.\n- 3 (weak): Some package separation but handlers do DB calls directly; ad hoc config.\n- 5 (good): Clean three-layer split with central config; migrations directory present.\n- 6 (excellent): All six criteria satisfied with idiomatic Go layout.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "CodeOrganization",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_FRONTEND_STRUCTURE",
+      "description": "Frontend: React component structure, state management, routing",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "public/app/",
+              "packages/",
+              "public/"
+            ],
+            "rubric_prompt": "GOAL: Judge the frontend codebase structure (React + state + routing + API + shared UI).\n\nEVIDENCE: Frontend src/ layout, component files, redux/context store, router configuration, API client, shared UI library.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. React is used with a clear component hierarchy (smart vs presentational, hooks-based).\n2. State management uses a dedicated solution (Redux Toolkit, Zustand, or Context+useReducer) rather than ad hoc prop drilling.\n3. A client-side router is configured with named routes for the main pages.\n4. API calls go through a centralised client (typed wrapper, axios instance, or RTK Query) — not scattered fetch calls.\n5. A shared UI component library (e.g. @<your-org>/ui, MUI, Chakra, Ant Design, or an in-house design system package) is used across pages.\n6. TypeScript types cover the bulk of the code (no large 'any' surfaces).\n\nSCORING ANCHORS:\n- 0 (none): No frontend, or static HTML only.\n- 3 (weak): React components exist but state is scattered, no shared UI library.\n- 5 (good): Most criteria satisfied; one or two missing (e.g. API client centralisation).\n- 6 (excellent): All six criteria satisfied with production-grade frontend hygiene.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "FrontendStructure",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_API_ERROR_QUALITY",
+      "description": "API errors are structured JSON with message field, consistent format",
+      "prereqs": [
+        "AUTH_INVALID_LOGIN_401",
+        "API_DATASOURCE_INVALID_URL_400"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "basic_auth",
+            "role": "admin",
+            "credentials": {
+              "user": "{{admin_login}}",
+              "password": "{{admin_password}}"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/dashboards/uid/does-not-exist-xyz"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/folders/does-not-exist-xyz"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/datasources",
+            "body": {}
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/dashboards/db",
+            "body": {}
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/datasources/uid/does-not-exist-xyz"
+          }
+        },
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "http_responses",
+            "rubric_prompt": "GOAL: Judge the consistency and helpfulness of API error responses.\n\nEVIDENCE: Sample 4xx/5xx HTTP responses captured across at least three failure types (validation, auth, not-found, conflict, version-mismatch).\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. All error responses are JSON (Content-Type: application/json) — never HTML error pages.\n2. Each error body contains a `message` field describing the failure.\n3. Status codes are used correctly: 400 validation, 401 unauthenticated, 403 permission denied, 404 not found, 409 conflict, 412 precondition failed.\n4. Error format is consistent across all endpoints (same envelope, same field names).\n5. Errors include a stable `error` or `code` machine-readable token (not just a free-text message).\n6. Stack traces / internal details are never leaked in production responses.\n\nSCORING ANCHORS:\n- 0 (none): Errors return HTML or stack traces.\n- 2 (weak): Mostly JSON but inconsistent field names; status codes mixed up.\n- 4 (good): Consistent JSON envelope and correct status codes; missing machine-readable codes.\n- 6 (excellent): All six criteria satisfied with a clean, consistent error contract.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "ErrorQuality",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    }
+  ]
+}

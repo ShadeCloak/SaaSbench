@@ -1,0 +1,19 @@
+# =============================================================================
+# Dockerfile.model — clean development environment for model output evaluation
+# =============================================================================
+# This image is used by `prepare_workspace.sh` and `test_model_output.sh` to
+# give the model under test an empty workspace plus a comprehensive language
+# toolchain. It MUST NOT contain the reference application binary (otherwise
+# the harness can't tell whether the score reflects the model's own work).
+#
+# The base image (shadetocloak/saasbench-dev:base) bundles Ubuntu 22.04, Go,
+# Node 20 with yarn4/pnpm, Python 3.10, and the build essentials needed by the
+# task. PID 1 is `sleep infinity` so the harness can `docker exec` into the
+# container without the application auto-starting.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

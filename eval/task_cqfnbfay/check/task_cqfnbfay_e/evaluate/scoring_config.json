@@ -1,0 +1,246 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 8,
+      "node_count": 4
+    },
+    "Architecture": {
+      "maxScore": 29,
+      "node_count": 6
+    },
+    "DataModel": {
+      "maxScore": 38,
+      "node_count": 12
+    },
+    "Authentication": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "TestFixture": {
+      "maxScore": 6,
+      "node_count": 3
+    },
+    "API_Templates": {
+      "maxScore": 26,
+      "node_count": 8
+    },
+    "API_Submissions": {
+      "maxScore": 53,
+      "node_count": 15
+    },
+    "API_Submitters": {
+      "maxScore": 34,
+      "node_count": 10
+    },
+    "API_AuthIsolation": {
+      "maxScore": 16,
+      "node_count": 4
+    },
+    "Validation": {
+      "maxScore": 27,
+      "node_count": 10
+    },
+    "WebhookSystem": {
+      "maxScore": 25,
+      "node_count": 6
+    },
+    "BusinessLogic": {
+      "maxScore": 58,
+      "node_count": 14
+    },
+    "API_Events": {
+      "maxScore": 10,
+      "node_count": 3
+    },
+    "Search": {
+      "maxScore": 11,
+      "node_count": 3
+    },
+    "BackgroundJobs": {
+      "maxScore": 13,
+      "node_count": 3
+    },
+    "Email": {
+      "maxScore": 11,
+      "node_count": 3
+    },
+    "PDF_Tools": {
+      "maxScore": 11,
+      "node_count": 3
+    },
+    "RBAC": {
+      "maxScore": 16,
+      "node_count": 4
+    },
+    "Frontend": {
+      "maxScore": 31,
+      "node_count": 7
+    }
+  },
+  "total_maxScore": 448,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 41,
+      "maxScore": 148
+    },
+    "marketplace_rbac": {
+      "node_count": 9,
+      "maxScore": 34
+    },
+    "workflow_automator": {
+      "node_count": 74,
+      "maxScore": 266
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy -> setup -> auth -> template CRUD -> create signing job -> complete signing",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DB_CONNECT",
+        "AUTH_SETUP_FLOW",
+        "AUTH_API_TOKEN",
+        "SETUP_EVAL_TEMPLATE",
+        "API_TEMPLATE_LIST",
+        "API_TEMPLATE_SHOW",
+        "API_SUBMISSION_CREATE",
+        "API_SUBMISSION_SHOW",
+        "API_SUBMITTER_LIST",
+        "API_SUBMITTER_SHOW",
+        "API_SUBMITTER_COMPLETE"
+      ],
+      "maxScore": 40
+    },
+    "advanced_workflows": {
+      "description": "Advanced features: API isolation, validation rules, webhooks, business logic, search, background jobs, email, PDF tools, RBAC, front-end, architecture",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_GEMFILE",
+        "DEPLOY_DB_CONNECT",
+        "DEPLOY_FRONTEND_DEPS",
+        "ARCH_CODE_ORGANIZATION",
+        "ARCH_API_DESIGN",
+        "ARCH_ROUTE_ORGANIZATION",
+        "ARCH_I18N_QUALITY",
+        "ARCH_MAILER_DESIGN",
+        "DB_TABLES_CORE",
+        "DB_TABLES_SUPPORTING",
+        "DB_TABLES_OAUTH",
+        "DB_COLUMNS_USERS",
+        "DB_COLUMNS_TEMPLATES",
+        "DB_COLUMNS_SUBMITTERS",
+        "DB_COLUMNS_SUBMISSIONS",
+        "DB_COLUMNS_WEBHOOKS",
+        "DB_INDEX_SUBMITTERS",
+        "DB_INDEX_TEMPLATES",
+        "DB_INDEX_SEARCH_ENTRIES",
+        "DB_DESIGN_QUALITY",
+        "AUTH_SETUP_FLOW",
+        "AUTH_SETUP_GUARD",
+        "AUTH_API_TOKEN",
+        "AUTH_INVALID_TOKEN",
+        "AUTH_SECURITY_QUALITY",
+        "SETUP_EVAL_TEMPLATE",
+        "SETUP_THREE_PARTY_TEMPLATE",
+        "SETUP_TEST_ACCOUNT",
+        "API_TEMPLATE_LIST",
+        "API_TEMPLATE_SHOW",
+        "API_TEMPLATE_UPDATE",
+        "API_TEMPLATE_CLONE",
+        "API_TEMPLATE_ARCHIVE",
+        "API_TEMPLATE_HARD_DELETE",
+        "API_TEMPLATE_SHARED_LINK",
+        "API_TEMPLATE_FILTER_QUERY",
+        "API_SUBMISSION_CREATE",
+        "API_SUBMISSION_CREATE_COMPLETED",
+        "API_SUBMISSION_CREATE_PARTIAL_ROLES",
+        "API_SUBMISSION_EMAILS",
+        "API_SUBMISSION_ORDER_PRESERVED",
+        "API_SUBMISSION_SHOW",
+        "API_SUBMISSION_LIST",
+        "API_SUBMISSION_NESTED",
+        "API_SUBMISSION_FILTER_STATUS",
+        "API_SUBMISSION_FILTER_DATE",
+        "API_SUBMISSION_PAGINATION",
+        "API_SUBMISSION_ARCHIVE",
+        "API_SUBMISSION_HARD_DELETE",
+        "API_SUBMITTER_LIST",
+        "API_SUBMITTER_SHOW",
+        "API_SUBMITTER_UPDATE",
+        "API_SUBMITTER_VALUES",
+        "API_SUBMITTER_PHONE_NORMALIZE",
+        "API_SUBMITTER_COMPLETE",
+        "API_SUBMITTER_DECLINE",
+        "API_SUBMITTER_COMPLETE_ALREADY",
+        "API_SUBMITTER_DECLINE_ALREADY",
+        "API_SUBMITTER_PAGINATION",
+        "ISOLATION_TEST_KEY_PROD_SUBMISSION",
+        "ISOLATION_PROD_KEY_TEST_SUBMISSION",
+        "ISOLATION_TEST_KEY_PROD_TEMPLATE",
+        "ISOLATION_TEST_KEY_PROD_SUBMITTER",
+        "VALID_SUBMISSION_INVALID_EMAIL",
+        "VALID_SUBMISSION_DUPLICATE_ROLES",
+        "VALID_SUBMISSION_TOO_MANY_SUBMITTERS",
+        "VALID_SUBMISSION_NO_FIELDS",
+        "VALID_SUBMISSION_MESSAGE_NO_BODY",
+        "VALID_SUBMISSION_EMPTY_MESSAGE_OK",
+        "VALID_SUBMISSION_BULK_INVALID_EMAILS",
+        "VALID_SETUP_SHORT_PASSWORD",
+        "VALID_PHONE_START_PLUS",
+        "VALID_MERGE_MINIMUM_FILES",
+        "WEBHOOK_DELIVERY_SUBMISSION_CREATED",
+        "WEBHOOK_EVENT_FILTER",
+        "WEBHOOK_SECRET_HEADERS",
+        "WEBHOOK_FORM_COMPLETED",
+        "WEBHOOK_RETRY_BEHAVIOR",
+        "WEBHOOK_PAYLOAD_QUALITY",
+        "BIZ_SUBMISSION_COMPLETED_AT",
+        "BIZ_SUBMITTER_STATUS_COMPUTED",
+        "BIZ_TEMPLATE_SNAPSHOT",
+        "BIZ_STRIP_ATTRIBUTES",
+        "BIZ_SOFT_DELETE_RESTORE",
+        "BIZ_DEFAULT_FOLDER_REBUILD",
+        "BIZ_DECLINE_STATUS_PROPAGATION",
+        "BIZ_FORMULA_STUB_ZERO",
+        "BIZ_EXPIRE_PROCESSING",
+        "BIZ_ERROR_MSG_CONSISTENCY",
+        "WORKFLOW_SIGNING_LIFECYCLE",
+        "WORKFLOW_MULTI_SUBMITTER",
+        "API_EVENTS_FORM_COMPLETED",
+        "API_EVENTS_SUBMISSION_CREATED",
+        "API_EVENTS_TIMESTAMP_PAGINATION",
+        "SEARCH_TEMPLATE_BY_NAME",
+        "SEARCH_SUBMITTER_BY_EMAIL",
+        "SEARCH_IMPLEMENTATION_QUALITY",
+        "JOB_SIDEKIQ_CONFIG",
+        "JOB_COMPLETION_PROCESSING",
+        "JOB_ARCHITECTURE_QUALITY",
+        "EMAIL_MAILER_CLASSES",
+        "EMAIL_INVITATION_DELIVERY",
+        "EMAIL_DESIGN_QUALITY",
+        "PDF_TOOLS_MERGE",
+        "PDF_TOOLS_VERIFY",
+        "PDF_GENERATION_QUALITY",
+        "RBAC_ADMIN_CAN_MANAGE",
+        "RBAC_NON_ADMIN_DENIED",
+        "RBAC_ACCOUNT_DATA_ISOLATION",
+        "RBAC_PERMISSION_QUALITY",
+        "FRONTEND_DOM_DASHBOARD",
+        "FRONTEND_DOM_SIGNING_FORM",
+        "FRONTEND_DASHBOARD_QUALITY",
+        "FRONTEND_SIGNING_FORM_QUALITY",
+        "FRONTEND_TEMPLATE_BUILDER",
+        "FRONTEND_RESPONSIVE_DESIGN",
+        "ARCH_AUDIT_TRAIL_QUALITY",
+        "API_SUBMISSION_INIT",
+        "API_SUBMISSION_NESTED_CREATE",
+        "BIZ_ROLE_MERGING",
+        "BIZ_CONDITIONAL_FIELDS_EXIST",
+        "API_USER_MANAGEMENT",
+        "FRONTEND_SETTINGS_PAGES"
+      ],
+      "maxScore": 448
+    }
+  }
+}

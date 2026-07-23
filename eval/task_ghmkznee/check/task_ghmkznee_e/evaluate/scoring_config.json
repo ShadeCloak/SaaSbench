@@ -1,0 +1,120 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 3,
+      "node_count": 3
+    },
+    "DataModel": {
+      "maxScore": 8,
+      "node_count": 7
+    },
+    "Authentication": {
+      "maxScore": 6,
+      "node_count": 5
+    },
+    "API_UserOrg": {
+      "maxScore": 14,
+      "node_count": 5
+    },
+    "EdgeCases": {
+      "maxScore": 39,
+      "node_count": 11
+    },
+    "BusinessLogic": {
+      "maxScore": 78,
+      "node_count": 12
+    },
+    "API_Dashboard": {
+      "maxScore": 26,
+      "node_count": 8
+    },
+    "API_Folder": {
+      "maxScore": 8,
+      "node_count": 2
+    },
+    "API_DataSource": {
+      "maxScore": 3,
+      "node_count": 2
+    },
+    "API_Team": {
+      "maxScore": 6,
+      "node_count": 2
+    },
+    "API_Annotation": {
+      "maxScore": 2,
+      "node_count": 1
+    },
+    "API_Alerting": {
+      "maxScore": 24,
+      "node_count": 5
+    },
+    "API_ServiceAccount": {
+      "maxScore": 3,
+      "node_count": 2
+    },
+    "API_Plugin": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "API_PublicDashboard": {
+      "maxScore": 2,
+      "node_count": 2
+    },
+    "API_LibraryElement": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_Snapshot": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_Playlist": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_Correlation": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_QueryHistory": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_ShortURL": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "API_Admin": {
+      "maxScore": 4,
+      "node_count": 4
+    },
+    "RBAC": {
+      "maxScore": 56,
+      "node_count": 14
+    },
+    "Frontend": {
+      "maxScore": 42,
+      "node_count": 6
+    },
+    "ArchitectureQuality": {
+      "maxScore": 48,
+      "node_count": 7
+    }
+  },
+  "total_maxScore": 382,
+  "normalization": "0-100",
+  "depth_distribution": {
+    "shallow": {
+      "maxScore": 41,
+      "percentage": 10.7
+    },
+    "deep": {
+      "maxScore": 251,
+      "percentage": 65.7
+    },
+    "llm_judge": {
+      "maxScore": 90,
+      "percentage": 23.6
+    }
+  }
+}

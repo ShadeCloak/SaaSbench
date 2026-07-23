@@ -1,0 +1,36 @@
+# =============================================================================
+# Dockerfile.model template -- Ruby tasks
+# Builds the candidate-model "clean dev" image used by prepare_workspace.sh and
+# test_model_output.sh. The model is expected to install application
+# dependencies (bundle install / yarn install / db:setup) into this container at
+# evaluation time -- the image itself ships only base toolchain (ruby, gem,
+# bundler) and no upstream source.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        ruby-full ruby-dev libyaml-dev libvips42 libvips-tools \
+ && rm -rf /var/lib/apt/lists/* \
+ && ruby --version
+
+# RubyGems mirror configuration
+# - Default: install from https://rubygems.org/ (the canonical upstream).
+# - For users in mainland China who hit network issues, set the build-arg
+#   GEM_MIRROR to https://gems.ruby-china.com/ to use the Tuna mirror.
+ARG GEM_MIRROR=https://rubygems.org/
+RUN if [ "${GEM_MIRROR}" != "https://rubygems.org/" ]; then \
+        gem sources --remove https://rubygems.org/ 2>/dev/null || true ; \
+        gem sources -a "${GEM_MIRROR}" ; \
+        gem install bundler --no-document ; \
+        bundle config mirror.https://rubygems.org "${GEM_MIRROR}" ; \
+    else \
+        gem install bundler --no-document ; \
+    fi
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

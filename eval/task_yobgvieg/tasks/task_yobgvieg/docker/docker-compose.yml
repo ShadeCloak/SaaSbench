@@ -1,0 +1,92 @@
+name: task_yobgvieg
+
+services:
+  app:
+    image: shadetocloak/task_yobgvieg-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: app_yobgvieg
+    restart: "no"
+    ports:
+      - "8032:8032"
+    volumes:
+      - ./workspace:/app
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+      minio:
+        condition: service_started
+    stdin_open: true
+    tty: true
+
+  db:
+    image: postgres:15.7-alpine
+    container_name: db_yobgvieg
+    restart: "no"
+    ports:
+      - "5453:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    environment:
+      POSTGRES_USER: appyobgvieg
+      POSTGRES_PASSWORD: app123yobgvieg
+      POSTGRES_DB: app_yobgvieg
+      PGDATA: /var/lib/postgresql/data
+    command: postgres -c 'max_connections=500'
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appyobgvieg -d app_yobgvieg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  redis:
+    image: valkey/valkey:7.2-alpine
+    container_name: redis_yobgvieg
+    restart: "no"
+    ports:
+      - "6386:6379"
+    volumes:
+      - redisdata:/data
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: mq_yobgvieg
+    restart: "no"
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_VHOST: /
+    volumes:
+      - mqdata:/var/lib/rabbitmq
+
+  minio:
+    image: minio/minio:RELEASE.2024-06-13T22-53-53Z
+    container_name: minio_yobgvieg
+    restart: "no"
+    ports:
+      - "9100:9000"
+      - "9101:9090"
+    command: server /export --console-address ":9090"
+    volumes:
+      - miniodata:/export
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+
+volumes:
+  pgdata:
+  redisdata:
+  mqdata:
+  miniodata:

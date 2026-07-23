@@ -1,0 +1,181 @@
+name: task_ychlukjm
+
+services:
+  app:
+    # Override APP_IMAGE_REPO to point at your own registry, or uncomment the
+    # build block below to build the application image locally from ./workspace.
+    image: ${APP_IMAGE_REPO:-task_ychlukjm-app}:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: metadata-platform-app
+    ports:
+      - "8019:8019"
+    depends_on:
+      mysql:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      schema-registry:
+        condition: service_healthy
+      neo4j:
+        condition: service_healthy
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    networks:
+      - metadata-net
+    stdin_open: true
+    tty: true
+
+  mysql:
+    image: mysql:8.0
+    container_name: metadata-platform-mysql
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root123}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-app_ychlukjm}
+      MYSQL_USER: ${MYSQL_USERNAME:-appychlukjm}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-app123ychlukjm}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    command: >
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_bin
+      --default-authentication-plugin=mysql_native_password
+      --max_connections=500
+      --innodb_buffer_pool_size=512M
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - metadata-net
+
+  elasticsearch:
+    image: elasticsearch:7.17.9
+    container_name: metadata-platform-elasticsearch
+    ports:
+      - "9201:9200"
+      - "9301:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - action.auto_create_index=true
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - metadata-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.0
+    container_name: metadata-platform-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      KAFKA_OPTS: "-Dzookeeper.4lw.commands.whitelist=ruok,srvr,stat"
+    volumes:
+      - zk-data:/var/lib/zookeeper/data
+      - zk-logs:/var/lib/zookeeper/log
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+    networks:
+      - metadata-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.0
+    container_name: metadata-platform-kafka
+    ports:
+      - "9093:9093"
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://localhost:9093
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_MESSAGE_MAX_BYTES: 5242880
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-broker-api-versions --bootstrap-server localhost:29092"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    networks:
+      - metadata-net
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.0
+    container_name: metadata-platform-schema-registry
+    ports:
+      - "8081:8081"
+    depends_on:
+      kafka:
+        condition: service_healthy
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:29092
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/subjects || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - metadata-net
+
+  neo4j:
+    image: neo4j:4.4-community
+    container_name: metadata-platform-neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      NEO4J_AUTH: ${NEO4J_USERNAME:-neo4j}/${NEO4J_PASSWORD:-neo4j_pass_ychlukjm}
+      NEO4J_dbms_default__database: graph
+      NEO4J_dbms_memory_heap_max__size: 512M
+    volumes:
+      - neo4j-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:7474 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - metadata-net
+
+volumes:
+  mysql-data:
+  es-data:
+  zk-data:
+  zk-logs:
+  kafka-data:
+  neo4j-data:
+
+networks:
+  metadata-net:
+    driver: bridge

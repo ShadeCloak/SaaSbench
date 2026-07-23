@@ -1,0 +1,56 @@
+version: '3.8'
+name: task_lzdugafl
+
+services:
+  app:
+    image: shadetocloak/task_lzdugafl-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: ${APP_CONTAINER_NAME:-timetracker-app}
+    ports:
+      - "8001:80"
+    volumes:
+      - ./workspace:/app
+    environment:
+      - APP_ENV=${APP_ENV:-prod}
+      - APP_SECRET=${APP_SECRET:-change_this_to_something_unique}
+      - DATABASE_URL=mysql://${DB_USER:-tt_user}:${DB_PASSWORD:-tt_pass}@db:3306/${DB_NAME:-timetracker_db}?charset=utf8mb4&serverVersion=8.0
+      - MAILER_FROM=${MAILER_FROM:-app@example.com}
+      - MAILER_URL=${MAILER_URL:-null://null}
+      - CORS_ALLOW_ORIGIN=${CORS_ALLOW_ORIGIN:-^https?://localhost(:[0-9]+)?$$}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - timetracker-net
+    restart: "no"
+  db:
+    image: mysql:8.0
+    container_name: ${DB_CONTAINER_NAME:-timetracker-db}
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-root_pass}
+      - MYSQL_DATABASE=${DB_NAME:-timetracker_db}
+      - MYSQL_USER=${DB_USER:-tt_user}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-tt_pass}
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-root_pass}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - timetracker-net
+    restart: "no"
+volumes:
+  db-data:
+
+networks:
+  timetracker-net:
+    driver: bridge

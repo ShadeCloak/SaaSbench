@@ -1,0 +1,16 @@
+# =============================================================================
+# Generic dev image for the model under test (Node + Python tasks).
+# =============================================================================
+# The base image provides: Ubuntu + Go + Node 20 (Yarn 4 / pnpm) + Python 3.10
+# plus common build caches (React, Vue, Vite, Webpack, NX, Express, NestJS,
+# Prisma, etc.). This template is used by tasks that do not require additional
+# language toolchains; it just keeps the container idle and exposes /app as
+# the workspace.
+# =============================================================================
+
+ARG BASE_IMAGE=shadetocloak/saasbench-dev:base
+FROM ${BASE_IMAGE}
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

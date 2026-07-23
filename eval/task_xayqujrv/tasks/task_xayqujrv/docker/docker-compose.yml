@@ -1,0 +1,249 @@
+# task_xayqujrv — Feature Flag + Remote Config SaaS Platform
+#
+# Published frozen image: shadetocloak/task_xayqujrv-app:${IMAGE_TAG:-baseline}
+# Contains: Python 3.12 + Poetry 2.2.1 + Node 20 + Django 5 + feature-flag
+# platform deps in system site-packages. The agent populates /app
+# (= ./workspace on host) with source code and starts the application server.
+#
+# Five services:
+#   * app           — main Django application container (workspace mounted)
+#   * worker        — task processor (same image, separate container)
+#   * postgres      — PostgreSQL 15
+#   * redis         — Redis 7
+#   * mock-receiver — webhook test receiver (port 9011 host, 9001 container)
+#
+# Host port mapping:
+#   App        8023 -> 8000
+#   PostgreSQL 5446 -> 5432
+#   Redis      6396 -> 6379
+#   mock-recv  9011 -> 9001
+name: task_xayqujrv
+
+x-app-env: &app-env
+  # ===== Core / Django =====
+  # round-25 (2026-05-18): DEBUG default flipped to "False" so 500 responses
+  # don't leak HTML stack traces. Re-enable per-run with `DJANGO_DEBUG=True`
+  # in .env if you need the Django debug page for local development.
+  ENVIRONMENT: ${ENVIRONMENT:-production}
+  DEBUG: "${DJANGO_DEBUG:-False}"
+  DJANGO_SETTINGS_MODULE: app.settings.local
+  DJANGO_ALLOWED_HOSTS: "*"
+  DJANGO_CSRF_TRUSTED_ORIGINS: "http://localhost:8023,http://127.0.0.1:8023"
+  DJANGO_DB_CONN_MAX_AGE: "60"
+  USE_X_FORWARDED_HOST: "False"
+  DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY_required__cp_.env.example_.env_then_openssl_rand_-base64_48}
+
+  # ===== Database =====
+  DATABASE_URL: postgres://appxayqujrv:app123xayqujrv@postgres:5432/app_xayqujrv
+
+  # ===== Cache =====
+  ENVIRONMENT_CACHE_BACKEND: django.core.cache.backends.locmem.LocMemCache
+  ENVIRONMENT_CACHE_LOCATION: environment-objects
+  ENVIRONMENT_CACHE_SECONDS: "60"
+  CACHE_ENVIRONMENT_DOCUMENT_BACKEND: django.core.cache.backends.db.DatabaseCache
+  CACHE_ENVIRONMENT_DOCUMENT_MODE: EXPIRING
+  CACHE_BAD_ENVIRONMENTS_SECONDS: "300"
+  CACHE_BAD_ENVIRONMENTS_AFTER_FAILURES: "1"
+
+  # ===== Task processor =====
+  TASK_RUN_METHOD: SEPARATE_THREAD
+  ENABLE_POSTPONE_DECORATOR: "True"
+  ENABLE_CLEAN_UP_OLD_TASKS: "True"
+  TASK_DELETE_RETENTION_DAYS: "30"
+  TASK_DELETE_BATCH_SIZE: "2000"
+  TASK_BACKOFF_DEFAULT_DELAY_SECONDS: "5"
+
+  # ===== Email =====
+  EMAIL_BACKEND: django.core.mail.backends.console.EmailBackend
+  SENDER_EMAIL: noreply@localhost
+
+  # ===== Segment / Feature constraints =====
+  SEGMENT_CONDITION_VALUE_LIMIT: "1000"
+  SEGMENT_RULES_CONDITIONS_LIMIT: "100"
+  FEATURE_VALUE_LIMIT: "20000"
+  SEGMENT_RULES_CONDITIONS_EXPLICIT_ORDERING_ENABLED: "False"
+
+  # ===== Auth / 2FA / OAuth =====
+  COOKIE_AUTH_ENABLED: "False"
+  USE_SECURE_COOKIES: "False"
+  COOKIE_SAME_SITE: lax
+  COOKIE_AUTH_JWT_ACCESS_TOKEN_LIFETIME_MINUTES: "600"
+  COOKIE_AUTH_JWT_SIGNING_KEY: ${COOKIE_AUTH_JWT_SIGNING_KEY:-}
+
+  # ===== django-axes =====
+  ENABLE_AXES: "True"
+  AXES_FAILURE_LIMIT: "10"
+  AXES_COOLOFF_TIME: "15"
+  AXES_ONLY_USER_FAILURES: "True"
+
+  # ===== Throttling =====
+  LOGIN_THROTTLE_RATE: 20/min
+  DCR_THROTTLE_RATE: 500/month
+  SIGNUP_THROTTLE_RATE: 10000/min
+
+  # ===== Bootstrap admin =====
+  ALLOW_ADMIN_INITIATION_VIA_URL: "True"
+  ALLOW_ADMIN_INITIATION_VIA_CLI: "False"
+  ADMIN_EMAIL: admin@example.com
+  ORGANISATION_NAME: "Default Organisation"
+  PROJECT_NAME: "Default Project"
+
+  # ===== Telemetry / observability =====
+  ENABLE_TELEMETRY: "False"
+  ENABLE_API_USAGE_TRACKING: "True"
+  ENABLE_API_USAGE_ALERTING: "False"
+  PROMETHEUS_ENABLED: "False"
+  LOG_FORMAT: generic
+  LOG_LEVEL: INFO
+  SENTRY_SDK_DSN: ""
+  SENTRY_TRACE_SAMPLE_RATE: "1.0"
+
+  # ===== Webhooks =====
+  DISABLE_WEBHOOKS: "False"
+  WEBHOOK_BACKOFF_BASE: "2"
+  WEBHOOK_BACKOFF_RETRIES: "3"
+
+  # ===== Frontend env =====
+  API_URL: /api/v1/
+  ASSET_URL: /
+  MAINTENANCE_MODE: "False"
+  DISABLE_INFLUXDB_FEATURES: "True"
+  DISABLE_ANALYTICS_FEATURES: "True"
+  ENABLE_REALTIME_UPDATES: "False"
+
+  # ===== CORS =====
+  CORS_ORIGIN_ALLOW_ALL: "True"
+  CORS_ALLOW_CREDENTIALS: "False"
+  CORS_ALLOWED_ORIGINS: "http://localhost:8023,http://127.0.0.1:8023"
+
+  # ===== Trait / identity persistence =====
+  DEFAULT_ORG_STORE_TRAITS_VALUE: "True"
+
+  # ===== Edge DynamoDB (disabled) =====
+  ENVIRONMENTS_TABLE_NAME_DYNAMO: ""
+  IDENTITIES_TABLE_NAME_DYNAMO: ""
+  EDGE_API_URL: ""
+  MAX_SELF_MIGRATABLE_IDENTITIES: "100000"
+
+  # ===== Integrations (disabled) =====
+  ENABLE_CHARGEBEE: "False"
+  ENABLE_HUBSPOT_LEAD_TRACKING: "False"
+  GITHUB_CLIENT_ID: ""
+  GITHUB_CLIENT_SECRET: ""
+  GITHUB_APP_ID: "0"
+  GITHUB_PEM: ""
+  GITHUB_WEBHOOK_SECRET: ""
+  SLACK_CLIENT_ID: ""
+  SLACK_CLIENT_SECRET: ""
+
+  # ===== Webhook test receiver =====
+  TEST_WEBHOOK_RECEIVER_URL: http://mock-receiver:9001
+
+services:
+  app:
+    image: shadetocloak/task_xayqujrv-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: ${APP_CONTAINER_NAME:-task_xayqujrv-app}
+    ports:
+      - "8023:8000"
+      - "8028:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      <<: *app-env
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: bash
+
+  worker:
+    image: shadetocloak/task_xayqujrv-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: ${WORKER_CONTAINER_NAME:-task_xayqujrv-worker}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      app:
+        condition: service_started
+    environment:
+      <<: *app-env
+      RUN_BY_PROCESSOR: "True"
+      TASK_RUN_METHOD: TASK_PROCESSOR
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: bash
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: ${DB_CONTAINER_NAME:-task_xayqujrv-postgres}
+    restart: unless-stopped
+    ports:
+      - "5446:5432"
+    environment:
+      POSTGRES_DB: app_xayqujrv
+      POSTGRES_USER: appxayqujrv
+      POSTGRES_PASSWORD: app123xayqujrv
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appxayqujrv -d app_xayqujrv"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks:
+      default:
+        aliases:
+          - db
+
+  redis:
+    image: redis:7-alpine
+    container_name: ${REDIS_CONTAINER_NAME:-task_xayqujrv-redis}
+    restart: unless-stopped
+    ports:
+      - "6396:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  mock-receiver:
+    image: python:3.12-alpine
+    container_name: ${MOCK_CONTAINER_NAME:-task_xayqujrv-mock-receiver}
+    restart: unless-stopped
+    ports:
+      - "9011:9001"
+    volumes:
+      - ./mock-receiver:/srv:ro
+    working_dir: /srv
+    command: ["python", "-u", "server.py"]
+    healthcheck:
+      # [round-18] python:3.12-alpine does not ship wget; use python urllib (built in) instead.
+      # The /health endpoint is implemented at server.py line 86 and returns 200 {"status":"ok"}.
+      test: ["CMD-SHELL", "python -c 'import urllib.request,sys; sys.exit(0 if urllib.request.urlopen(\"http://localhost:9001/health\",timeout=2).status==200 else 1)' || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
+  redisdata:

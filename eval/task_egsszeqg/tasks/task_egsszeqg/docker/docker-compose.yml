@@ -1,0 +1,84 @@
+name: task_egsszeqg
+
+services:
+  app:
+    image: shadetocloak/task_egsszeqg-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: task_egsszeqg_app
+    env_file:
+      - ./.env
+    working_dir: /app
+    volumes:
+      - ./workspace:/app
+      - pip_cache:/root/.cache/pip
+      - npm_cache:/root/.npm
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+  postgres:
+    image: postgres:16-bookworm
+    container_name: task_egsszeqg_postgres
+    env_file:
+      - ./.env
+    environment:
+      POSTGRES_USER: ${POSTGRES_SUPERUSER}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERPASSWORD}
+      POSTGRES_DB: postgres
+      PGPORT: ${DATABASE_PORT}
+    command:
+      - postgres
+      - -p
+      - "${DATABASE_PORT}"
+      - -c
+      - listen_addresses=*
+    ports:
+      - "${DATABASE_PORT}:${DATABASE_PORT}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/00-init-db.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -h 127.0.0.1 -p ${DATABASE_PORT} -U ${POSTGRES_SUPERUSER} -d postgres
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+  redis:
+    image: redis:7-bookworm
+    container_name: task_egsszeqg_redis
+    command:
+      - redis-server
+      - --port
+      - "${REDIS_PORT}"
+      - --appendonly
+      - "yes"
+      - --save
+      - "60"
+      - "1"
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - redis-cli -p ${REDIS_PORT} ping | grep PONG
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 5s
+    restart: "no"
+volumes:
+  postgres_data:
+  redis_data:
+  pip_cache:
+  npm_cache:

@@ -1,0 +1,121 @@
+# task_ididetxj — Collaborative Knowledge Base & Wiki Platform
+#
+# Pre-built application image — `shadetocloak/task_ididetxj-app:latest` contains:
+#   - Node 20.20 + Yarn 4.11 (corepack)
+#   - PostgreSQL 16 client / Redis 7 client / git / curl / build-essential / python3
+#   - /var/cache/workspace_deps/{node_modules, .yarn, build, yarn_global_yarn}
+#     (top-level node_modules 1.4G + workspace .yarn 2.3M + server/app build 58M
+#       + Yarn berry global cache 884M = ~2.4G of pre-installed dependencies,
+#       saving 30+ min of `yarn install` cold-start time)
+# `prepare_workspace.sh` / `test_*_code.sh` copy these deps into /app/ on demand.
+#
+# Required environment variables (fail-fast check ${VAR:?}):
+#   SECRET_KEY    — 64-char hex (openssl rand -hex 32), cookie & vault encryption
+#   UTILS_SECRET  — 64-char hex (openssl rand -hex 32), asset URL signing
+# If any one is missing, docker compose up errors out immediately; see docker/.env.example for the template.
+
+name: task-ididetxj
+
+x-common-env: &common-env
+  TZ: UTC
+  LANG: C.UTF-8
+  LC_ALL: C.UTF-8
+  NODE_ENV: development
+  # Connection strings (in-network hostnames + standard ports)
+  DATABASE_URL: postgres://appididetxj:app123ididetxj@db:5432/app_ididetxj
+  REDIS_URL: redis://redis:6379
+  # Application listening port (in-container; mapped to host 8031)
+  PORT: "8031"
+  APP_PORT: "8031"
+  APP_DOMAIN: "localhost:8031"
+  URL: "http://localhost:8031"
+  # Sequelize will accept these from the env_file, but provide fail-fast defaults too
+  SECRET_KEY: ${SECRET_KEY:?SECRET_KEY_required__see_docker/.env.example__then_openssl_rand_-hex_32}
+  UTILS_SECRET: ${UTILS_SECRET:?UTILS_SECRET_required__openssl_rand_-hex_32}
+
+services:
+  db:
+    container_name: task_ididetxj-db
+    image: postgres:16
+    restart: "no"
+    environment:
+      POSTGRES_USER: appididetxj
+      POSTGRES_PASSWORD: app123ididetxj
+      POSTGRES_DB: app_ididetxj
+      POSTGRES_INITDB_ARGS: "--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+    ports:
+      - "5452:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appididetxj -d app_ididetxj"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c effective_cache_size=256MB
+      -c maintenance_work_mem=64MB
+      -c work_mem=8MB
+      -c max_connections=100
+      -c log_min_duration_statement=200ms
+
+  redis:
+    container_name: task_ididetxj-redis
+    image: redis:7-alpine
+    restart: "no"
+    ports:
+      - "6385:6379"
+    volumes:
+      - redisdata:/data
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy noeviction
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    container_name: task_ididetxj-app
+    # Published image (deps committed at freeze time live in /var/cache/workspace_deps/)
+    image: shadetocloak/task_ididetxj-app:${IMAGE_TAG:-baseline}
+    # The build section is kept to allow fallback when offline locally
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    restart: "no"
+    environment:
+      <<: *common-env
+    env_file:
+      - .env
+    ports:
+      - "8031:8031"
+      - "3001:3001"   # Vite dev server (dev-mode frontend assets; browser eval needs host access)
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./workspace:/app                # agent's code workspace
+      - filestorage:/var/lib/app/data   # application attachment storage (persistent)
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    # Idle by default; after prepare_workspace moves deps + source into /app, the model starts yarn start itself
+    command: ["bash", "-c", "echo 'app container ready (node:'$(node -v)' yarn:'$(yarn -v)'). /app is empty - populate per task.md §9.'; tail -f /dev/null"]
+
+volumes:
+  pgdata:
+    name: task_ididetxj_pgdata
+  redisdata:
+    name: task_ididetxj_redisdata
+  filestorage:
+    name: task_ididetxj_filestorage

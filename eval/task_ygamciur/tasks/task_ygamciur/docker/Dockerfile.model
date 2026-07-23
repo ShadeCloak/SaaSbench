@@ -1,0 +1,38 @@
+# =============================================================================
+# Dockerfile.model - JVM-task model image
+# Provides a clean development environment (JDK 17 + Maven + Gradle) for the
+# model-under-test to write code into an empty workspace. No business
+# auto-start logic is included.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        openjdk-17-jdk maven gradle \
+ && rm -rf /var/lib/apt/lists/* \
+ && java --version && mvn --version | head -1
+
+# Optional Maven mirror for faster artifact downloads. Reviewers running in
+# environments where the default Maven Central is not reachable can override
+# this URL via build-arg or by editing /root/.m2/settings.xml.
+ARG MAVEN_MIRROR_URL=https://maven.aliyun.com/repository/public
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<EOF
+<settings>
+  <mirrors>
+    <mirror>
+      <id>build-mirror</id>
+      <name>build mirror</name>
+      <url>${MAVEN_MIRROR_URL}</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

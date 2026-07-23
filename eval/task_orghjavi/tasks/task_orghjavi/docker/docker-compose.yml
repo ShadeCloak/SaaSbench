@@ -1,0 +1,114 @@
+# App image variants (override via APP_IMAGE / IMAGE_TAG env vars; see .env):
+#   - baseline: includes pre-staged application dependencies (test_source_code.sh)
+#   - model:    clean development environment derived from a generic base image
+#               with an empty /app, used by prepare_workspace.sh + test_model_output.sh
+# Image bundles: Elixir 1.18 / Erlang OTP 27 / Node 22, the upstream application's
+# deps + _build (incl. release at /app/_build/ce/rel/app/), assets/node_modules
+# (852 npm pkgs), priv/static (compiled assets), priv/geodb/dbip-country.mmdb.gz
+# (GeoLite2 country DB). In the baseline image these artifacts are staged at
+# /var/cache/workspace_deps/ and unpacked into /app by test_source_code.sh only.
+# The model image ships an empty /app; the agent installs dependencies itself.
+services:
+  app:
+    image: ${APP_IMAGE:-task_orghjavi-app}:${IMAGE_TAG:-baseline}
+    # build:                       # local rebuild fallback
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: webanalytics_orghjavi_app
+    ports:
+      - "8015:8000"        # host:container (task.md §8.1)
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://apporghjavi:app123orghjavi@postgres:5432/app_orghjavi
+      CLICKHOUSE_DATABASE_URL: http://clickhouse:8123/analytics_events_db
+    volumes:
+      - ./workspace:/app
+      - app_data:/var/lib/app
+    working_dir: /app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - webanalytics_net
+    # Smart healthcheck — succeeds in BOTH idle dev container state AND fully-running
+    # phx.server state, so `depends_on: service_healthy` works without forcing the
+    # agent to launch the app before `docker compose up` returns.
+    command: ["tail", "-f", "/dev/null"]
+    # Weak healthcheck: container liveness is enough to satisfy `service_healthy`.
+    # Application readiness is the responsibility of the prepare/test scripts.
+    # In `model` mode the PID 1 = sleep infinity does not block
+    # `_wait_compose_ready`.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  postgres:
+    image: postgres:16-alpine
+    container_name: webanalytics_orghjavi_postgres
+    ports:
+      - "5440:5432"        # task.md §8.1
+    environment:
+      POSTGRES_DB: app_orghjavi
+      POSTGRES_USER: apporghjavi
+      POSTGRES_PASSWORD: app123orghjavi
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U apporghjavi -d app_orghjavi"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: "no"
+    networks:
+      - webanalytics_net
+
+  clickhouse:
+    # ClickHouse uses the public alpine image — not pre-frozen.
+    # The application's `mix do clean_clickhouse, ch_migrate` (or equivalent)
+    # creates the analytics_events_db schema on first start; no separate
+    # docker/clickhouse-init.sql is required.
+    image: clickhouse/clickhouse-server:24.12-alpine
+    container_name: webanalytics_orghjavi_clickhouse
+    ports:
+      - "8124:8123"        # task.md §8.1: HTTP
+      - "9102:9000"        # native (optional; non-standard host port to avoid conflict)
+    environment:
+      CLICKHOUSE_DB: analytics_events_db
+      CLICKHOUSE_DEFAULT_ACCESS_MANAGEMENT: 1
+      CLICKHOUSE_USER: default
+      CLICKHOUSE_PASSWORD: ""
+      CLICKHOUSE_SKIP_USER_SETUP: 1
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:8123/ping || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: "no"
+    networks:
+      - webanalytics_net
+
+volumes:
+  postgres_data:
+    name: webanalytics_orghjavi_pgdata
+  clickhouse_data:
+    name: webanalytics_orghjavi_chdata
+  app_data:
+    name: webanalytics_orghjavi_appdata
+
+networks:
+  webanalytics_net:
+    name: webanalytics_orghjavi_net
+    driver: bridge

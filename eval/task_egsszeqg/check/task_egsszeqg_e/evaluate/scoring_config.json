@@ -1,0 +1,58 @@
+{
+  "categories": {
+    "APIContracts": {
+      "maxScore": 13.78,
+      "node_count": 97
+    },
+    "ArchitectureQuality": {
+      "maxScore": 26.0,
+      "node_count": 3
+    },
+    "AsyncRealtime": {
+      "maxScore": 2.48,
+      "node_count": 26
+    },
+    "Authentication": {
+      "maxScore": 4.0,
+      "node_count": 2
+    },
+    "BusinessLogic": {
+      "maxScore": 35.0,
+      "node_count": 18
+    },
+    "CLI": {
+      "maxScore": 5.0,
+      "node_count": 5
+    },
+    "DataModel": {
+      "maxScore": 14.0,
+      "node_count": 56
+    },
+    "Deployment": {
+      "maxScore": 7.75,
+      "node_count": 6
+    },
+    "EdgeCases": {
+      "maxScore": 12.6,
+      "node_count": 7
+    },
+    "Frontend": {
+      "maxScore": 32.0,
+      "node_count": 5
+    },
+    "Integrations": {
+      "maxScore": 10.0,
+      "node_count": 6
+    },
+    "RBAC": {
+      "maxScore": 10.5,
+      "node_count": 5
+    },
+    "Validation": {
+      "maxScore": 4.0,
+      "node_count": 2
+    }
+  },
+  "total_maxScore": 177.11,
+  "normalization": "0-100"
+}

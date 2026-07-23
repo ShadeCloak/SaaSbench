@@ -1,0 +1,256 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 13,
+      "node_count": 5
+    },
+    "DataModel": {
+      "maxScore": 32,
+      "node_count": 12
+    },
+    "Authentication": {
+      "maxScore": 20,
+      "node_count": 6
+    },
+    "API_CRUD": {
+      "maxScore": 25,
+      "node_count": 12
+    },
+    "SubscriptionLifecycle": {
+      "maxScore": 60,
+      "node_count": 20
+    },
+    "ChargeModels": {
+      "maxScore": 40,
+      "node_count": 10
+    },
+    "InvoiceLifecycle": {
+      "maxScore": 30,
+      "node_count": 10
+    },
+    "TaxCalculation": {
+      "maxScore": 12,
+      "node_count": 3
+    },
+    "WalletOperations": {
+      "maxScore": 30,
+      "node_count": 8
+    },
+    "CouponApplication": {
+      "maxScore": 18,
+      "node_count": 5
+    },
+    "CreditNotes": {
+      "maxScore": 12,
+      "node_count": 4
+    },
+    "RBAC": {
+      "maxScore": 20,
+      "node_count": 8
+    },
+    "EventProcessing": {
+      "maxScore": 12,
+      "node_count": 3
+    },
+    "PaymentWebhooks": {
+      "maxScore": 8,
+      "node_count": 3
+    },
+    "Frontend": {
+      "maxScore": 7,
+      "node_count": 2
+    },
+    "Architecture": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "DunningCampaigns": {
+      "maxScore": 16,
+      "node_count": 5
+    },
+    "ProgressiveBilling": {
+      "maxScore": 12,
+      "node_count": 3
+    }
+  },
+  "total_maxScore": 371,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 42,
+      "maxScore": 111
+    },
+    "workflow_automator": {
+      "node_count": 71,
+      "maxScore": 240
+    },
+    "marketplace_rbac": {
+      "node_count": 8,
+      "maxScore": 20
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 105,
+    "weighted": 12,
+    "llm-judge": 4
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core user journey: deploy → auth → create customer → create plan → create subscription → charge calculation → invoice",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DOCKER_COMPOSE",
+        "DEPLOY_GEMFILE",
+        "DEPLOY_PACKAGE_JSON",
+        "DEPLOY_DATABASE_YML",
+        "DB_ORGANIZATIONS",
+        "DB_BILLING_ENTITIES",
+        "DB_USERS_MEMBERSHIPS",
+        "DB_ROLES_API_KEYS",
+        "DB_CUSTOMERS",
+        "DB_PLANS_CHARGES",
+        "DB_SUBSCRIPTIONS",
+        "DB_INVOICES_FEES",
+        "DB_WALLETS_TRANSACTIONS",
+        "DB_COUPONS_CREDIT_NOTES",
+        "DB_EVENTS_METRICS",
+        "DB_REMAINING_TABLES",
+        "AUTH_JWT_LOGIN",
+        "AUTH_JWT_PROTECTED",
+        "AUTH_API_KEY_CREATE",
+        "AUTH_API_KEY_REST",
+        "AUTH_CUSTOMER_PORTAL",
+        "AUTH_JWT_INVALID_CREDENTIALS",
+        "CRUD_CUSTOMER",
+        "CRUD_PLAN",
+        "CRUD_SUBSCRIPTION",
+        "CRUD_BILLABLE_METRIC",
+        "CRUD_ADD_ON",
+        "CRUD_COUPON",
+        "CRUD_TAX",
+        "CRUD_WALLET",
+        "CRUD_WEBHOOK_ENDPOINT",
+        "CRUD_INVOICE_OPS",
+        "CRUD_CREDIT_NOTE_LIST",
+        "CRUD_BILLING_ENTITY_LIST",
+        "SUB_CREATE_ACTIVE",
+        "SUB_CREATE_PENDING",
+        "SUB_BILLING_TIME_DEFAULT",
+        "SUB_BILLING_TIME_EMPTY_ERROR",
+        "SUB_UPGRADE",
+        "SUB_DOWNGRADE",
+        "SUB_TERMINATE_ACTIVE",
+        "SUB_TERMINATE_PENDING",
+        "SUB_VALIDATION_INVALID_DATE",
+        "SUB_CURRENCY_MISMATCH",
+        "SUB_NOT_FOUND_ERRORS",
+        "SUB_TERMINATION_OPTIONS",
+        "CM_STANDARD",
+        "CM_GRADUATED",
+        "CM_PACKAGE",
+        "CM_PERCENTAGE",
+        "CM_VOLUME",
+        "CM_GRADUATED_PERCENTAGE",
+        "CM_STANDARD_ZERO",
+        "CM_GRADUATED_ZERO",
+        "CM_PACKAGE_FREE_UNITS",
+        "CM_VOLUME_TIER1",
+        "INV_ONE_OFF_CREATE",
+        "INV_FINALIZE",
+        "INV_VOID",
+        "INV_VOID_DRAFT_REJECT",
+        "INV_ZERO_AMOUNT",
+        "INV_SEQUENTIAL_NUM",
+        "INV_CREDIT_NOTE",
+        "INV_CREDIT_NOTE_VOID",
+        "INV_CURRENCY_MISMATCH",
+        "INV_NET_PAYMENT_TERM",
+        "TAX_CREATE_ORG",
+        "TAX_ADDITIVE_CALC",
+        "TAX_CASCADE_PRIORITY",
+        "EVENT_INGEST_SINGLE",
+        "EVENT_DEDUPLICATION",
+        "EVENT_BATCH_INGEST",
+        "SUB_TRIAL_PERIOD",
+        "SUB_ENDING_AT_AUTO_TERM",
+        "SUB_MULTIPLE_SAME_CUSTOMER",
+        "SUB_ANNIVERSARY_BILLING_DATE",
+        "SUB_CALENDAR_BILLING_DATE",
+        "SUB_PLAN_OVERRIDES",
+        "SUB_EXTERNAL_ID_UNIQUENESS",
+        "SUB_LIFETIME_USAGE_CREATED"
+      ],
+      "maxScore": 244
+    },
+    "advanced_workflows": {
+      "description": "Advanced features: RBAC, wallets, coupons, credit notes, edge cases",
+      "node_ids": [
+        "WALLET_CREATE_BASIC",
+        "WALLET_TOPUP_CREDITS",
+        "WALLET_PRIORITY_CONSUMPTION",
+        "WALLET_PARTIAL_MULTI_CONSUMPTION",
+        "WALLET_FLOOR_ROUNDING",
+        "WALLET_EXPIRATION_TERMINATION",
+        "WALLET_AUTO_TOPUP_THRESHOLD",
+        "WALLET_VALIDATION_ERRORS",
+        "COUPON_FIXED_AMOUNT_CREATE",
+        "COUPON_PERCENTAGE_CREATE",
+        "COUPON_APPLY_TO_CUSTOMER",
+        "COUPON_FREQUENCY_ONCE",
+        "COUPON_PLAN_SCOPED",
+        "CREDIT_NOTE_CREATE",
+        "CREDIT_NOTE_AMOUNTS_VALIDATION",
+        "CREDIT_NOTE_VOID",
+        "CREDIT_NOTE_DB_VERIFY",
+        "RBAC_DENY_READONLY_CREATE_CUSTOMER",
+        "RBAC_ALLOW_READWRITE_CREATE_CUSTOMER",
+        "RBAC_DENY_READONLY_CREATE_SUBSCRIPTION",
+        "RBAC_ALLOW_READWRITE_CREATE_SUBSCRIPTION",
+        "RBAC_DENY_NO_READ_LIST_INVOICES",
+        "RBAC_ALLOW_READ_LIST_INVOICES",
+        "RBAC_EXPIRED_KEY_401",
+        "RBAC_VALID_KEY_FULL_ACCESS",
+        "WEBHOOK_ENDPOINT_CREATE",
+        "WEBHOOK_ENDPOINT_LIST",
+        "WEBHOOK_ENDPOINT_VALIDATION",
+        "FRONTEND_SPA_RENDERING",
+        "FRONTEND_KEY_UI_COMPONENTS",
+        "ARCH_CODE_QUALITY",
+        "ARCH_PROJECT_STRUCTURE",
+        "DUNNING_CREATE_CAMPAIGN",
+        "DUNNING_APPLY_TO_CUSTOMER",
+        "DUNNING_ESCALATION_LEVELS",
+        "DUNNING_THRESHOLD_TRIGGER",
+        "DUNNING_DB_VERIFY",
+        "PROG_BILLING_THRESHOLD_TRIGGER",
+        "PROG_BILLING_LIFETIME_USAGE",
+        "PROG_BILLING_RECURRING_THRESHOLD"
+      ],
+      "maxScore": 127
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 121,
+    "declared_nodes": 121,
+    "node_count_match": true,
+    "has_cycle": false,
+    "root_nodes": 26,
+    "leaf_nodes": 83,
+    "dangling_prereqs": 0,
+    "dangling_details": [],
+    "topological_sort_feasible": true,
+    "shallow_score_pct": 16.7,
+    "deep_score_pct": 80.3,
+    "llm_score_pct": 3.0,
+    "shallow_check": "PASS",
+    "deep_check": "PASS",
+    "llm_check": "PASS",
+    "status_only_violations": 1,
+    "p13_coverage_check": "pass",
+    "p13_failure_count": 0,
+    "test_coverage_total_rules": 160,
+    "test_coverage_gaps": [
+      "subscription_lifecycle (46 rules, only 12 DAG nodes)"
+    ]
+  }
+}

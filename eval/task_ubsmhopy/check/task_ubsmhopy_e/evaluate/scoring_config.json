@@ -1,0 +1,183 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 9,
+      "node_count": 5
+    },
+    "DataModel": {
+      "maxScore": 18,
+      "node_count": 9
+    },
+    "Authentication": {
+      "maxScore": 35,
+      "node_count": 9
+    },
+    "VaultCRUD": {
+      "maxScore": 33,
+      "node_count": 10
+    },
+    "Organization": {
+      "maxScore": 25,
+      "node_count": 7
+    },
+    "BusinessLogic": {
+      "maxScore": 86,
+      "node_count": 21
+    },
+    "RBAC": {
+      "maxScore": 35,
+      "node_count": 11
+    },
+    "AdminPanel": {
+      "maxScore": 15,
+      "node_count": 5
+    },
+    "ArchitectureQuality": {
+      "maxScore": 73,
+      "node_count": 11
+    }
+  },
+  "total_maxScore": 329,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "count": 33,
+      "score": 123
+    },
+    "workflow_automator": {
+      "count": 38,
+      "score": 149
+    },
+    "marketplace_rbac": {
+      "count": 17,
+      "score": 61
+    }
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "core journey",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "AUTH_LOGIN",
+        "API_CIPHER_CREATE",
+        "API_SYNC",
+        "API_FOLDER_CRUD",
+        "API_SEND_CREATE"
+      ],
+      "maxScore": 21
+    },
+    "advanced_workflows": {
+      "description": "advanced features",
+      "node_ids": [
+        "DEPLOY_API_ALIVE",
+        "DEPLOY_CONFIG",
+        "DEPLOY_CARGO_TOML",
+        "DEPLOY_MIGRATIONS",
+        "DB_TABLES_CORE",
+        "DB_USERS_COLS",
+        "DB_CIPHERS_COLS",
+        "DB_ORGS_COLS",
+        "DB_SENDS_COLS",
+        "DB_EA_COLS",
+        "DB_COLLECTIONS_PERMS_COLS",
+        "DB_TWOFACTOR_COLS",
+        "DB_EVENT_COLS",
+        "AUTH_PRELOGIN",
+        "AUTH_REGISTER",
+        "AUTH_TOKEN_RESPONSE",
+        "AUTH_PROFILE",
+        "AUTH_SECURITY_STAMP",
+        "AUTH_PASSWORD_CHANGE",
+        "AUTH_API_KEY",
+        "AUTH_KNOWN_DEVICE",
+        "API_CIPHER_READ",
+        "API_CIPHER_UPDATE",
+        "API_CIPHER_LIST",
+        "API_CIPHER_SOFT_DELETE",
+        "API_CIPHER_RESTORE",
+        "API_CIPHER_HARD_DELETE",
+        "API_ORG_CREATE",
+        "API_ORG_COLLECTION",
+        "API_ORG_MEMBER_INVITE",
+        "API_ORG_POLICIES",
+        "API_ORG_POLICY_SET",
+        "API_ORG_API_KEY",
+        "API_ORG_MEMBER_REVOKE_RESTORE",
+        "BIZ_SEND_ACCESS",
+        "BIZ_SEND_MAX_ACCESS",
+        "BIZ_SEND_DELETION_LIMIT",
+        "BIZ_SEND_PASSWORD",
+        "BIZ_CIPHER_CONFLICT",
+        "BIZ_EA_STATE_MACHINE",
+        "BIZ_EA_REJECT",
+        "BIZ_EA_SELF_BLOCK",
+        "BIZ_POLICY_CASCADE_2FA",
+        "BIZ_LAST_OWNER",
+        "BIZ_EMAIL_LOWERCASE",
+        "BIZ_CIPHER_RESPONSE_FULL",
+        "BIZ_SEND_ACCESS_ORDER",
+        "BIZ_USER_DELETE_CASCADE",
+        "BIZ_NOTE_SIZE_LIMIT",
+        "BIZ_EVENT_LOGGING",
+        "BIZ_FOLDER_DELETE_UNLINK",
+        "BIZ_ORG_BILLING_EMAIL_INVALID",
+        "BIZ_CIPHER_IMPORT",
+        "BIZ_EA_TAKEOVER_CASCADE",
+        "BIZ_CIPHER_ALL_TYPES",
+        "RBAC_UNAUTH",
+        "RBAC_OWNER_DELETE_ORG",
+        "RBAC_ADMIN_NO_DELETE_ORG",
+        "RBAC_USER_NO_INVITE",
+        "RBAC_ADMIN_CAN_INVITE",
+        "RBAC_USER_NO_POLICY",
+        "RBAC_ADMIN_CAN_SET_POLICY",
+        "RBAC_ADMIN_NO_MANAGE_OWNER",
+        "RBAC_OWNER_CAN_MANAGE_ADMIN",
+        "RBAC_PERSONAL_ISOLATION",
+        "RBAC_OWNER_HIGH_ROLE_INVITE",
+        "ADMIN_LOGIN",
+        "ADMIN_USERS_LIST",
+        "ADMIN_DISABLE_USER",
+        "ADMIN_ENABLE_USER",
+        "ADMIN_DELETE_USER",
+        "ARCH_JWT",
+        "ARCH_DIESEL",
+        "ARCH_GUARDS",
+        "ARCH_ERROR",
+        "ARCH_CRYPTO",
+        "ARCH_CONFIG",
+        "ARCH_ADMIN",
+        "ARCH_JOBS",
+        "ARCH_CODE_ORG",
+        "ARCH_WEBSOCKET",
+        "ARCH_EMAIL"
+      ],
+      "maxScore": 308
+    }
+  },
+  "depth_classification": {
+    "note": "P29 multi_step_workflow is functionally equivalent to the combination of P07+P08+P15 (including expect_state and final_verify.db_query); by substantive functionality it is classified into the deep tier.",
+    "deep_primitives": [
+      "P07",
+      "P08",
+      "P14",
+      "P29"
+    ],
+    "llm_primitives": [
+      "P17"
+    ],
+    "shallow_primitives": [
+      "P01",
+      "P02",
+      "P03",
+      "P04",
+      "P05",
+      "P06",
+      "P09",
+      "P10",
+      "P12",
+      "P13",
+      "P15"
+    ]
+  }
+}

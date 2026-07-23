@@ -1,0 +1,6 @@
+requests>=2.31
+pymysql>=1.1
+cryptography>=41.0
+playwright>=1.40
+openai>=1.10
+jsonpath-ng>=1.6

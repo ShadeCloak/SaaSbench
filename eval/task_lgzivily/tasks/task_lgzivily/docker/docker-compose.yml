@@ -1,0 +1,95 @@
+# docker-compose for task_lgzivily — Clinical Practice Management Suite (taskv2).
+#
+# Two services:
+#   - app : PHP 8.2 + Apache + 33 PHP exts + Composer + Node 24 + npm + gulp
+#           + wkhtmltopdf — published as shadetocloak/task_lgzivily-app:latest
+#   - db  : MariaDB 11.x with utf8mb4 charset; database created empty (no tables)
+#
+# The published image already ships:
+#   - composer vendor/  (≈ 430 MB) under /var/cache/workspace_deps/vendor
+#   - npm node_modules/ (≈ 521 MB) under /var/cache/workspace_deps/node_modules
+#   - gulp-built public/  (≈ 192 MB) under /var/cache/workspace_deps/public
+#   - interface/themes/  under /var/cache/workspace_deps/themes
+# The harness's prepare_workspace.sh and test_*_code.sh scripts copy these
+# into /var/www/html before testing.
+#
+# Workspace mount : ./workspace → /var/www/html  (the agent writes code here)
+#
+# Host ports per task.md §8.2:
+#   APP_PORT  = 8030  → container 80
+#   DB_PORT   = 3310  → container 3306
+name: task_lgzivily
+
+services:
+  app:
+    # Pre-built image lives on Docker Hub under shadetocloak/.
+    # Local build is preserved as a fallback (uncomment the `build:` block
+    # and run `docker compose build` to rebuild from this Dockerfile).
+    image: shadetocloak/task_lgzivily-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: task_lgzivily_app
+    env_file:
+      - ./.env
+    working_dir: /var/www/html
+    # The published image's ENTRYPOINT is ["apache2-foreground"] — override
+    # it to nothing so the test harness can drive Apache start/stop manually
+    # after dependency restore + application install.
+    entrypoint: []
+    command: ["bash", "-c", "tail -f /dev/null"]
+    volumes:
+      - ./workspace:/var/www/html
+      # Composer + npm caches survive container restarts so a fallback
+      # `composer install` / `npm install` stays fast.
+      - composer_cache:/root/.composer/cache
+      - npm_cache:/root/.npm
+    ports:
+      - "${APP_PORT:-8030}:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: mariadb:11.4
+    container_name: task_lgzivily_db
+    env_file:
+      - ./.env
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DATABASE_ROOT_PASSWORD:-rootpw}
+      MARIADB_DATABASE: ${DATABASE_NAME:-app_lgzivily}
+      MARIADB_USER: ${DATABASE_USER:-applgzivily}
+      MARIADB_PASSWORD: ${DATABASE_PASSWORD:-app123lgzivily}
+      MARIADB_CHARACTER_SET_SERVER: utf8mb4
+      MARIADB_COLLATION_SERVER: utf8mb4_general_ci
+    command:
+      - mariadbd
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+      - --max_allowed_packet=128M
+      - --innodb_buffer_pool_size=512M
+      - --innodb_file_per_table=1
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+      - --bind-address=0.0.0.0
+    ports:
+      - "${DB_PORT:-3310}:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/00-init-db.sql:ro
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mariadb-admin ping -h 127.0.0.1 -u root
+          -p"${DATABASE_ROOT_PASSWORD:-rootpw}"
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  db_data:
+  composer_cache:
+  npm_cache:

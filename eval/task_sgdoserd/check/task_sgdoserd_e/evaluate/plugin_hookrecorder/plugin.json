@@ -1,0 +1,12 @@
+{
+  "id": "com.eval.hookrecorder",
+  "name": "Eval Hook Recorder",
+  "description": "SaaSBench evaluation shim: records Mattermost plugin-hook invocations (MessageWillBePosted, MessageHasBeenPosted, UserHasJoinedChannel, OnConfigurationChange) and exposes counts via HTTP for black-box verification.",
+  "version": "0.1.0",
+  "min_server_version": "9.0.0",
+  "server": {
+    "executables": {
+      "linux-amd64": "server/dist/plugin-linux-amd64"
+    }
+  }
+}

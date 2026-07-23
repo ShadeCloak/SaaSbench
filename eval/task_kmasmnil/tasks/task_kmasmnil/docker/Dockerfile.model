@@ -1,0 +1,15 @@
+# =============================================================================
+# Dockerfile.model — generic Node + Python development environment
+# =============================================================================
+# The base image provides: Ubuntu + Go + Node 20 (yarn4/pnpm) + Python 3.10 +
+#   general dependency cache (React/Vue/Vite/Webpack/NX/Express/NestJS/Prisma/...).
+# This image is intended for the "clean development environment" mode where the
+# candidate writes all source code from scratch. The container's PID 1 is
+# `sleep infinity`, so the candidate must explicitly start the application.
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]

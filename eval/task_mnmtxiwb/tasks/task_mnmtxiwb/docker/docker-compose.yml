@@ -1,0 +1,105 @@
+name: task_mnmtxiwb
+x-app-env: &app-env
+  RAILS_ENV: development
+  SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+  DATABASE_URL: postgresql://lago:changeme@postgres:5432/lago
+  REDIS_URL: redis://redis:6379/0
+  REDIS_STORE_URL: redis://redis:6379/1
+  KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+  GOTENBERG_URL: http://gotenberg:3000
+  APP_API_URL: http://localhost:8005
+  APP_FRONT_URL: http://localhost:8005
+  ENCRYPTION_PRIMARY_KEY: ${ENCRYPTION_PRIMARY_KEY}
+  ENCRYPTION_DETERMINISTIC_KEY: ${ENCRYPTION_DETERMINISTIC_KEY}
+  ENCRYPTION_KEY_DERIVATION_SALT: ${ENCRYPTION_KEY_DERIVATION_SALT}
+  PREMIUM_OVERRIDE: "true"
+
+services:
+  app:
+    image: shadetocloak/task_mnmtxiwb-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: lago-smoke-api
+    # DNS pinned to public resolvers so that git-source gem dependencies can be
+    # fetched reliably during bundle install under restrictive host networks.
+    dns:
+      - "8.8.8.8"
+      - "1.1.1.1"
+    ports:
+      - "8005:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      gotenberg:
+        condition: service_started
+    environment:
+      <<: *app-env
+    volumes:
+      - ./workspace:/app
+    working_dir: /app
+    command: ["bash", "-c", "tail -f /dev/null"]
+    stdin_open: true
+    tty: true
+
+  postgres:
+    image: getlago/postgres-partman:15.0-alpine
+    container_name: lago-smoke-db
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: lago
+      POSTGRES_USER: lago
+      POSTGRES_PASSWORD: changeme
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lago -d lago"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      default:
+        aliases:
+          - db
+
+  redis:
+    image: redis:7
+    ports:
+      - "6395:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  gotenberg:
+    image: gotenberg/gotenberg:7.8
+    ports:
+      - "3001:3000"
+
+  kafka:
+    image: redpandadata/redpanda:latest
+    ports:
+      - "9092:9092"
+    command:
+      - redpanda start
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --kafka-addr 0.0.0.0:9092
+      - --advertise-kafka-addr kafka:9092
+    volumes:
+      - kafkadata:/var/lib/redpanda/data
+
+volumes:
+  pgdata:
+  redisdata:
+  kafkadata:

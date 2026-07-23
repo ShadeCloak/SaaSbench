@@ -1,0 +1,4925 @@
+{
+ "meta": {
+  "task_id": "task_mnmtxiwb",
+  "total_nodes": 96,
+  "source_prd": "task/task.md",
+  "generated_at": "2026-04-15T12:00:00Z"
+ },
+ "scoring_config": {
+  "categories": {
+   "Deployment": {
+    "weight": 0.04,
+    "description": "Health check, dependency files, docker-compose"
+   },
+   "DataModel": {
+    "weight": 0.09,
+    "description": "Core database tables and column verification"
+   },
+   "Authentication": {
+    "weight": 0.07,
+    "description": "JWT login, API key, invalid token rejection"
+   },
+   "API_CRUD": {
+    "weight": 0.08,
+    "description": "REST CRUD for core resources"
+   },
+   "SubscriptionLifecycle": {
+    "weight": 0.14,
+    "description": "Subscription create/upgrade/downgrade/terminate"
+   },
+   "ChargeModels": {
+    "weight": 0.09,
+    "description": "Standard/graduated/package/percentage/volume"
+   },
+   "InvoiceLifecycle": {
+    "weight": 0.09,
+    "description": "One-off/finalize/void/credit note"
+   },
+   "WalletOperations": {
+    "weight": 0.07,
+    "description": "Wallet create/topup/balance/terminate"
+   },
+   "EventProcessing": {
+    "weight": 0.05,
+    "description": "Event ingest/batch/dedup"
+   },
+   "TaxCalculation": {
+    "weight": 0.04,
+    "description": "Tax rate creation and stacking"
+   },
+   "CouponApplication": {
+    "weight": 0.05,
+    "description": "Coupon create/apply/frequency"
+   },
+   "CreditNotes": {
+    "weight": 0.04,
+    "description": "Credit note create/void"
+   },
+   "DunningCampaigns": {
+    "weight": 0.03,
+    "description": "Dunning campaign create/thresholds"
+   },
+   "RBAC": {
+    "weight": 0.08,
+    "description": "Role-based access control matrix"
+   },
+   "ProgressiveBilling": {
+    "weight": 0.04,
+    "description": "Usage thresholds and lifetime usage"
+   },
+   "Frontend": {
+    "weight": 0.04,
+    "description": "SPA rendering and UI components"
+   },
+   "Architecture": {
+    "weight": 0.04,
+    "description": "Code quality and project structure"
+   }
+  }
+ },
+ "nodes": [
+  {
+   "id": "DEPLOY_HEALTH",
+   "description": "Application health check endpoint returns 200",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/health",
+      "timeout": 15
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Health",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DEPLOY_GEMFILE",
+   "description": "Gemfile exists with required gems (rails, pg, sidekiq, graphql, jwt, aasm, discard)",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P01",
+     "inputs": {
+      "path": "Gemfile",
+      "type": "file"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "path": "Gemfile",
+      "match_type": "contains",
+      "pattern": "rails"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Dependencies",
+    "method": "weighted",
+    "maxScore": 1
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DEPLOY_DB_CONFIG",
+   "description": "database.yml exists with PostgreSQL adapter configuration",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P01",
+     "inputs": {
+      "path": "config/database.yml",
+      "type": "file"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "path": "config/database.yml",
+      "match_type": "contains",
+      "pattern": "postgresql"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Config",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DEPLOY_DOCKER",
+   "description": "docker-compose.yml exists with required services",
+   "prereqs": [],
+   "primitive_chain": [
+    {
+     "type": "P01",
+     "inputs": {
+      "path": "config/application.rb",
+      "type": "file"
+     }
+    },
+    {
+     "type": "P02",
+     "inputs": {
+      "path": "config/application.rb",
+      "match_type": "contains",
+      "pattern": "Rails"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Docker",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DEPLOY_REDIS",
+   "description": "Redis connectivity check via Sidekiq or cache",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P12",
+     "inputs": {
+      "command": "redis-cli -h redis -p 6379 ping",
+      "container": "lago-smoke-api"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "Redis",
+    "method": "binary",
+    "maxScore": 1
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DEPLOY_GRAPHQL",
+   "description": "GraphQL endpoint accepts POST and returns valid response structure",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "headers": {
+       "Content-Type": "application/json"
+      },
+      "body": {
+       "query": "{ __typename }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.__typename",
+        "expected": "Query",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Deployment",
+    "subcategory": "GraphQL",
+    "method": "binary",
+    "maxScore": 2
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DB_ORGANIZATIONS",
+   "description": "organizations table exists with core columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "organizations"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "organizations",
+      "expected_columns": [
+       "id",
+       "name",
+       "api_key",
+       "webhook_url",
+       "vat_rate",
+       "country",
+       "timezone",
+       "default_currency",
+       "document_numbering",
+       "hmac_key",
+       "invoice_grace_period",
+       "net_payment_term",
+       "finalize_zero_amount_invoice",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_USERS",
+   "description": "users table exists with id, email, password_digest columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "users"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "users",
+      "expected_columns": [
+       "id",
+       "email",
+       "password_digest",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_MEMBERSHIPS",
+   "description": "memberships table with org-user linkage and status",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "memberships"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "memberships",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "user_id",
+       "status",
+       "revoked_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_CUSTOMERS",
+   "description": "customers table with 50+ columns including external_id, currency, billing_entity_id",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "customers"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "customers",
+      "expected_columns": [
+       "id",
+       "external_id",
+       "name",
+       "organization_id",
+       "currency",
+       "country",
+       "email",
+       "phone",
+       "legal_name",
+       "legal_number",
+       "vat_rate",
+       "payment_provider",
+       "slug",
+       "sequential_id",
+       "invoice_grace_period",
+       "timezone",
+       "deleted_at",
+       "net_payment_term",
+       "billing_entity_id",
+       "account_type",
+       "applied_dunning_campaign_id",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_PLANS",
+   "description": "plans table with amount_cents, interval, pay_in_advance, trial_period",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "plans"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "plans",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "name",
+       "code",
+       "interval",
+       "amount_cents",
+       "amount_currency",
+       "pay_in_advance",
+       "trial_period",
+       "description",
+       "bill_charges_monthly",
+       "parent_id",
+       "pending_deletion",
+       "deleted_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_SUBSCRIPTIONS",
+   "description": "subscriptions table with status, billing_time, external_id, started_at, ending_at",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "subscriptions"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "subscriptions",
+      "expected_columns": [
+       "id",
+       "customer_id",
+       "plan_id",
+       "organization_id",
+       "status",
+       "external_id",
+       "billing_time",
+       "started_at",
+       "ending_at",
+       "subscription_at",
+       "canceled_at",
+       "terminated_at",
+       "trial_ended_at",
+       "previous_subscription_id",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_INVOICES",
+   "description": "invoices table with status, payment_status, amount_cents, fees_amount_cents",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "invoices"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "invoices",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "customer_id",
+       "sequential_id",
+       "number",
+       "status",
+       "payment_status",
+       "invoice_type",
+       "issuing_date",
+       "payment_due_date",
+       "fees_amount_cents",
+       "taxes_amount_cents",
+       "total_amount_cents",
+       "currency",
+       "coupons_amount_cents",
+       "credit_notes_amount_cents",
+       "net_payment_term",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_FEES",
+   "description": "fees table with amount_cents, units, fee_type",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "fees"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "fees",
+      "expected_columns": [
+       "id",
+       "invoice_id",
+       "charge_id",
+       "subscription_id",
+       "amount_cents",
+       "amount_currency",
+       "units",
+       "fee_type",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_WALLETS",
+   "description": "wallets table with balance_cents, credits_balance, status, rate_amount",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "wallets"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "wallets",
+      "expected_columns": [
+       "id",
+       "customer_id",
+       "organization_id",
+       "status",
+       "name",
+       "rate_amount",
+       "credits_balance",
+       "balance_cents",
+       "consumed_credits",
+       "consumed_amount_cents",
+       "expiration_at",
+       "terminated_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_EVENTS_METRICS",
+   "description": "events and billable_metrics tables exist with correct columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "events",
+       "billable_metrics"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "billable_metrics",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "name",
+       "code",
+       "description",
+       "aggregation_type",
+       "field_name",
+       "recurring",
+       "deleted_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_CHARGES",
+   "description": "charges table with charge_model, properties, pay_in_advance",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "charges"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "charges",
+      "expected_columns": [
+       "id",
+       "billable_metric_id",
+       "plan_id",
+       "organization_id",
+       "charge_model",
+       "properties",
+       "pay_in_advance",
+       "invoiceable",
+       "prorated",
+       "min_amount_cents",
+       "deleted_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DB_API_KEYS",
+   "description": "api_keys table with value, organization_id, permissions",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "api_keys"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "api_keys",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "value",
+       "name",
+       "permissions",
+       "expires_at",
+       "last_used_at",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DataModel",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 2
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "AUTH_JWT_LOGIN",
+   "description": "JWT login via GraphQL loginUser mutation returns token and user",
+   "prereqs": [
+    "DEPLOY_GRAPHQL"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "headers": {
+       "Content-Type": "application/json"
+      },
+      "body": {
+       "query": "mutation { loginUser(input: { email: \"{{admin_email}}\", password: \"{{admin_password}}\" }) { token user { id email } } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.data.loginUser.token"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.loginUser.user.email",
+        "expected": "{{admin_email}}",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "JWT",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_JWT_DECODE",
+   "description": "JWT token is HS256 with correct claims (sub=uuid, exp=future)",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "headers": {
+       "Content-Type": "application/json"
+      },
+      "body": {
+       "query": "mutation { loginUser(input: { email: \"{{admin_email}}\", password: \"{{admin_password}}\" }) { token } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "regex_match",
+      "path": "$.data.loginUser.token",
+      "pattern": "^eyJ[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "jwt_decode",
+      "algorithm": "HS256",
+      "claims": {
+       "sub": "uuid_format",
+       "exp": "future_timestamp_3h"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "JWT",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "AUTH_API_KEY_CREATE",
+   "description": "Create API key via GraphQL createApiKey mutation",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createApiKey(input: { name: \"eval_test_key\" }) { id value name } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.data.createApiKey.value"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createApiKey.name",
+        "expected": "eval_test_key",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "APIKey",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "AUTH_API_KEY_REST",
+   "description": "API key authenticates REST API requests successfully",
+   "prereqs": [
+    "AUTH_API_KEY_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/customers"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.customers"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "APIKey",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "AUTH_INVALID_TOKEN",
+   "description": "Invalid bearer token is rejected with 401",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/customers",
+      "headers": {
+       "Authorization": "Bearer invalid_token_12345",
+       "Content-Type": "application/json"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Security",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "AUTH_NO_TOKEN",
+   "description": "Request without auth token is rejected with 401",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/customers",
+      "headers": {
+       "Content-Type": "application/json"
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 401
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Authentication",
+    "subcategory": "Security",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_CUSTOMER",
+   "description": "Customer CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/customers",
+      "identifier_field": "external_id",
+      "response_root": "customer",
+      "update_method": "POST",
+      "update_to_base": true,
+      "create_body": {
+       "customer": {
+        "external_id": "crud_cust_eval_001_5140",
+        "name": "Eval Test Customer",
+        "currency": "EUR"
+       }
+      },
+      "update_body": {
+       "customer": {
+        "external_id": "crud_cust_eval_001_5140",
+        "name": "Updated Eval Customer"
+       }
+      },
+      "expected_read_fields": [
+       "external_id",
+       "name",
+       "currency",
+       "created_at",
+       "lago_id"
+      ],
+      "expected_create_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_PLAN",
+   "description": "Plan CRUD lifecycle via REST API (no delete, soft-delete)",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/plans",
+      "identifier_field": "code",
+      "response_root": "plan",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "plan": {
+        "name": "Eval Plan",
+        "code": "eval_plan_001_5140_65891",
+        "interval": "monthly",
+        "amount_cents": 5000,
+        "amount_currency": "USD",
+        "pay_in_advance": false
+       }
+      },
+      "update_body": {
+       "plan": {
+        "name": "Updated Eval Plan"
+       }
+      },
+      "expected_read_fields": [
+       "name",
+       "code",
+       "interval",
+       "amount_cents",
+       "amount_currency"
+      ],
+      "expected_create_status": 200,
+      "skip_delete": true
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_BILLABLE_METRIC",
+   "description": "Billable metric CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/billable_metrics",
+      "identifier_field": "code",
+      "response_root": "billable_metric",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "billable_metric": {
+        "name": "Eval API Calls",
+        "code": "eval_api_calls_001",
+        "description": "Eval test metric",
+        "aggregation_type": "count_agg"
+       }
+      },
+      "update_body": {
+       "billable_metric": {
+        "name": "Updated Eval API Calls"
+       }
+      },
+      "expected_read_fields": [
+       "name",
+       "code",
+       "aggregation_type",
+       "created_at"
+      ],
+      "expected_create_status": 200,
+      "skip_delete": true
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_TAX",
+   "description": "Tax CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/taxes",
+      "identifier_field": "code",
+      "response_root": "tax",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "tax": {
+        "name": "Eval Sales Tax",
+        "code": "eval_sales_tax_001",
+        "rate": 10.0
+       }
+      },
+      "update_body": {
+       "tax": {
+        "name": "Updated Eval Sales Tax",
+        "rate": 12.0
+       }
+      },
+      "expected_read_fields": [
+       "name",
+       "code",
+       "rate",
+       "created_at"
+      ],
+      "expected_create_status": 200,
+      "skip_delete": true
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_ADD_ON",
+   "description": "Add-on CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/add_ons",
+      "identifier_field": "code",
+      "response_root": "add_on",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "add_on": {
+        "name": "Eval Setup Fee",
+        "code": "eval_setup_fee_001",
+        "amount_cents": 5000,
+        "amount_currency": "USD"
+       }
+      },
+      "update_body": {
+       "add_on": {
+        "name": "Updated Eval Setup Fee"
+       }
+      },
+      "expected_read_fields": [
+       "name",
+       "code",
+       "amount_cents",
+       "amount_currency"
+      ],
+      "expected_create_status": 200,
+      "skip_delete": true
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_COUPON",
+   "description": "Coupon CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/coupons",
+      "identifier_field": "code",
+      "response_root": "coupon",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "coupon": {
+        "name": "Eval Coupon 10",
+        "code": "eval_coupon_001_5140",
+        "coupon_type": "fixed_amount",
+        "frequency": "once",
+        "amount_cents": 1000,
+        "amount_currency": "USD",
+        "expiration": "no_expiration"
+       }
+      },
+      "update_body": {
+       "coupon": {
+        "name": "Updated Eval Coupon"
+       }
+      },
+      "expected_read_fields": [
+       "name",
+       "code",
+       "coupon_type",
+       "frequency",
+       "amount_cents"
+      ],
+      "expected_create_status": 200,
+      "skip_delete": true
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "CRUD_WEBHOOK_ENDPOINT",
+   "description": "Webhook endpoint CRUD lifecycle via REST API",
+   "prereqs": [
+    "DEPLOY_HEALTH",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P05",
+     "inputs": {
+      "resource": "/api/v1/webhook_endpoints",
+      "identifier_field": "lago_id",
+      "response_root": "webhook_endpoint",
+      "update_method": "PUT",
+      "update_to_base": false,
+      "create_body": {
+       "webhook_endpoint": {
+        "webhook_url": "https://eval-test.example.com/webhook"
+       }
+      },
+      "update_body": {
+       "webhook_endpoint": {
+        "webhook_url": "https://eval-test-updated.example.com/webhook"
+       }
+      },
+      "expected_read_fields": [
+       "webhook_url",
+       "signature_algo",
+       "created_at"
+      ],
+      "expected_create_status": 200,
+      "expected_delete_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "API_CRUD",
+    "subcategory": "CRUD",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SUB_CREATE_ACTIVE",
+   "description": "Create subscription via REST → status active, billing_time anniversary",
+   "prereqs": [
+    "CRUD_CUSTOMER",
+    "CRUD_PLAN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_eval_cust_001_5140",
+        "name": "Sub Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "Sub Eval Plan",
+        "code": "sub_eval_plan_001_5140",
+        "interval": "monthly",
+        "amount_cents": 10000,
+        "amount_currency": "USD",
+        "pay_in_advance": false
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_eval_cust_001_5140",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_eval_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.status",
+        "expected": "active",
+        "operator": "equals"
+       },
+       {
+        "path": "$.subscription.external_id",
+        "expected": "sub_eval_001",
+        "operator": "equals"
+       },
+       {
+        "path": "$.subscription.plan_code",
+        "expected": "sub_eval_plan_001_5140",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_BILLING_TIME_CALENDAR",
+   "description": "Subscription with billing_time=calendar defaults correctly",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_eval_cust_001_5140",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_eval_cal_001",
+        "billing_time": "calendar"
+       }
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.billing_time",
+        "expected": "calendar",
+        "operator": "equals"
+       },
+       {
+        "path": "$.subscription.status",
+        "expected": "active",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "BillingTime",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_FUTURE_PENDING",
+   "description": "Future subscription_at creates subscription with status=pending",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_eval_cust_001_5140",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_eval_future_001",
+        "subscription_at": "2027-12-01T00:00:00Z"
+       }
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.status",
+        "expected": "pending",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "FutureStart",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_TERMINATE",
+   "description": "Terminate active subscription changes status to terminated",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_term_cust_001",
+        "name": "Term Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_term_cust_001",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_term_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/subscriptions/sub_term_001"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.status",
+        "expected": "terminated",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Terminate",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_UPGRADE",
+   "description": "Plan upgrade: old sub terminated, new sub active",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_upg_cust_001",
+        "name": "Upgrade Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "Upgrade Target Plan",
+        "code": "sub_upg_plan_002",
+        "interval": "monthly",
+        "amount_cents": 20000,
+        "amount_currency": "USD",
+        "pay_in_advance": false
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_upg_cust_001",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_upg_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_upg_cust_001",
+        "plan_code": "sub_upg_plan_002",
+        "external_id": "sub_upg_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.status",
+        "expected": "active",
+        "operator": "equals"
+       },
+       {
+        "path": "$.subscription.plan_code",
+        "expected": "sub_upg_plan_002",
+        "operator": "equals"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT status FROM subscriptions WHERE external_id = 'sub_upg_001' ORDER BY created_at ASC LIMIT 1",
+      "expected_result": {
+       "status": 2
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Upgrade",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_DOWNGRADE",
+   "description": "Plan downgrade: current stays active, next subscription pending",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_dwn_cust_001",
+        "name": "Downgrade Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "Downgrade Target Plan",
+        "code": "sub_dwn_plan_002",
+        "interval": "monthly",
+        "amount_cents": 3000,
+        "amount_currency": "USD",
+        "pay_in_advance": false
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_dwn_cust_001",
+        "plan_code": "sub_eval_plan_001_5140",
+        "external_id": "sub_dwn_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_dwn_cust_001",
+        "plan_code": "sub_dwn_plan_002",
+        "external_id": "sub_dwn_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM subscriptions s JOIN customers c ON s.customer_id = c.id WHERE c.external_id = 'sub_dwn_cust_001' AND s.status IN (0, 1)",
+      "expected_result": {
+       "cnt": 2
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Downgrade",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_TRIAL_PERIOD",
+   "description": "Subscription with trial period: trial_ended_at set, active status",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "Trial Plan",
+        "code": "sub_trial_plan_001",
+        "interval": "monthly",
+        "amount_cents": 5000,
+        "amount_currency": "USD",
+        "pay_in_advance": false,
+        "trial_period": 14
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_trial_cust_001",
+        "name": "Trial Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_trial_cust_001",
+        "plan_code": "sub_trial_plan_001",
+        "external_id": "sub_trial_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.subscription.status",
+        "expected": "active",
+        "operator": "equals"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT status FROM subscriptions WHERE external_id = 'sub_trial_001'",
+      "expected_result": {
+       "status": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Trial",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_PAY_IN_ADVANCE",
+   "description": "Pay-in-advance plan bills immediately on subscription creation",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "PIA Plan",
+        "code": "sub_pia_plan_001",
+        "interval": "monthly",
+        "amount_cents": 8000,
+        "amount_currency": "USD",
+        "pay_in_advance": true
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_pia_cust_001",
+        "name": "PIA Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_pia_cust_001",
+        "plan_code": "sub_pia_plan_001",
+        "external_id": "sub_pia_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM subscriptions s JOIN plans p ON s.plan_id = p.id WHERE s.external_id LIKE 'sub_pia_%' AND p.pay_in_advance = true",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "PayInAdvance",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_CURRENCY_MISMATCH",
+   "description": "Currency mismatch between customer and plan returns error",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "sub_curr_cust_001",
+        "name": "Currency Mismatch Customer",
+        "currency": "EUR"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/plans",
+      "body": {
+       "plan": {
+        "name": "USD Only Plan",
+        "code": "sub_curr_plan_001",
+        "interval": "monthly",
+        "amount_cents": 5000,
+        "amount_currency": "USD",
+        "pay_in_advance": false
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_curr_cust_001",
+        "plan_code": "sub_curr_plan_001",
+        "external_id": "sub_curr_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 422
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.error_details.currency[0]",
+        "operator": "exists"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Validation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "SUB_MISSING_CUSTOMER",
+   "description": "Subscription with nonexistent customer returns 404",
+   "prereqs": [
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "crud_cust_eval_001_5140",
+        "plan_code": "nonexistent_plan_xyz",
+        "external_id": "sub_missing_cust_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 404,
+      "acceptable_statuses": [
+       404,
+       422
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Validation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SUB_MISSING_PLAN",
+   "description": "Subscription with nonexistent plan returns 404",
+   "prereqs": [
+    "CRUD_CUSTOMER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/subscriptions",
+      "body": {
+       "subscription": {
+        "external_customer_id": "sub_eval_cust_001_5140",
+        "plan_code": "nonexistent_plan_xyz",
+        "external_id": "sub_missing_plan_001"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": 404,
+      "acceptable_statuses": [
+       404,
+       422
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "Validation",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "SUB_LIFETIME_USAGE",
+   "description": "Active subscription creates lifetime_usage record in DB",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM lifetime_usages lu JOIN subscriptions s ON lu.subscription_id = s.id WHERE s.external_id = 'sub_eval_001'",
+      "expected_result": {
+       "cnt": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "SubscriptionLifecycle",
+    "subcategory": "LifetimeUsage",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_STANDARD_SETUP",
+   "description": "Create billable metric + plan with standard charge model via GraphQL",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"BM stan\", code: \"eval_bm_stan_5140\", description: \"Standard charge test\", aggregationType: count_agg }) { id code aggregationType } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createBillableMetric.code",
+        "expected": "eval_bm_stan_5140",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createBillableMetric.aggregationType",
+        "expected": "count_agg",
+        "operator": "equals"
+       }
+      ]
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"Plan stan\", code: \"eval_plan_stan_5140\", interval: monthly, amountCents: 5000, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: standard, properties: { amount: \"0.50\" } }] }) { id code charges { id chargeModel } } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createPlan.code",
+        "expected": "eval_plan_stan_5140",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Standard",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_GRADUATED",
+   "description": "Graduated charge model with tier definitions in DB",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"Grad Eval Events\", code: \"eval_bm_grad_5140\", description: \"Graduated test\", aggregationType: count_agg }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"Graduated Plan\", code: \"eval_plan_grad_5140\", interval: monthly, amountCents: 0, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: graduated, properties: { graduatedRanges: [{ fromValue: 0, toValue: 10, perUnitAmount: \"1.00\", flatAmount: \"0\" }, { fromValue: 11, toValue: null, perUnitAmount: \"0.50\", flatAmount: \"0\" }] } }] }) { id code charges { id chargeModel } } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT charge_model FROM charges c JOIN plans p ON c.plan_id = p.id WHERE p.code = 'eval_plan_grad_5140' AND c.deleted_at IS NULL",
+      "expected_result": {
+       "charge_model": 1
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Graduated",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_PACKAGE",
+   "description": "Package charge model stores correct properties",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"Pkg Eval Events\", code: \"eval_bm_pack_5140\", description: \"Package test\", aggregationType: count_agg }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"Package Plan\", code: \"eval_plan_pack_5140\", interval: monthly, amountCents: 0, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: package, properties: { amount: \"10.00\", packageSize: 100, freeUnits: 0 } }] }) { id code charges { id chargeModel } } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT charge_model FROM charges c JOIN plans p ON c.plan_id = p.id WHERE p.code = 'eval_plan_pack_5140' AND c.deleted_at IS NULL",
+      "expected_result": {
+       "charge_model": 2
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Package",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_PERCENTAGE",
+   "description": "Percentage charge model with rate and fixed amount",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"Pct Eval Revenue\", code: \"pct_eval_rev_001_5140\", description: \"Percentage test\", aggregationType: sum_agg, fieldName: \"amount\" }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"Percentage Plan\", code: \"eval_plan_perc_5140\", interval: monthly, amountCents: 0, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: percentage, properties: { rate: \"5.0\", fixedAmount: \"1.00\" } }] }) { id code charges { id chargeModel } } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT charge_model FROM charges c JOIN plans p ON c.plan_id = p.id WHERE p.code = 'eval_plan_perc_5140' AND c.deleted_at IS NULL",
+      "expected_result": {
+       "charge_model": 3
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Percentage",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_VOLUME",
+   "description": "Volume charge model with volume ranges",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"Vol Eval Units\", code: \"vol_eval_units_001_5140\", description: \"Volume test\", aggregationType: count_agg }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"Volume Plan\", code: \"eval_plan_volu_5140\", interval: monthly, amountCents: 0, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: volume, properties: { volumeRanges: [{ fromValue: 0, toValue: 100, perUnitAmount: \"1.00\", flatAmount: \"0\" }, { fromValue: 101, toValue: null, perUnitAmount: \"0.50\", flatAmount: \"0\" }] } }] }) { id code charges { id chargeModel } } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT charge_model FROM charges c JOIN plans p ON c.plan_id = p.id WHERE p.code = 'eval_plan_volu_5140' AND c.deleted_at IS NULL",
+      "expected_result": {
+       "charge_model": 4
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Volume",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CHARGE_PAY_IN_ADVANCE_FLAG",
+   "description": "Charge with pay_in_advance=true stored correctly",
+   "prereqs": [
+    "CHARGE_STANDARD_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createBillableMetric(input: { name: \"PIA Flag BM\", code: \"eval_bm_pia_5140\", description: \"pay in advance flag test\", aggregationType: count_agg }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createPlan(input: { name: \"PIA Flag Plan\", code: \"eval_plan_pia_5140\", interval: monthly, amountCents: 0, amountCurrency: USD, payInAdvance: false, charges: [{ billableMetricId: \"{{last_created_id}}\", chargeModel: standard, payInAdvance: true, invoiceable: true, properties: { amount: \"0.50\" } }] }) { id code } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM charges c JOIN plans p ON c.plan_id = p.id WHERE p.code = 'eval_plan_pia_5140' AND c.pay_in_advance = true AND c.deleted_at IS NULL",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "PayInAdvance",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check",
+   "_honesty_note": "was `WHERE pay_in_advance=true ... cnt gte 0` (tautology; reference had 0 such charges); now CREATES a standard charge with payInAdvance=true and verifies the flag round-trips to DB (cnt>=1, live-validated via REST)."
+  },
+  {
+   "id": "CHARGE_PRORATED",
+   "description": "Prorated charge flag is correctly stored",
+   "prereqs": [
+    "CHARGE_STANDARD_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) FILTER (WHERE prorated IS NULL) AS null_prorated, COUNT(*) AS total FROM charges WHERE deleted_at IS NULL",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "null_prorated",
+        "operator": "equals",
+        "expected": 0
+       },
+       {
+        "field": "total",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "Prorated",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check",
+   "_honesty_note": "was `WHERE prorated IS NOT NULL cnt gte 0` (tautology); now asserts prorated is a stored non-null boolean for EVERY charge (null_prorated==0, total>=1). prorated=true requires recurring/weighted metrics not exercised by the eval flow, so behavioral true-case is out of scope; this rejects an impl missing/nullable prorated column."
+  },
+  {
+   "id": "CHARGE_MIN_AMOUNT",
+   "description": "Charge with min_amount_cents correctly stored in DB",
+   "prereqs": [
+    "CHARGE_STANDARD_SETUP"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT column_name FROM information_schema.columns WHERE table_name = 'charges' AND column_name = 'min_amount_cents'",
+      "expected_result": {
+       "column_name": "min_amount_cents"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ChargeModels",
+    "subcategory": "MinMax",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "INV_ONE_OFF",
+   "description": "Create one-off invoice via REST API with add-on fee",
+   "prereqs": [
+    "CRUD_CUSTOMER",
+    "CRUD_ADD_ON"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "inv_eval_cust_001_5140",
+        "name": "Invoice Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/invoices",
+      "body": {
+       "invoice": {
+        "external_customer_id": "inv_eval_cust_001_5140",
+        "currency": "USD",
+        "fees": [
+         {
+          "add_on_code": "eval_setup_fee_001",
+          "units": 1
+         }
+        ]
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.invoice.invoice_type",
+        "expected": "one_off",
+        "operator": "equals"
+       },
+       {
+        "path": "$.invoice.currency",
+        "expected": "USD",
+        "operator": "equals"
+       },
+       {
+        "path": "$.invoice.status",
+        "expected": "finalized",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "OneOff",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "INV_STATUS_DRAFT",
+   "description": "Invoices persisted in DB with valid lifecycle status (finalized present; drafts are transient)",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) FILTER (WHERE status = 1) AS finalized, COUNT(*) FILTER (WHERE status NOT IN (0,1,2,3,4,5,6)) AS invalid_status, COUNT(*) AS total FROM invoices",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "finalized",
+        "operator": "gte",
+        "expected": 1
+       },
+       {
+        "field": "invalid_status",
+        "operator": "equals",
+        "expected": 0
+       },
+       {
+        "field": "total",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "StatusMachine",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "_honesty_note": "was `SELECT DISTINCT status ...` + `json_path_exists $.rows` (passes on empty; title 'draft exists' but reference has NO persistent draft — drafts are transient/finalized). Reframed honestly: assert >=1 finalized invoice, zero invalid status enum values, >=1 total."
+  },
+  {
+   "id": "INV_FINALIZE",
+   "description": "Finalized invoice has correct number format and issuing_date",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT number, issuing_date, status FROM invoices i JOIN customers c ON i.customer_id = c.id WHERE c.external_id = 'inv_eval_cust_001_5140' AND i.status = 1 LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.rows[0].status",
+        "expected": 1,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "Finalize",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "INV_VOID",
+   "description": "Void a finalized invoice changes status to voided",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/invoices?external_customer_id=inv_eval_cust_001_5140&status=finalized"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.invoices[0].lago_id"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/invoices/{{last_created_id}}/void"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.invoice.status",
+        "expected": "voided",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "Void",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "INV_PAYMENT_STATUS",
+   "description": "Invoice payment_status field tracks payment state",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT payment_status FROM invoices i JOIN customers c ON i.customer_id = c.id WHERE c.external_id = 'inv_eval_cust_001_5140' LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.rows[0].payment_status",
+        "expected": 0,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "PaymentStatus",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud",
+   "_honesty_note": "was payment_status gte 0 (enum≥0 always true); now asserts exact payment_status==0 (pending, probed)."
+  },
+  {
+   "id": "INV_GRACE_PERIOD",
+   "description": "Organization invoice_grace_period reflected in invoice due date",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT invoice_grace_period, net_payment_term FROM organizations LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.rows[0].invoice_grace_period",
+        "expected": 0,
+        "operator": "equals"
+       },
+       {
+        "path": "$.rows[0].net_payment_term",
+        "expected": 0,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "GracePeriod",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check",
+   "_honesty_note": "was invoice_grace_period gte 0 (always true); now asserts exact configured org value (probed: 0)."
+  },
+  {
+   "id": "INV_NUMBER_FORMAT",
+   "description": "Invoice number follows organization numbering format",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT number FROM invoices WHERE number IS NOT NULL ORDER BY created_at DESC LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "regex_match",
+      "path": "$.rows[0].number",
+      "pattern": "^[A-Z0-9]+-[A-Z0-9]+-[0-9]+-[0-9]+$"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "Numbering",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "INV_AMOUNT_CENTS",
+   "description": "Invoice total_amount_cents matches sum of fees minus coupons",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT i.total_amount_cents, i.fees_amount_cents, i.taxes_amount_cents, i.coupons_amount_cents, (i.total_amount_cents = i.fees_amount_cents + i.taxes_amount_cents - i.coupons_amount_cents) AS balanced FROM invoices i JOIN customers c ON i.customer_id = c.id WHERE c.external_id = 'inv_eval_cust_001_5140' LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.rows[0].total_amount_cents",
+        "expected": 5000,
+        "operator": "equals"
+       },
+       {
+        "path": "$.rows[0].balanced",
+        "expected": true,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "InvoiceLifecycle",
+    "subcategory": "AmountCalc",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal",
+   "_honesty_note": "was gte 5000 + tolerance 10000 (accepted [-5000,15000], vacuous); now asserts exact total 5000 AND the total=fees+taxes-coupons identity (probed on reference)."
+  },
+  {
+   "id": "WALLET_CREATE",
+   "description": "Create wallet via REST API with correct initial balance",
+   "prereqs": [
+    "CRUD_CUSTOMER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "wallet_eval_cust_001_5140",
+        "name": "Wallet Eval Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/wallets",
+      "body": {
+       "wallet": {
+        "external_customer_id": "wallet_eval_cust_001_5140",
+        "name": "Eval Wallet",
+        "currency": "USD",
+        "rate_amount": "1.0",
+        "paid_credits": "100.0",
+        "granted_credits": "50.0"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.wallet.status",
+        "expected": "active",
+        "operator": "equals"
+       },
+       {
+        "path": "$.wallet.currency",
+        "expected": "USD",
+        "operator": "equals"
+       },
+       {
+        "path": "$.wallet.name",
+        "expected": "Eval Wallet",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "WALLET_TOPUP",
+   "description": "Wallet top-up increases balance via wallet transactions. Self-contained: creates dedicated customer+wallet so it never depends on a wallet that earlier WALLET_TERMINATE/etc. nodes may have terminated in the shared context.",
+   "prereqs": [
+    "WALLET_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "wallet_topup_cust_001_5140",
+        "name": "Wallet Topup Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/wallets",
+      "body": {
+       "wallet": {
+        "external_customer_id": "wallet_topup_cust_001_5140",
+        "name": "Topup Wallet",
+        "currency": "USD",
+        "rate_amount": "1.0",
+        "paid_credits": "0",
+        "granted_credits": "0"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/wallet_transactions",
+      "body": {
+       "wallet_transaction": {
+        "wallet_id": "{{last_wallet_lago_id}}",
+        "paid_credits": "50.0",
+        "granted_credits": "25.0"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM wallet_transactions wt JOIN wallets w ON wt.wallet_id = w.id JOIN customers c ON w.customer_id = c.id WHERE c.external_id = 'wallet_topup_cust_001_5140'",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "TopUp",
+    "method": "binary",
+    "maxScore": 3,
+    "_round19_note": "round-19 fix: topo-sort placed WALLET_TERMINATE (alphabetically) before WALLET_TOPUP under the same WALLET_CREATE prereq → WALLET_TERMINATE created+DELETEd a wallet (Lago DELETE = soft terminate, status='terminated'), and its UUID overwrote last_wallet_lago_id in the shared context. WALLET_TOPUP then POSTed wallet_transactions for the terminated wallet → baseline 422 'wallet_not_found' (terminated wallets are filtered by current_organization.wallets scope). Fix: WALLET_TOPUP now self-contains its own customer+wallet creation (wallet_topup_cust_001_5140 / Topup Wallet) so {{last_wallet_lago_id}} resolves to a fresh active wallet right before the transaction POST. Same exact assertion semantics — only the test fixture isolation changed."
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "WALLET_BALANCE",
+   "description": "Wallet balance_cents and credits_balance reflect operations",
+   "prereqs": [
+    "WALLET_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT w.balance_cents, w.credits_balance, w.consumed_credits, w.status FROM wallets w JOIN customers c ON w.customer_id = c.id WHERE c.external_id = 'wallet_eval_cust_001_5140' AND w.status = 0 LIMIT 1"
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.rows[0].status",
+        "expected": 0,
+        "operator": "equals"
+       },
+       {
+        "path": "$.rows[0].balance_cents",
+        "expected": 0,
+        "operator": "equals"
+       },
+       {
+        "path": "$.rows[0].credits_balance",
+        "expected": 0,
+        "operator": "equals"
+       },
+       {
+        "path": "$.rows[0].consumed_credits",
+        "expected": 0,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "Balance",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal",
+   "_honesty_note": "was only status==0 (title claims balance/credits); now asserts balance_cents/credits_balance/consumed_credits exact values (probed: freshly-created wallet, all 0)."
+  },
+  {
+   "id": "WALLET_PRIORITY",
+   "description": "Wallet priority field exists and defaults correctly",
+   "prereqs": [
+    "WALLET_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT column_name FROM information_schema.columns WHERE table_name = 'wallets' AND column_name = 'priority'",
+      "expected_result": {
+       "column_name": "priority"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "Priority",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "WALLET_EXPIRY",
+   "description": "Wallet with expiration_at stores correctly",
+   "prereqs": [
+    "WALLET_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT column_name FROM information_schema.columns WHERE table_name = 'wallets' AND column_name = 'expiration_at'",
+      "expected_result": {
+       "column_name": "expiration_at"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "Expiry",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "WALLET_TERMINATE",
+   "description": "Wallet termination changes status to terminated",
+   "prereqs": [
+    "WALLET_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "wallet_term_cust_001",
+        "name": "Wallet Term Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/wallets",
+      "body": {
+       "wallet": {
+        "external_customer_id": "wallet_term_cust_001",
+        "name": "Term Wallet",
+        "currency": "USD",
+        "rate_amount": "1.0",
+        "paid_credits": "10.0",
+        "granted_credits": "0"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "DELETE",
+      "path": "/api/v1/wallets/{{last_created_id}}"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.wallet.status",
+        "expected": "terminated",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "WalletOperations",
+    "subcategory": "Terminate",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "EVENT_INGEST_SINGLE",
+   "description": "Single event ingestion via REST returns 200 with event data",
+   "prereqs": [
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/events",
+      "body": {
+       "event": {
+        "transaction_id": "eval_txn_single_001",
+        "code": "eval_bm_stan_5140",
+        "timestamp": 1776000000,
+        "properties": {},
+        "external_customer_id": "crud_cust_eval_001_5140"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.event"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EventProcessing",
+    "subcategory": "SingleIngest",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EVENT_INGEST_BATCH",
+   "description": "Batch event ingestion via POST /api/v1/events/batch",
+   "prereqs": [
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/events/batch",
+      "body": {
+       "events": [
+        {
+         "transaction_id": "eval_txn_batch_001",
+         "code": "eval_bm_stan_5140",
+         "timestamp": 1776000001,
+         "properties": {},
+         "external_customer_id": "crud_cust_eval_001_5140"
+        },
+        {
+         "transaction_id": "eval_txn_batch_002",
+         "code": "eval_bm_stan_5140",
+         "timestamp": 1776000002,
+         "properties": {},
+         "external_customer_id": "crud_cust_eval_001_5140"
+        }
+       ]
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.events"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EventProcessing",
+    "subcategory": "BatchIngest",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "EVENT_DEDUP",
+   "description": "Duplicate transaction_id events are deduplicated",
+   "prereqs": [
+    "EVENT_INGEST_SINGLE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/events",
+      "body": {
+       "event": {
+        "transaction_id": "eval_txn_dedup_001_5140",
+        "code": "eval_bm_stan_5140",
+        "timestamp": 1776000010,
+        "properties": {},
+        "external_customer_id": "crud_cust_eval_001_5140"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/events",
+      "body": {
+       "event": {
+        "transaction_id": "eval_txn_dedup_001_5140",
+        "code": "eval_bm_stan_5140",
+        "timestamp": 1776000010,
+        "properties": {},
+        "external_customer_id": "crud_cust_eval_001_5140"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM events WHERE transaction_id = 'eval_txn_dedup_001_5140'",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 2
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EventProcessing",
+    "subcategory": "Dedup",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "EVENT_PROPERTIES",
+   "description": "Event properties stored correctly as JSONB",
+   "prereqs": [
+    "EVENT_INGEST_SINGLE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/events",
+      "body": {
+       "event": {
+        "transaction_id": "eval_txn_props_001_5140",
+        "external_subscription_id": "sub_eval_001",
+        "code": "charge_eval_req_001",
+        "timestamp": 1776000020,
+        "properties": {
+         "region": "us-east",
+         "amount": "42.5"
+        }
+       }
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT properties->>'region' as region FROM events WHERE transaction_id = 'eval_txn_props_001_5140'",
+      "expected_result": {
+       "region": "us-east"
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "EventProcessing",
+    "subcategory": "Properties",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "TAX_CREATE",
+   "description": "Create tax rate via GraphQL and verify via REST",
+   "prereqs": [
+    "AUTH_JWT_LOGIN",
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createTax(input: { name: \"Eval VAT\", code: \"eval_vat_001_5140\", rate: 20.0 }) { id name code rate } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createTax.name",
+        "expected": "Eval VAT",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createTax.code",
+        "expected": "eval_vat_001_5140",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createTax.rate",
+        "expected": 20.0,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaxCalculation",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "TAX_DB_VERIFY",
+   "description": "Tax record stored correctly in taxes table",
+   "prereqs": [
+    "TAX_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT name, code, rate FROM taxes WHERE code = 'eval_vat_001_5140'",
+      "expected_result": {
+       "name": "Eval VAT",
+       "code": "eval_vat_001_5140",
+       "rate": 20.0
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaxCalculation",
+    "subcategory": "DBVerify",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "TAX_MULTIPLE",
+   "description": "Multiple tax rates can coexist in same organization",
+   "prereqs": [
+    "TAX_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createTax(input: { name: \"Eval GST\", code: \"eval_gst_001_5140\", rate: 5.0 }) { id name code rate } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM taxes WHERE code IN ('eval_vat_001_5140', 'eval_gst_001_5140') AND deleted_at IS NULL",
+      "expected_result": {
+       "cnt": 2
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "TaxCalculation",
+    "subcategory": "Stack",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "COUPON_CREATE_FIXED",
+   "description": "Create fixed_amount coupon via GraphQL with correct type",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createCoupon(input: { name: \"Eval Fixed Coupon\", code: \"eval_fixed_cpn_001_5140\", couponType: fixed_amount, frequency: once, amountCents: 2000, amountCurrency: USD, expiration: no_expiration }) { id name code couponType frequency amountCents } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createCoupon.couponType",
+        "expected": "fixed_amount",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createCoupon.frequency",
+        "expected": "once",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createCoupon.amountCents",
+        "expected": "2000",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CouponApplication",
+    "subcategory": "CreateFixed",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "COUPON_CREATE_PERCENTAGE",
+   "description": "Create percentage coupon via GraphQL",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createCoupon(input: { name: \"Eval Pct Coupon\", code: \"eval_pct_cpn_001_5140\", couponType: percentage, frequency: recurring, percentageRate: 15.0, expiration: no_expiration }) { id name code couponType frequency percentageRate } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createCoupon.couponType",
+        "expected": "percentage",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createCoupon.frequency",
+        "expected": "recurring",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createCoupon.percentageRate",
+        "expected": 15.0,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CouponApplication",
+    "subcategory": "CreatePercentage",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "COUPON_APPLY",
+   "description": "Apply coupon to customer via REST API creates applied_coupons record",
+   "prereqs": [
+    "COUPON_CREATE_FIXED",
+    "CRUD_CUSTOMER"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/customers",
+      "body": {
+       "customer": {
+        "external_id": "crud_cust_eval_001_5140",
+        "name": "Coupon Apply Customer",
+        "currency": "USD"
+       }
+      }
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/api/v1/applied_coupons",
+      "body": {
+       "applied_coupon": {
+        "external_customer_id": "crud_cust_eval_001_5140",
+        "coupon_code": "eval_fixed_cpn_001_5140"
+       }
+      }
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "acceptable_statuses": [
+       200,
+       201,
+       202,
+       204
+      ]
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM applied_coupons ac JOIN customers c ON ac.customer_id = c.id WHERE c.external_id = 'crud_cust_eval_001_5140'",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CouponApplication",
+    "subcategory": "Apply",
+    "method": "binary",
+    "maxScore": 3,
+    "_eval_fix": "route POST /api/v1/applied_coupons EXISTS (routes.rb:125 api/v1 namespace, create action). Prior 404 root cause: prereq CRUD_CUSTOMER deletes its customer (P05 DELETE), so apply hit not_found_failure(customer) in create_service.rb:61. Fixed by self-provisioning a USD customer (matching the USD coupon) at chain head. Removed stale _baseline_known_gap misdiagnosis."
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "COUPON_FREQUENCY_DB",
+   "description": "Coupon frequency and frequency_duration stored correctly",
+   "prereqs": [
+    "COUPON_CREATE_FIXED"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT frequency, coupon_type FROM coupons WHERE code = 'eval_fixed_cpn_001_5140' AND deleted_at IS NULL",
+      "expected_result": {
+       "frequency": 0,
+       "coupon_type": 0
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CouponApplication",
+    "subcategory": "Frequency",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "CN_CREATE",
+   "description": "Credit notes table is queryable post invoice creation (DB-side smoke check)",
+   "prereqs": [
+    "INV_ONE_OFF"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM credit_notes",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CreditNotes",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 3,
+    "_round19_note": "round-19 fix: removed dangling P07 step that asserted '$.rows[0].cnt' against an HTTP response that never existed (no P04 in chain). The same gte-0 assertion was already covered by P08 above. Removing the unreachable P07 step turns this 0/3 binary fail into a 3/3 pass without widening any criterion."
+   },
+   "complexity_tier": "multi_step_causal",
+   "_honesty_note": "was cnt gte 0 (tautology); now cnt>=1 (probed: reference persists 1 credit note post invoice creation)."
+  },
+  {
+   "id": "CN_SCHEMA",
+   "description": "credit_notes table has required columns for full lifecycle",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "credit_notes"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "credit_notes",
+      "expected_columns": [
+       "id",
+       "customer_id",
+       "invoice_id",
+       "sequential_id",
+       "number",
+       "credit_status",
+       "refund_status",
+       "reason",
+       "total_amount_cents",
+       "description",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CreditNotes",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "CN_REST_LIST",
+   "description": "GET /api/v1/credit_notes returns list with meta",
+   "prereqs": [
+    "AUTH_API_KEY_REST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "GET",
+      "path": "/api/v1/credit_notes"
+     }
+    },
+    {
+     "type": "P15",
+     "inputs": {
+      "expected_status": [
+       200,
+       304
+      ]
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertion": "json_path_exists",
+      "path": "$.credit_notes"
+     }
+    }
+   ],
+   "scoring": {
+    "category": "CreditNotes",
+    "subcategory": "RESTList",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "linear_crud"
+  },
+  {
+   "id": "DUNNING_SCHEMA",
+   "description": "dunning_campaigns table exists with correct columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "dunning_campaigns"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "dunning_campaigns",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "name",
+       "code",
+       "description",
+       "max_attempts",
+       "days_between_attempts",
+       "applied_to_organization",
+       "created_at",
+       "updated_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DunningCampaigns",
+    "subcategory": "Schema",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "DUNNING_CREATE",
+   "description": "Create dunning campaign via GraphQL with thresholds",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createDunningCampaign(input: { name: \"Eval Dunning\", code: \"eval_dunning_001_5140\", daysBetweenAttempts: 7, maxAttempts: 3, appliedToOrganization: true, thresholds: [{ currency: USD, amountCents: 10000 }] }) { id name code daysBetweenAttempts maxAttempts } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createDunningCampaign.name",
+        "expected": "Eval Dunning",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createDunningCampaign.daysBetweenAttempts",
+        "expected": 7,
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createDunningCampaign.maxAttempts",
+        "expected": 3,
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DunningCampaigns",
+    "subcategory": "Create",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "DUNNING_DB_VERIFY",
+   "description": "Dunning campaign data stored correctly in DB",
+   "prereqs": [
+    "DUNNING_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT name, code, max_attempts, days_between_attempts FROM dunning_campaigns WHERE code = 'eval_dunning_001_5140'",
+      "expected_result": {
+       "name": "Eval Dunning",
+       "code": "eval_dunning_001_5140",
+       "max_attempts": 3,
+       "days_between_attempts": 7
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "DunningCampaigns",
+    "subcategory": "DBVerify",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "RBAC_ROLES_EXIST",
+   "description": "Predefined roles (admin, manager, finance) exist in DB",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM roles WHERE code IN ('admin', 'manager', 'finance') AND deleted_at IS NULL",
+      "expected_result": {
+       "cnt": 3
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "PredefinedRoles",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "RBAC_ADMIN_ALLOW",
+   "description": "Admin role has full permissions on all resources",
+   "prereqs": [
+    "AUTH_JWT_LOGIN",
+    "RBAC_ROLES_EXIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P14",
+     "inputs": {
+      "role": "admin",
+      "action": "GET /api/v1/customers",
+      "expected_result": "allowed",
+      "expected_status": 200
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminAllow",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "RBAC_ADMIN_IS_ADMIN",
+   "description": "Admin role has admin=true flag in DB",
+   "prereqs": [
+    "RBAC_ROLES_EXIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT admin FROM roles WHERE code = 'admin' AND deleted_at IS NULL",
+      "expected_result": {
+       "admin": true
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "AdminFlag",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "RBAC_CUSTOM_ROLE_CREATE",
+   "description": "Create custom role via GraphQL with specific permissions",
+   "prereqs": [
+    "AUTH_JWT_LOGIN"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { createRole(input: { name: \"Eval Viewer\", code: \"eval_viewer_001_5140\", description: \"Read-only role\", permissions: [customers_view, plans_view, invoices_view] }) { id name code permissions } }"
+      }
+     }
+    },
+    {
+     "type": "P07",
+     "inputs": {
+      "assertions": [
+       {
+        "path": "$.data.createRole.name",
+        "expected": "Eval Viewer",
+        "operator": "equals"
+       },
+       {
+        "path": "$.data.createRole.code",
+        "expected": "eval_viewer_001_5140",
+        "operator": "equals"
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "CustomRole",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "RBAC_PERMISSION_MATRIX",
+   "description": "Roles have correct permission arrays stored in DB",
+   "prereqs": [
+    "RBAC_ROLES_EXIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) FILTER (WHERE permissions IS NULL) AS null_perms, COUNT(*) AS total FROM roles WHERE code IN ('admin','manager','finance') AND deleted_at IS NULL",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "null_perms",
+        "operator": "equals",
+        "expected": 0
+       },
+       {
+        "field": "total",
+        "operator": "equals",
+        "expected": 3
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "PermissionMatrix",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal",
+   "_honesty_note": "was P08 selected perm_count but P07 only asserted rows[0].code=='admin' (perm array never checked). Probed: this Lago seeds empty permission arrays ({}) with flag-based RBAC (admin bool). Now asserts permissions is a stored non-null array for all 3 predefined roles (null_perms==0, total==3)."
+  },
+  {
+   "id": "RBAC_MEMBERSHIP_ROLE",
+   "description": "Membership-role association stored in membership_roles table",
+   "prereqs": [
+    "RBAC_ROLES_EXIST"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT COUNT(*) as cnt FROM membership_roles WHERE deleted_at IS NULL",
+      "expected_result": {},
+      "assertions": [
+       {
+        "field": "cnt",
+        "operator": "gte",
+        "expected": 1
+       }
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "MembershipRole",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "RBAC_ROLE_DESTROY",
+   "description": "Destroying a custom role soft-deletes it (sets deleted_at). Looks up the role UUID from DB before mutation so the test does not depend on cross-node placeholder substitution.",
+   "prereqs": [
+    "RBAC_CUSTOM_ROLE_CREATE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "jwt",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT id::text AS id FROM roles WHERE code = 'eval_viewer_001_5140' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 1",
+      "save_id": "role_uuid",
+      "expected_result": {}
+     }
+    },
+    {
+     "type": "P04",
+     "inputs": {
+      "method": "POST",
+      "path": "/graphql",
+      "body": {
+       "query": "mutation { destroyRole(input: { id: \"{{role_uuid}}\" }) { id } }"
+      }
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT EXISTS(SELECT 1 FROM roles WHERE code = 'eval_viewer_001_5140' AND deleted_at IS NOT NULL) AS is_deleted",
+      "expected_result": {
+       "is_deleted": true
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "RBAC",
+    "subcategory": "Destroy",
+    "method": "binary",
+    "maxScore": 3,
+    "_round19_note": "round-19 fix (two issues): (1) original chain used cross-node placeholder '{{RBAC_CUSTOM_ROLE_CREATE.data.createRole.id}}' which mnmtxiwb's _resolve only supports for context dict keys, NOT dotted paths into prior node responses → the literal string was sent as the GraphQL id, mutation silently failed, role kept deleted_at=NULL. (2) Original verification SQL 'SELECT deleted_at IS NOT NULL FROM roles WHERE code=...' could pick the wrong row when partial unique index allowed duplicate codes across soft-delete generations. Fix: prepend P08 with save_id='role_uuid' (looks up the live role from DB by code) and P04 destroyRole now references {{role_uuid}} which _resolve handles. Verification P08 uses EXISTS(...AND deleted_at IS NOT NULL) so it tolerates row-order non-determinism. Baseline behavior unchanged: Roles::DestroyService calls role.discard! which sets deleted_at."
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "PB_THRESHOLD_SCHEMA",
+   "description": "usage_thresholds table exists with correct columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "usage_thresholds"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "usage_thresholds",
+      "expected_columns": [
+       "id",
+       "plan_id",
+       "threshold_display_name",
+       "amount_cents",
+       "recurring",
+       "created_at",
+       "updated_at",
+       "deleted_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ProgressiveBilling",
+    "subcategory": "ThresholdSchema",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "PB_LIFETIME_USAGE_SCHEMA",
+   "description": "lifetime_usages table exists with tracking columns",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P09",
+     "inputs": {
+      "tables": [
+       "lifetime_usages"
+      ]
+     }
+    },
+    {
+     "type": "P10",
+     "inputs": {
+      "table": "lifetime_usages",
+      "expected_columns": [
+       "id",
+       "organization_id",
+       "subscription_id",
+       "current_usage_amount_cents",
+       "invoiced_usage_amount_cents",
+       "recalculate_current_usage",
+       "recalculate_invoiced_usage",
+       "created_at",
+       "updated_at",
+       "deleted_at"
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ProgressiveBilling",
+    "subcategory": "LifetimeUsageSchema",
+    "method": "weighted",
+    "maxScore": 3
+   },
+   "complexity_tier": "simple_check"
+  },
+  {
+   "id": "PB_LIFETIME_USAGE_CREATED",
+   "description": "Active subscription creates lifetime_usage with recalculate flags",
+   "prereqs": [
+    "SUB_CREATE_ACTIVE"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P13",
+     "inputs": {
+      "method": "api_key",
+      "role": "admin"
+     }
+    },
+    {
+     "type": "P08",
+     "inputs": {
+      "sql": "SELECT recalculate_invoiced_usage, recalculate_current_usage FROM lifetime_usages lu JOIN subscriptions s ON lu.subscription_id = s.id WHERE s.external_id = 'sub_eval_001' LIMIT 1",
+      "expected_result": {
+       "recalculate_invoiced_usage": true
+      }
+     }
+    }
+   ],
+   "scoring": {
+    "category": "ProgressiveBilling",
+    "subcategory": "LifetimeUsage",
+    "method": "binary",
+    "maxScore": 3
+   },
+   "complexity_tier": "multi_step_causal"
+  },
+  {
+   "id": "FE_SPA_RENDER",
+   "description": "React SPA frontend renders with login page and navigation",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R_FRONTEND_SPA",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "frontend/",
+       "app/javascript/",
+       "client/"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric": "Evaluate: (1) React 18+ with TypeScript setup, (2) SPA routing with React Router, (3) Component structure with pages/components separation, (4) State management (Apollo Client for GraphQL), (5) Login/auth UI components. Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "SPARender",
+    "method": "llm_judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "llm_judge"
+  },
+  {
+   "id": "FE_UI_COMPONENTS",
+   "description": "UI design system with MUI/Tailwind, i18n, and dashboard components",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R_FRONTEND_UI",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "frontend/src/",
+       "app/javascript/",
+       "client/src/"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric": "Evaluate: (1) Material UI or similar design system usage, (2) Tailwind CSS integration, (3) i18n translation setup, (4) Dashboard/analytics components, (5) Form handling (Formik/React Hook Form). Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Frontend",
+    "subcategory": "UIComponents",
+    "method": "llm_judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "llm_judge"
+  },
+  {
+   "id": "ARCH_CODE_QUALITY",
+   "description": "Rails API code quality: service objects, serializers, proper MVC",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R_ARCH_CODE",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/services/",
+       "app/models/",
+       "app/controllers/",
+       "app/graphql/",
+       "app/serializers/"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric": "Evaluate: (1) Service object pattern for business logic, (2) Model validations and associations, (3) GraphQL type definitions and mutations, (4) API controller structure with proper error handling, (5) Serializer pattern for API responses. Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Architecture",
+    "subcategory": "CodeQuality",
+    "method": "llm_judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "llm_judge"
+  },
+  {
+   "id": "ARCH_PROJECT_STRUCTURE",
+   "description": "Project structure follows Rails conventions with proper organization",
+   "prereqs": [
+    "DEPLOY_HEALTH"
+   ],
+   "primitive_chain": [
+    {
+     "type": "P17",
+     "inputs": {
+      "rubric_id": "R_ARCH_STRUCTURE",
+      "evidence_type": "code_files",
+      "files_to_sample": [
+       "app/",
+       "config/",
+       "db/",
+       "lib/"
+      ],
+      "sample_strategy": "structure_and_key_files",
+      "rubric": "Evaluate: (1) Standard Rails directory layout, (2) Database migrations present and organized, (3) Configuration files (database.yml, routes.rb, sidekiq.yml), (4) Docker/deployment configuration, (5) Background job organization (Sidekiq queues). Score 0-5.",
+      "score_range": [
+       0,
+       5
+      ]
+     }
+    }
+   ],
+   "scoring": {
+    "category": "Architecture",
+    "subcategory": "ProjectStructure",
+    "method": "llm_judge",
+    "maxScore": 5
+   },
+   "complexity_tier": "llm_judge"
+  }
+ ]
+}

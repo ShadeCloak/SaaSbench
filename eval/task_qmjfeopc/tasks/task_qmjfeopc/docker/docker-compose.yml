@@ -1,0 +1,52 @@
+name: task_qmjfeopc
+
+services:
+  app:
+    image: shadetocloak/task_qmjfeopc-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: app_qmjfeopc
+    ports:
+      - "8002:8002"
+    env_file:
+      - .env
+    volumes:
+      - ./workspace:/app
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: "no"
+  mongo:
+    image: mongo:7
+    container_name: mongo_qmjfeopc
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongo_data:/data/db
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+    restart: "no"
+  redis:
+    image: redis:7-alpine
+    container_name: redis_qmjfeopc
+    ports:
+      - "6388:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    restart: "no"
+volumes:
+  mongo_data:
+  redis_data:

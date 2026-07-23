@@ -1,0 +1,52 @@
+{
+  "categories": {
+    "Deployment": {"maxScore": 8, "node_count": 5},
+    "DataModel": {"maxScore": 20, "node_count": 4},
+    "Authentication": {"maxScore": 23, "node_count": 7},
+    "API_CRUD": {"maxScore": 36, "node_count": 11},
+    "BusinessLogic": {"maxScore": 44, "node_count": 13},
+    "RBAC": {"maxScore": 42, "node_count": 10},
+    "Workflow": {"maxScore": 36, "node_count": 9},
+    "OAuth2": {"maxScore": 16, "node_count": 5},
+    "MCP": {"maxScore": 12, "node_count": 4},
+    "REST_Validation": {"maxScore": 28, "node_count": 7},
+    "Billing": {"maxScore": 16, "node_count": 4},
+    "FileAndSearch": {"maxScore": 16, "node_count": 4},
+    "EventSystem": {"maxScore": 8, "node_count": 2},
+    "MemberManagement": {"maxScore": 12, "node_count": 3},
+    "FrontendQuality": {"maxScore": 34, "node_count": 5},
+    "ArchitectureQuality": {"maxScore": 28, "node_count": 4},
+    "SecurityQuality": {"maxScore": 18, "node_count": 3},
+    "EdgeCases": {"maxScore": 28, "node_count": 8},
+    "AdvancedFeatures": {"maxScore": 24, "node_count": 6},
+    "Metadata": {"maxScore": 20, "node_count": 5},
+    "ConfigAndAdmin": {"maxScore": 10, "node_count": 2}
+  },
+  "total_maxScore": 479,
+  "normalization": "0-100",
+  "depth_distribution": {
+    "shallow": {"maxScore": 69, "pct": "14.4%", "constraint": "<=30% OK"},
+    "deep": {"maxScore": 330, "pct": "68.9%", "constraint": ">=60% OK"},
+    "llm_judge": {"maxScore": 80, "pct": "16.7%", "constraint": ">=15% OK"}
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Deployment + auth + core CRUD + basic DB + basic business logic + basic REST validation",
+      "node_ids": [
+        "DEPLOY_HEALTH", "DEPLOY_GRAPHQL", "DEPLOY_REST", "DEPLOY_CLIENT_CONFIG", "DEPLOY_OPENAPI",
+        "DB_SCHEMA_CORE", "DB_SCHEMA_METADATA", "DB_TABLE_USER_COLUMNS", "DB_TABLE_WORKSPACE_COLUMNS",
+        "AUTH_SIGNUP", "AUTH_LOGIN", "AUTH_NO_TOKEN_403", "AUTH_INVALID_TOKEN_401",
+        "CRUD_COMPANY_CREATE", "CRUD_PERSON_CREATE", "CRUD_OPPORTUNITY_CREATE", "CRUD_TASK_CREATE", "CRUD_NOTE_CREATE",
+        "CRUD_PERSON_UPDATE_PARTIAL_MERGE", "CRUD_PERSON_DELETE", "CRUD_PERSON_RESTORE",
+        "BIZ_CURRENCY_MICROS", "BIZ_GRAPHQL_CONNECTION", "BIZ_SOFT_DELETE_FILTERED",
+        "REST_DEPTH_0", "REST_DEPTH_1", "REST_DELETE_NONEXIST_404"
+      ],
+      "maxScore": 102
+    },
+    "advanced": {
+      "description": "All other nodes (advanced business logic + RBAC + workflow + OAuth2 + MCP + frontend + architecture + security + edge cases)",
+      "node_ids": "remaining",
+      "maxScore": 377
+    }
+  }
+}

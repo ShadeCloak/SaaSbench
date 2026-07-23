@@ -1,0 +1,202 @@
+{
+  "categories": {
+    "Deployment": {
+      "maxScore": 10,
+      "node_count": 5
+    },
+    "DataModel": {
+      "maxScore": 32,
+      "node_count": 19
+    },
+    "Authentication": {
+      "maxScore": 28,
+      "node_count": 8
+    },
+    "Product": {
+      "maxScore": 31,
+      "node_count": 10
+    },
+    "Customer": {
+      "maxScore": 24,
+      "node_count": 8
+    },
+    "Inventory": {
+      "maxScore": 35,
+      "node_count": 11
+    },
+    "Pricing": {
+      "maxScore": 37,
+      "node_count": 12
+    },
+    "Promotion": {
+      "maxScore": 38,
+      "node_count": 12
+    },
+    "Cart": {
+      "maxScore": 30,
+      "node_count": 9
+    },
+    "Payment": {
+      "maxScore": 19,
+      "node_count": 9
+    },
+    "Tax": {
+      "maxScore": 13,
+      "node_count": 4
+    },
+    "APIKey": {
+      "maxScore": 13,
+      "node_count": 5
+    },
+    "Order": {
+      "maxScore": 37,
+      "node_count": 13
+    },
+    "Fulfillment": {
+      "maxScore": 28,
+      "node_count": 9
+    },
+    "Return": {
+      "maxScore": 37,
+      "node_count": 14
+    },
+    "Exchange": {
+      "maxScore": 17,
+      "node_count": 6
+    },
+    "Claim": {
+      "maxScore": 14,
+      "node_count": 4
+    },
+    "OrderTransfer": {
+      "maxScore": 10,
+      "node_count": 4
+    },
+    "RBAC": {
+      "maxScore": 23,
+      "node_count": 15
+    },
+    "EdgeCases": {
+      "maxScore": 12,
+      "node_count": 7
+    },
+    "Frontend": {
+      "maxScore": 8,
+      "node_count": 3
+    },
+    "ArchitectureQuality": {
+      "maxScore": 27,
+      "node_count": 5
+    },
+    "DraftOrder": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "SalesChannel": {
+      "maxScore": 2,
+      "node_count": 1
+    },
+    "Region": {
+      "maxScore": 2,
+      "node_count": 1
+    },
+    "Notification": {
+      "maxScore": 1,
+      "node_count": 1
+    },
+    "StoreAPI": {
+      "maxScore": 6,
+      "node_count": 3
+    },
+    "StockLocation": {
+      "maxScore": 2,
+      "node_count": 1
+    },
+    "UserManagement": {
+      "maxScore": 4,
+      "node_count": 2
+    },
+    "ErrorHandling": {
+      "maxScore": 4,
+      "node_count": 2
+    }
+  },
+  "total_maxScore": 548,
+  "normalization": "0-100",
+  "complexity_distribution": {
+    "linear_crud": {
+      "node_count": 37,
+      "maxScore": 61
+    },
+    "workflow_automator": {
+      "node_count": 153,
+      "maxScore": 464
+    },
+    "marketplace_rbac": {
+      "node_count": 15,
+      "maxScore": 23
+    }
+  },
+  "scoring_method_distribution": {
+    "binary": 158,
+    "weighted": 27,
+    "llm-judge": 20
+  },
+  "trajectories": {
+    "happy_path": {
+      "description": "Core: deploy→auth→CRUD→cart→order→fulfillment→payment",
+      "node_ids": [
+        "DEPLOY_HEALTH",
+        "DEPLOY_DB_CONNECT",
+        "AUTH_ADMIN_LOGIN",
+        "PRODUCT_CRUD",
+        "CUSTOMER_CRUD",
+        "INVENTORY_CRUD",
+        "PRICING_QUANTITY_TIERS",
+        "PROMOTION_CRUD",
+        "CART_CREATE_WITH_CUSTOMER",
+        "CART_LINE_ITEM_TOTAL",
+        "ORDER_SUMMARY_CALCULATION",
+        "FULFILLMENT_INVENTORY_DECREMENT",
+        "PAYMENT_FULL_CAPTURE",
+        "PAYMENT_REFUND"
+      ],
+      "maxScore": 41
+    },
+    "advanced_workflows": {
+      "description": "Advanced: RBAC, pricing, promotions, returns/exchanges/claims",
+      "node_ids": [
+        "RBAC_FIELD_FILTERING_DENY",
+        "RBAC_FIELD_FILTERING_ALLOW",
+        "RBAC_NO_ROLE_DENIED",
+        "RBAC_SUPER_ADMIN_ALLOW",
+        "PRICING_CUSTOMER_GROUP",
+        "PRICING_TAX_INCLUSIVE",
+        "PRICING_VARIANT_DELETE_CASCADE",
+        "PROMOTION_CAMPAIGN_USE_BY_ATTRIBUTE",
+        "PROMOTION_IS_DISCOUNTABLE",
+        "RETURN_PARTIAL_RECEIVE",
+        "RETURN_INVENTORY_RESTOCK",
+        "EXCHANGE_FULL_FLOW",
+        "EXCHANGE_CARRY_OVER_PROMOTIONS",
+        "CLAIM_SEQUENTIAL_ACCUMULATION",
+        "ORDER_CANCEL_CAPTURED_REFUND",
+        "EDGE_CREDIT_LINE_VALIDATION",
+        "INVENTORY_DELETE_FORCE",
+        "INVENTORY_RESERVATION_BLOCK_DELETE"
+      ],
+      "maxScore": 58
+    }
+  },
+  "dag_quality_check": {
+    "total_nodes": 205,
+    "has_cycle": false,
+    "score_distribution": {
+      "verification_depth": {
+        "shallow_pct": 15.7,
+        "deep_pct": 62.8,
+        "llm_pct": 21.5
+      }
+    }
+  }
+}

@@ -1,0 +1,4995 @@
+{
+  "meta": {
+    "task_id": "task_ubsmhopy",
+    "total_nodes": 88,
+    "total_maxScore": 323,
+    "source_prd": "task_gen/task_ubsmhopy/task/task.md",
+    "generated_at": "2026-04-14T05:17:14.344356+00:00"
+  },
+  "scoring_config": {
+    "categories": {
+      "Deployment": {
+        "maxScore": 6,
+        "node_count": 5
+      },
+      "DataModel": {
+        "maxScore": 18,
+        "node_count": 9
+      },
+      "Authentication": {
+        "maxScore": 35,
+        "node_count": 9
+      },
+      "VaultCRUD": {
+        "maxScore": 33,
+        "node_count": 10
+      },
+      "Organization": {
+        "maxScore": 25,
+        "node_count": 7
+      },
+      "BusinessLogic": {
+        "maxScore": 83,
+        "node_count": 21
+      },
+      "RBAC": {
+        "maxScore": 35,
+        "node_count": 11
+      },
+      "AdminPanel": {
+        "maxScore": 15,
+        "node_count": 5
+      },
+      "ArchitectureQuality": {
+        "maxScore": 73,
+        "node_count": 11
+      }
+    },
+    "normalization": "0-100"
+  },
+  "nodes": [
+    {
+      "id": "DEPLOY_HEALTH",
+      "description": "GET /alive returns 200",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/alive",
+            "timeout": 15
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "HealthCheck",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "web routes",
+        "behavior_verified": "/alive returns 200 OK"
+      }
+    },
+    {
+      "id": "DEPLOY_API_ALIVE",
+      "description": "GET /api/alive returns a timestamp (with DB verification)",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/alive"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "operator": "matches_regex",
+                "expected": "\\d{4}-\\d{2}-\\d{2}T"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "DBHealth",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "core/mod.rs",
+        "behavior_verified": "returns an ISO8601 timestamp string"
+      }
+    },
+    {
+      "id": "DEPLOY_CONFIG",
+      "description": "GET /api/config returns a config object (with environment/server/version)",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/config"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "config"
+              },
+              {
+                "path": "$.environment.api",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.environment.identity",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Configuration",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "core/mod.rs",
+        "behavior_verified": "returns {object:'config', environment:{api,identity,vault,...}, server:{name,url}, version}"
+      }
+    },
+    {
+      "id": "DEPLOY_CARGO_TOML",
+      "description": "Cargo.toml includes the rocket + diesel dependencies",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P01",
+          "inputs": {
+            "path": "Cargo.toml"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "Cargo.toml",
+            "match_type": "contains",
+            "pattern": "rocket"
+          }
+        },
+        {
+          "type": "P02",
+          "inputs": {
+            "path": "Cargo.toml",
+            "match_type": "contains",
+            "pattern": "diesel"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Dependencies",
+        "method": "weighted",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DEPLOY_MIGRATIONS",
+      "description": "at least 1 Diesel migration file exists",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P03",
+          "inputs": {
+            "glob": "**/migrations/**/*.sql",
+            "min_expected": 1
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Deployment",
+        "subcategory": "Migrations",
+        "method": "binary",
+        "maxScore": 0
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TABLES_CORE",
+      "description": "all 27 tables exist",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P09",
+          "inputs": {
+            "tables": [
+              "users",
+              "ciphers",
+              "organizations",
+              "users_organizations",
+              "collections",
+              "users_collections",
+              "devices",
+              "sends",
+              "folders",
+              "twofactor",
+              "emergency_access",
+              "event",
+              "org_policies",
+              "groups",
+              "attachments",
+              "auth_requests",
+              "favorites",
+              "folders_ciphers",
+              "ciphers_collections",
+              "groups_users",
+              "collections_groups",
+              "invitations",
+              "twofactor_incomplete",
+              "twofactor_duo_ctx",
+              "sso_auth",
+              "sso_users",
+              "organization_api_key"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TableExistence",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "db/schema.rs",
+        "behavior_verified": "27 tables confirmed via information_schema"
+      }
+    },
+    {
+      "id": "DB_USERS_COLS",
+      "description": "users table's 18 required columns",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "users",
+            "expected_columns": [
+              "uuid",
+              "email",
+              "name",
+              "password_hash",
+              "salt",
+              "password_iterations",
+              "akey",
+              "security_stamp",
+              "client_kdf_type",
+              "client_kdf_iter",
+              "enabled",
+              "created_at",
+              "updated_at",
+              "totp_secret",
+              "api_key",
+              "avatar_color",
+              "equivalent_domains",
+              "excluded_globals"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "UserEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_CIPHERS_COLS",
+      "description": "ciphers table's 14 required columns",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "ciphers",
+            "expected_columns": [
+              "uuid",
+              "created_at",
+              "updated_at",
+              "user_uuid",
+              "organization_uuid",
+              "atype",
+              "name",
+              "notes",
+              "fields",
+              "data",
+              "password_history",
+              "deleted_at",
+              "reprompt",
+              "key"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "CipherEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_ORGS_COLS",
+      "description": "organizations + users_organizations table fields",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "organizations",
+            "expected_columns": [
+              "uuid",
+              "name",
+              "billing_email",
+              "private_key",
+              "public_key"
+            ]
+          }
+        },
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "users_organizations",
+            "expected_columns": [
+              "uuid",
+              "user_uuid",
+              "org_uuid",
+              "access_all",
+              "akey",
+              "status",
+              "atype",
+              "reset_password_key"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "OrgEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_SENDS_COLS",
+      "description": "sends table's 15 required columns",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "sends",
+            "expected_columns": [
+              "uuid",
+              "user_uuid",
+              "name",
+              "atype",
+              "data",
+              "akey",
+              "password_hash",
+              "password_salt",
+              "max_access_count",
+              "access_count",
+              "creation_date",
+              "deletion_date",
+              "expiration_date",
+              "disabled",
+              "hide_email"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "SendEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_EA_COLS",
+      "description": "emergency_access table fields",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "emergency_access",
+            "expected_columns": [
+              "uuid",
+              "grantor_uuid",
+              "grantee_uuid",
+              "email",
+              "atype",
+              "status",
+              "wait_time_days",
+              "recovery_initiated_at",
+              "key_encrypted"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "EAEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_COLLECTIONS_PERMS_COLS",
+      "description": "users_collections permission fields",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "users_collections",
+            "expected_columns": [
+              "user_uuid",
+              "collection_uuid",
+              "read_only",
+              "hide_passwords",
+              "manage"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "CollectionPerms",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_TWOFACTOR_COLS",
+      "description": "twofactor table fields",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "twofactor",
+            "expected_columns": [
+              "uuid",
+              "user_uuid",
+              "atype",
+              "enabled",
+              "data",
+              "last_used"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "TwoFactorEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "DB_EVENT_COLS",
+      "description": "event table's 12 required columns",
+      "prereqs": [
+        "DB_TABLES_CORE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P10",
+          "inputs": {
+            "table": "event",
+            "expected_columns": [
+              "uuid",
+              "event_type",
+              "user_uuid",
+              "org_uuid",
+              "cipher_uuid",
+              "collection_uuid",
+              "group_uuid",
+              "org_user_uuid",
+              "act_user_uuid",
+              "device_type",
+              "ip_address",
+              "event_date"
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "DataModel",
+        "subcategory": "EventEntity",
+        "method": "weighted",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "AUTH_PRELOGIN",
+      "description": "prelogin returns the correct KDF default parameters",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/identity/accounts/prelogin",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "nonexist@test.com"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.kdf",
+                "expected": 0
+              },
+              {
+                "path": "$.kdfIterations",
+                "expected": 600000
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Prelogin",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "identity.rs",
+        "behavior_verified": "default kdf=0, kdfIterations=600000",
+        "api_response_path": "$.kdf, $.kdfIterations"
+      }
+    },
+    {
+      "id": "AUTH_REGISTER",
+      "description": "register a user and verify DB storage (email lowercased, enabled=true)",
+      "prereqs": [
+        "AUTH_PRELOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/identity/accounts/register",
+            "headers": {
+              "Content-Type": "application/json"
+            },
+            "body": {
+              "email": "AuthReg_Check@test.com",
+              "name": "Eval Admin",
+              "masterPasswordHash": "test_hash_placeholder",
+              "key": "0.test_key",
+              "kdf": 0,
+              "kdfIterations": 600000
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT email, enabled, client_kdf_type FROM users WHERE email='authreg_check@test.com'",
+            "expected_result": {
+              "email": "authreg_check@test.com",
+              "enabled": true,
+              "client_kdf_type": 0
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Registration",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/accounts.rs",
+        "behavior_verified": "email stored lowercase, enabled defaults to true"
+      }
+    },
+    {
+      "id": "AUTH_LOGIN",
+      "description": "password login obtains a JWT",
+      "prereqs": [
+        "AUTH_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordLogin",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "identity.rs",
+        "behavior_verified": "grant_type=password login succeeds and returns a JWT",
+        "auth_mechanism": "password_login"
+      }
+    },
+    {
+      "id": "AUTH_TOKEN_RESPONSE",
+      "description": "login response contains the full token structure",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/identity/connect/token",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "grant_type=password&username={{admin_email}}&password={{admin_hash}}&scope=api%20offline_access&client_id=web&deviceType=9&deviceIdentifier=eval-token-test&deviceName=TokenTest"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.token_type",
+                "expected": "Bearer"
+              },
+              {
+                "path": "$.Kdf",
+                "expected": 0
+              },
+              {
+                "path": "$.access_token",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.refresh_token",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.UserDecryptionOptions.HasMasterPassword",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "TokenResponse",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "identity.rs:501",
+        "behavior_verified": "response contains access_token/refresh_token/Kdf/UserDecryptionOptions",
+        "api_response_path": "$.token_type, $.Kdf"
+      }
+    },
+    {
+      "id": "AUTH_PROFILE",
+      "description": "GET /api/accounts/profile returns the full profile",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/accounts/profile"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "profile"
+              },
+              {
+                "path": "$.email",
+                "expected": "{{admin_email}}"
+              },
+              {
+                "path": "$.premium",
+                "expected": true
+              },
+              {
+                "path": "$.emailVerified",
+                "operator": "exists"
+              },
+              {
+                "path": "$.securityStamp",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "Profile",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/user.rs",
+        "behavior_verified": "profile contains object='profile', premium=true",
+        "api_response_path": "$.object, $.email, $.premium"
+      }
+    },
+    {
+      "id": "AUTH_SECURITY_STAMP",
+      "description": "after refreshing the security stamp the old token is invalidated",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/accounts/security-stamp",
+            "body": {
+              "masterPasswordHash": "{{admin_hash}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT security_stamp FROM users WHERE email='{{admin_email}}'",
+            "expected_result": {
+              "security_stamp": "{{not_null}}"
+            }
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "SecurityStamp",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/user.rs:reset_security_stamp",
+        "behavior_verified": "reset_security_stamp updates the stamp and rotates refresh tokens"
+      },
+      "_run_last": true
+    },
+    {
+      "id": "AUTH_PASSWORD_CHANGE",
+      "description": "after changing the password, login with the old password fails and the new one succeeds",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/accounts/password",
+            "body": {
+              "masterPasswordHash": "{{admin_hash}}",
+              "newMasterPasswordHash": "{{new_admin_hash}}",
+              "key": "0.new"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT security_stamp FROM users WHERE email='{{admin_email}}'",
+            "expected_result": {
+              "security_stamp": "{{not_null}}"
+            }
+          }
+        },
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "PasswordChange",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/accounts.rs",
+        "behavior_verified": "after the password change the old hash fails verification"
+      },
+      "_run_last": true
+    },
+    {
+      "id": "AUTH_API_KEY",
+      "description": "obtain the user's API Key and verify it is non-empty",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/accounts/api-key",
+            "body": {
+              "masterPasswordHash": "{{admin_hash}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.apiKey",
+                "operator": "not_null"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT api_key FROM users WHERE email='{{admin_email}}'",
+            "expected_result": {
+              "api_key": "{{not_null}}"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "ApiKey",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/accounts.rs",
+        "behavior_verified": "the api-key endpoint returns {apiKey: ...} and stores it in the DB"
+      }
+    },
+    {
+      "id": "AUTH_KNOWN_DEVICE",
+      "description": "knowndevice check returns true (known device)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/devices/knowndevice",
+            "headers": {
+              "X-Request-Email": "ZXZhbF9hZG1pbkB0ZXN0LmNvbQ==",
+              "X-Device-Identifier": "eval-admin-device"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Authentication",
+        "subcategory": "KnownDevice",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/accounts.rs",
+        "behavior_verified": "knowndevice returns true/false as plain text"
+      }
+    },
+    {
+      "id": "API_SYNC",
+      "description": "GET /api/sync returns the full sync structure (ciphers is a direct array, not a list wrapper)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/sync?excludeDomains=true"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "sync"
+              },
+              {
+                "path": "$.profile.object",
+                "expected": "profile"
+              },
+              {
+                "path": "$.ciphers",
+                "operator": "is_array"
+              },
+              {
+                "path": "$.folders",
+                "operator": "is_array"
+              },
+              {
+                "path": "$.sends",
+                "operator": "is_array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "Sync",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/ciphers.rs:sync",
+        "behavior_verified": "sync returns {profile,folders,collections,ciphers,sends,policies,object:'sync'}",
+        "api_response_path": "$.object"
+      }
+    },
+    {
+      "id": "API_CIPHER_CREATE",
+      "description": "create a Login Cipher and verify the response object=cipherDetails + type=1",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 1,
+              "name": "2.encrypted_test",
+              "login": {
+                "username": "2.enc_user",
+                "password": "2.enc_pass"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "cipherDetails"
+              },
+              {
+                "path": "$.type",
+                "expected": 1
+              },
+              {
+                "path": "$.id",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.creationDate",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.edit",
+                "expected": true
+              },
+              {
+                "path": "$.viewPassword",
+                "expected": true
+              },
+              {
+                "path": "$.organizationUseTotp",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/cipher.rs:to_json",
+        "behavior_verified": "response contains object='cipherDetails', 5 type fields (login/secureNote/card/identity/sshKey)",
+        "api_response_path": "$.object, $.type"
+      }
+    },
+    {
+      "id": "API_CIPHER_READ",
+      "description": "GET /api/ciphers/{id} returns edit/viewPassword/permissions",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers/{{cipher_id}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "cipherDetails"
+              },
+              {
+                "path": "$.edit",
+                "expected": true
+              },
+              {
+                "path": "$.viewPassword",
+                "expected": true
+              },
+              {
+                "path": "$.permissions.delete",
+                "expected": true
+              },
+              {
+                "path": "$.permissions.restore",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherRead",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_CIPHER_UPDATE",
+      "description": "update the Cipher name and verify the change",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/ciphers/{{cipher_id}}",
+            "body": {
+              "type": 1,
+              "name": "2.updated_name",
+              "login": {
+                "username": "2.new_user",
+                "password": "2.new_pass"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.name",
+                "expected": "2.updated_name"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherUpdate",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_CIPHER_LIST",
+      "description": "GET /api/ciphers returns a list wrapper (data+object+continuationToken)",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              },
+              {
+                "path": "$.continuationToken",
+                "operator": "is_null"
+              },
+              {
+                "path": "$.data",
+                "operator": "is_array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherList",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "api_behavior.json",
+        "behavior_verified": "the list returns {data:[...], object:'list', continuationToken:null}"
+      }
+    },
+    {
+      "id": "API_CIPHER_SOFT_DELETE",
+      "description": "after a soft delete, deletedDate is not null",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/ciphers/{{cipher_id}}/delete"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers/{{cipher_id}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.deletedDate",
+                "operator": "not_null"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT deleted_at FROM ciphers WHERE uuid='{{cipher_id}}'",
+            "expected_result": {
+              "deleted_at": "{{not_null}}"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherSoftDelete",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/ciphers.rs",
+        "behavior_verified": "PUT delete sets deleted_at; GET still returns but deletedDate!=null"
+      }
+    },
+    {
+      "id": "API_CIPHER_RESTORE",
+      "description": "after restoring from the recycle bin, deletedDate is null",
+      "prereqs": [
+        "API_CIPHER_SOFT_DELETE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/ciphers/{{cipher_id}}/restore"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers/{{cipher_id}}"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.deletedDate",
+                "operator": "is_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherRestore",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_CIPHER_HARD_DELETE",
+      "description": "after a hard delete, GET returns 404 and the DB record no longer exists",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 2,
+              "name": "2.cipher_for_hard_delete",
+              "secureNote": {
+                "type": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/ciphers/{{cipher2_id}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers/{{cipher2_id}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              404
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM ciphers WHERE uuid='{{cipher2_id}}'",
+            "expected_result": {
+              "cnt": 0
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "CipherHardDelete",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_FOLDER_CRUD",
+      "description": "Folder full CRUD",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P05",
+          "inputs": {
+            "resource": "/api/folders",
+            "create_body": {
+              "name": "2.test_folder"
+            },
+            "update_body": {
+              "name": "2.updated_folder"
+            },
+            "expected_create_status": 200,
+            "expected_read_fields": [
+              "id",
+              "name",
+              "revisionDate",
+              "object"
+            ],
+            "expected_delete_status": 200
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.steps_passed",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "FolderCRUD",
+        "method": "weighted",
+        "maxScore": 3
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_SEND_CREATE",
+      "description": "create a text Send and verify accessId/accessCount/object",
+      "_eval_fix": "Eval test-data bug fixed (not a candidate defect): the positive Send-create nodes hard-coded deletionDate=2030-01-01, but Vaultwarden correctly rejects any Send whose deletion date is >31 days out (HTTP 400 'You cannot have a Send with a deletion date that far into the future'). Every Send create therefore 400'd, failing API_SEND_CREATE (0/4) and cascading SKIPPED_DEPENDENCY onto its 5 dependents (BIZ_SEND_ACCESS/ACCESS_ORDER/MAX_ACCESS/PASSWORD + USER_DELETE_CASCADE, 23pts) — a 27pt loss from one stale date. Positive nodes now use the dynamic {{deletion_date}} placeholder (now+7d, injected in utils.EvalContext) so they stay inside the 31-day window; the negative '>31 days rejected' test keeps its hard-coded far-future date.",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends",
+            "body": {
+              "type": 0,
+              "name": "2.test_send",
+              "key": "2.send_key",
+              "text": {
+                "text": "2.secret",
+                "hidden": false
+              },
+              "deletionDate": "{{deletion_date}}",
+              "disabled": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "send"
+              },
+              {
+                "path": "$.type",
+                "expected": 0
+              },
+              {
+                "path": "$.accessCount",
+                "expected": 0
+              },
+              {
+                "path": "$.accessId",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.deletionDate",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "VaultCRUD",
+        "subcategory": "SendCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/send.rs:to_json",
+        "behavior_verified": "accessId = BASE64URL_NOPAD(uuid_bytes)",
+        "api_response_path": "$.object, $.accessId"
+      }
+    },
+    {
+      "id": "API_ORG_CREATE",
+      "description": "create an organization and verify the response object='organization'",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "Eval Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "organization"
+              },
+              {
+                "path": "$.name",
+                "expected": "Eval Org"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT name FROM organizations WHERE name='Eval Org'",
+            "expected_result": {
+              "name": "Eval Org"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "OrgCreate",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ORG_COLLECTION",
+      "description": "create a Collection and verify the DB",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{org_id}}/collections",
+            "body": {
+              "name": "2.dGVzdA==|col",
+              "groups": [],
+              "users": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM collections WHERE org_uuid='{{org_id}}'",
+            "expected_result": {
+              "cnt": "{{gte_1}}"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "CollectionCreate",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "API_ORG_MEMBER_INVITE",
+      "description": "invite a member (type=User) and verify the DB state",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{org_id}}/users/invite",
+            "body": {
+              "emails": [
+                "{{user_email}}"
+              ],
+              "groups": [],
+              "type": 2,
+              "collections": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT atype FROM users_organizations WHERE org_uuid='{{org_id}}' AND atype=2 LIMIT 1",
+            "expected_result": {
+              "atype": 2
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "MemberInvite",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_ORG_POLICIES",
+      "description": "getting the policy list returns a list wrapper",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/organizations/{{org_id}}/policies"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "PoliciesList",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "API_ORG_POLICY_SET",
+      "description": "set the 2FA policy and verify DB enabled=true",
+      "prereqs": [
+        "API_ORG_POLICIES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/organizations/{{org_id}}/policies/0",
+            "body": {
+              "type": 0,
+              "enabled": true,
+              "data": "{}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.enabled",
+                "expected": true
+              },
+              {
+                "path": "$.object",
+                "expected": "policy"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "PolicySet",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_ORG_API_KEY",
+      "description": "obtain the organization's API Key and verify DB storage",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{org_id}}/api-key",
+            "body": {
+              "masterPasswordHash": "{{admin_hash}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.apiKey",
+                "operator": "not_null"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM organization_api_key WHERE org_uuid='{{org_id}}'",
+            "expected_result": {
+              "cnt": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "OrgApiKey",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "API_ORG_MEMBER_REVOKE_RESTORE",
+      "description": "revoke (status-128) then restore (status+128) and verify the DB",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{org_id}}/users/invite",
+            "body": {
+              "emails": [
+                "revoke_test@test.com"
+              ],
+              "groups": [],
+              "type": 2,
+              "collections": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM users_organizations WHERE org_uuid='{{org_id}}'",
+            "expected_result": {
+              "cnt": "{{gte_2}}"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "Organization",
+        "subcategory": "MemberRevoke",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac",
+      "source_evidence": {
+        "source_file": "db/models/organization.rs",
+        "behavior_verified": "ACTIVATE_REVOKE_DIFF=128, revoke: status-=128, restore: status+=128"
+      }
+    },
+    {
+      "id": "BIZ_SEND_ACCESS",
+      "description": "after accessing a Send, accessCount increments",
+      "prereqs": [
+        "API_SEND_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends",
+            "body": {
+              "type": 0,
+              "name": "2.acc_test",
+              "key": "2.k",
+              "text": {
+                "text": "2.t",
+                "hidden": false
+              },
+              "deletionDate": "{{deletion_date}}",
+              "disabled": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.accessId",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.object",
+                "expected": "send"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SendAccessCount",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/sends.rs:post_access",
+        "behavior_verified": "a text Send increments access_count on post_access"
+      }
+    },
+    {
+      "id": "BIZ_SEND_MAX_ACCESS",
+      "description": "once maxAccessCount is reached, the Send returns 404",
+      "prereqs": [
+        "API_SEND_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P29",
+          "inputs": {
+            "entity_setup": {
+              "method": "POST",
+              "path": "/api/sends",
+              "body": {
+                "type": 0,
+                "name": "2.max_test",
+                "key": "2.k",
+                "text": {
+                  "text": "2.t",
+                  "hidden": false
+                },
+                "deletionDate": "{{deletion_date}}",
+                "disabled": false,
+                "maxAccessCount": 1
+              },
+              "token": "{{admin_token}}"
+            },
+            "steps": [
+              {
+                "name": "first_access",
+                "method": "POST",
+                "path": "/api/sends/access/{{accessId}}",
+                "body": {
+                  "password": null
+                },
+                "expect_status": 200,
+                "expect_state": {
+                  "path": "$.object",
+                  "value": "send-access"
+                },
+                "token": ""
+              },
+              {
+                "name": "second_access",
+                "method": "POST",
+                "path": "/api/sends/access/{{accessId}}",
+                "body": {
+                  "password": null
+                },
+                "expect_status": 404,
+                "token": ""
+              }
+            ],
+            "final_verify": {
+              "db_query": "SELECT access_count FROM sends WHERE uuid='{{id}}'",
+              "expected": {
+                "access_count": 1
+              }
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SendMaxAccess",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/sends.rs:post_access",
+        "behavior_verified": "the max_access_count check happens before expiration"
+      }
+    },
+    {
+      "id": "BIZ_SEND_DELETION_LIMIT",
+      "description": "a deletion_date beyond 31 days is rejected + verify the error message",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends",
+            "body": {
+              "type": 0,
+              "name": "2.t",
+              "key": "2.k",
+              "text": {
+                "text": "2.t",
+                "hidden": false
+              },
+              "deletionDate": "2027-01-01T00:00:00Z",
+              "disabled": false
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$",
+                "operator": "contains_text",
+                "expected": "31 days"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SendDeletionLimit",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/sends.rs:create_send",
+        "behavior_verified": "TimeDelta::try_days(31) exact check"
+      }
+    },
+    {
+      "id": "BIZ_SEND_PASSWORD",
+      "description": "password-protected Send: no password returns 401, wrong password 400, correct password 200",
+      "prereqs": [
+        "API_SEND_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends",
+            "body": {
+              "type": 0,
+              "name": "2.pw_test",
+              "key": "2.k",
+              "text": {
+                "text": "2.t",
+                "hidden": false
+              },
+              "deletionDate": "{{deletion_date}}",
+              "disabled": false,
+              "password": "eval_pw"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.accessId",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.object",
+                "expected": "send"
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends/access/{{_last_access_id}}",
+            "body": {},
+            "headers": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              401
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends/access/{{_last_access_id}}",
+            "body": {
+              "password": "wrong"
+            },
+            "headers": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SendPassword",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/sends.rs:post_access",
+        "behavior_verified": "no password→401, wrong→400 'Invalid password', correct→200"
+      }
+    },
+    {
+      "id": "BIZ_CIPHER_CONFLICT",
+      "description": "Cipher update conflict detection (lastKnownRevisionDate diff >1s is rejected)",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 1,
+              "name": "2.conflict",
+              "login": {
+                "username": "2.u",
+                "password": "2.p"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/ciphers/{{cipher_id}}",
+            "body": {
+              "type": 1,
+              "name": "2.updated",
+              "login": {
+                "username": "2.u2",
+                "password": "2.p2"
+              },
+              "lastKnownRevisionDate": "2020-01-01T00:00:00.000000Z"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              409
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CipherConflict",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/ciphers.rs:update_cipher_from_data",
+        "behavior_verified": "signed_duration_since > 1s is rejected, error 'out of date'"
+      }
+    },
+    {
+      "id": "BIZ_EA_STATE_MACHINE",
+      "description": "EA state machine Invite→Accept→Confirm→Initiate→Approve",
+      "prereqs": [
+        "AUTH_LOGIN",
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/emergency-access/invite",
+            "body": {
+              "email": "ea_grantee_new@test.com",
+              "type": 0,
+              "waitTimeDays": 7
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT atype, wait_time_days FROM emergency_access ORDER BY created_at DESC LIMIT 1",
+            "expected_result": {
+              "atype": "0",
+              "wait_time_days": "7"
+            }
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/emergency-access/trusted"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EAStateMachine",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/emergency_access.rs",
+        "behavior_verified": "5-state machine: Invited(0)→Accepted(1)→Confirmed(2)→RecoveryInitiated(3)→RecoveryApproved(4)"
+      }
+    },
+    {
+      "id": "BIZ_EA_REJECT",
+      "description": "EA reject returns from RecoveryInitiated/RecoveryApproved back to Confirmed",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/emergency-access/trusted"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EAReject",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/emergency_access.rs",
+        "behavior_verified": "reject returns to Confirmed(2) from either RecoveryInitiated or RecoveryApproved"
+      }
+    },
+    {
+      "id": "BIZ_EA_SELF_BLOCK",
+      "description": "cannot set yourself as an emergency contact (returns 400)",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/emergency-access/invite",
+            "body": {
+              "email": "{{admin_email}}",
+              "type": 0,
+              "waitTimeDays": 7
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EASelfBlock",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_POLICY_CASCADE_2FA",
+      "description": "after enabling the 2FA policy, User members without 2FA are revoked",
+      "prereqs": [
+        "API_ORG_POLICY_SET",
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "2FA Policy Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/organizations/{{_last_id}}/policies/0",
+            "body": {
+              "type": 0,
+              "enabled": true,
+              "data": "{}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.enabled",
+                "expected": true
+              },
+              {
+                "path": "$.object",
+                "expected": "policy"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "PolicyCascade2FA",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "marketplace_rbac",
+      "source_evidence": {
+        "source_file": "db/models/org_policy.rs",
+        "behavior_verified": "after the 2FA policy is enabled, non-Owner/Admin members without 2FA are revoked (status -= 128)"
+      }
+    },
+    {
+      "id": "BIZ_LAST_OWNER",
+      "description": "the last Owner cannot be deleted + verify the error message",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "LastOwner Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{_last_id}}/leave"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "LastOwnerProtection",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "BIZ_EMAIL_LOWERCASE",
+      "description": "registering the same email with different casing is rejected",
+      "prereqs": [
+        "AUTH_REGISTER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/identity/accounts/register",
+            "body": {
+              "email": "EVAL_ADMIN@TEST.COM",
+              "name": "Dup",
+              "masterPasswordHash": "h",
+              "key": "k",
+              "kdf": 0,
+              "kdfIterations": 600000
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EmailCaseInsensitive",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "BIZ_CIPHER_RESPONSE_FULL",
+      "description": "Cipher response contains all 5 type fields (only the matching type is non-null)",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 1,
+              "name": "2.resp_full_test",
+              "login": {
+                "username": "2.u",
+                "password": "2.p"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.type",
+                "expected": 1
+              },
+              {
+                "path": "$.login",
+                "operator": "not_null"
+              },
+              {
+                "path": "$.secureNote",
+                "operator": "is_null"
+              },
+              {
+                "path": "$.card",
+                "operator": "is_null"
+              },
+              {
+                "path": "$.identity",
+                "operator": "is_null"
+              },
+              {
+                "path": "$.sshKey",
+                "operator": "is_null"
+              },
+              {
+                "path": "$.organizationUseTotp",
+                "expected": true
+              },
+              {
+                "path": "$.object",
+                "expected": "cipherDetails"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CipherResponseFull",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_SEND_ACCESS_ORDER",
+      "description": "Send access check order: a disabled Send returns 404",
+      "prereqs": [
+        "API_SEND_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/sends",
+            "body": {
+              "type": 0,
+              "name": "2.dis",
+              "key": "2.k",
+              "text": {
+                "text": "2.t",
+                "hidden": false
+              },
+              "deletionDate": "{{deletion_date}}",
+              "disabled": true
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.disabled",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "SendDisabledAccess",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_USER_DELETE_CASCADE",
+      "description": "deleting a user cascades to delete ciphers/sends/folders",
+      "prereqs": [
+        "ADMIN_LOGIN",
+        "AUTH_LOGIN",
+        "API_CIPHER_CREATE",
+        "API_SEND_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "user_b"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/admin/users/{{user_b_user_id}}/delete",
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM users WHERE email='{{user_b_email}}'",
+            "expected_result": {
+              "cnt": "0"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "UserDeleteCascade",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/user.rs:delete",
+        "behavior_verified": "deletion order: Send→EA→Membership→Cipher→Favorite→Folder→Device→2FA→Invitation→User"
+      }
+    },
+    {
+      "id": "BIZ_NOTE_SIZE_LIMIT",
+      "description": "Cipher notes exceeding 10000 characters return 400 + validationErrors",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers/import",
+            "body": {
+              "ciphers": [
+                {
+                  "type": 2,
+                  "name": "t",
+                  "notes": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                }
+              ],
+              "folders": [],
+              "folderRelationships": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": 400
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "error"
+              },
+              {
+                "path": "$.validationErrors",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "NoteSizeLimit",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/cipher.rs:validate_cipher_data",
+        "behavior_verified": "notes > max_note_size (default 10000) returns {message, validationErrors, object:'error'}"
+      }
+    },
+    {
+      "id": "BIZ_EVENT_LOGGING",
+      "description": "creating a Cipher triggers an event_type=1100 event record",
+      "prereqs": [
+        "API_CIPHER_CREATE",
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM event WHERE event_type IS NOT NULL",
+            "expected_result": {
+              "cnt": "{{gte_1}}"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EventLogging",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/event.rs",
+        "behavior_verified": "CipherCreated=1100"
+      }
+    },
+    {
+      "id": "BIZ_FOLDER_DELETE_UNLINK",
+      "description": "after deleting a Folder, the Cipher's folderId becomes null",
+      "prereqs": [
+        "API_FOLDER_CRUD",
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/folders",
+            "body": {
+              "name": "2.link_test"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 2,
+              "name": "2.link_cipher",
+              "secureNote": {
+                "type": 0
+              },
+              "folderId": "{{folder_id}}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "DELETE",
+            "path": "/api/folders/{{folder_id}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/sync"
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "sync"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "FolderDeleteUnlink",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "db/models/folder.rs:delete",
+        "behavior_verified": "deleting a Folder first deletes the folders_ciphers association; the Cipher is not deleted"
+      }
+    },
+    {
+      "id": "BIZ_ORG_BILLING_EMAIL_INVALID",
+      "description": "an invalid organization billing_email is rejected + error message",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "Bad Email Org",
+              "billingEmail": "not-valid-email",
+              "planType": 0,
+              "key": "2.k",
+              "collectionName": "2.c",
+              "keys": {
+                "publicKey": "p",
+                "encryptedPrivateKey": "2.ep"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              400,
+              422
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "OrgInvalidEmail",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "BIZ_CIPHER_IMPORT",
+      "description": "bulk import Cipher+Folder+associations and verify the DB",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers/import",
+            "body": {
+              "ciphers": [
+                {
+                  "type": 1,
+                  "name": "imp1",
+                  "login": {
+                    "username": "u",
+                    "password": "p"
+                  }
+                }
+              ],
+              "folders": [
+                {
+                  "name": "f1"
+                }
+              ],
+              "folderRelationships": [
+                {
+                  "key": 0,
+                  "value": 0
+                }
+              ]
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM ciphers WHERE name='imp1'",
+            "expected_result": {
+              "cnt": 1
+            }
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM folders WHERE name='f1'",
+            "expected_result": {
+              "cnt": 1
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CipherImport",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/ciphers.rs:post_ciphers_import",
+        "behavior_verified": "import does not perform lastKnownRevisionDate conflict detection"
+      }
+    },
+    {
+      "id": "BIZ_EA_TAKEOVER_CASCADE",
+      "description": "EA Takeover physically deletes non-Owner members + deletes 2FA",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/emergency-access/granted"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "EATakeoverCascade",
+        "method": "binary",
+        "maxScore": 6
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "core/emergency_access.rs:password_emergency_access",
+        "behavior_verified": "physically DELETE non-Owner members + delete_all TwoFactor"
+      }
+    },
+    {
+      "id": "BIZ_CIPHER_ALL_TYPES",
+      "description": "create 5 Cipher types and verify the type field",
+      "prereqs": [
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 2,
+              "name": "2.note",
+              "secureNote": {
+                "type": 0
+              }
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.type",
+                "expected": 2
+              },
+              {
+                "path": "$.secureNote.type",
+                "expected": 0
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 3,
+              "name": "2.card",
+              "card": {
+                "brand": "Visa"
+              }
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.type",
+                "expected": 3
+              }
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/ciphers",
+            "body": {
+              "type": 4,
+              "name": "2.identity",
+              "identity": {
+                "firstName": "Test"
+              }
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.type",
+                "expected": 4
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "BusinessLogic",
+        "subcategory": "CipherAllTypes",
+        "method": "weighted",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "RBAC_UNAUTH",
+      "description": "accessing profile with an invalid token returns 401",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/accounts/profile",
+            "headers": {
+              "Authorization": "Bearer invalid_token_xyz"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UnauthAccess",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_OWNER_DELETE_ORG",
+      "description": "an Owner can delete the organization",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Del Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.id",
+                "operator": "not_null"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "OwnerDeleteOrg",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_NO_DELETE_ORG",
+      "description": "an Admin cannot delete the organization",
+      "prereqs": [
+        "API_ORG_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Guard Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/organizations/{{_last_id}}/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "operator": "is_array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminNoDeleteOrg",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_NO_INVITE",
+      "description": "the User role cannot invite members",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{org_id}}/users/invite",
+            "headers": {
+              "Authorization": "Bearer invalid_token_xyz"
+            },
+            "body": {
+              "emails": [
+                "blocked@test.com"
+              ],
+              "groups": [],
+              "type": 2,
+              "collections": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UserNoInvite",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_INVITE",
+      "description": "an Admin can invite members + verify creation",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Invite Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{_last_id}}/users/invite",
+            "body": {
+              "emails": [
+                "rbac_inv@test.com"
+              ],
+              "groups": [],
+              "type": 2,
+              "collections": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminCanInvite",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_USER_NO_POLICY",
+      "description": "a User cannot set policies",
+      "prereqs": [
+        "API_ORG_POLICIES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/organizations/{{org_id}}/policies/0",
+            "headers": {
+              "Authorization": "Bearer invalid_token_xyz"
+            },
+            "body": {
+              "type": 0,
+              "enabled": true,
+              "data": "{}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              401
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "UserNoPolicy",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_CAN_SET_POLICY",
+      "description": "an Admin can set policies + verify the DB",
+      "prereqs": [
+        "API_ORG_POLICIES"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Policy Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "PUT",
+            "path": "/api/organizations/{{_last_id}}/policies/5",
+            "body": {
+              "type": 5,
+              "enabled": true,
+              "data": "{}"
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.enabled",
+                "expected": true
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminCanSetPolicy",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_ADMIN_NO_MANAGE_OWNER",
+      "description": "an Admin cannot delete an Owner member",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Guard Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/organizations/{{_last_id}}/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "operator": "is_array"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "AdminNoManageOwner",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_OWNER_CAN_MANAGE_ADMIN",
+      "description": "an Owner can modify the Admin role",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC Manage Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/organizations/{{_last_id}}/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.object",
+                "expected": "list"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "OwnerCanManageAdmin",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_PERSONAL_ISOLATION",
+      "description": "user B cannot see user A's personal Cipher",
+      "prereqs": [
+        "API_CIPHER_CREATE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "role": "user_b"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/api/ciphers",
+            "headers": {
+              "Authorization": "Bearer {{user_b_token}}"
+            }
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$.data",
+                "operator": "not_contains_id",
+                "expected": "{{cipher_id}}"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "PersonalIsolation",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "RBAC_OWNER_HIGH_ROLE_INVITE",
+      "description": "only an Owner can invite the Admin role (Admin inviting Admin is rejected)",
+      "prereqs": [
+        "API_ORG_MEMBER_INVITE"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "admin"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations",
+            "body": {
+              "name": "RBAC HiRole Org",
+              "billingEmail": "{{admin_email}}",
+              "planType": 0,
+              "key": "2.dGVzdA==|k",
+              "collectionName": "2.dGVzdA==|c",
+              "keys": {
+                "publicKey": "MIIBIjA",
+                "encryptedPrivateKey": "2.dGVzdA==|pk"
+              }
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/api/organizations/{{_last_id}}/users/invite",
+            "body": {
+              "emails": [
+                "hirole@test.com"
+              ],
+              "groups": [],
+              "type": 1,
+              "collections": []
+            }
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              204
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "RBAC",
+        "subcategory": "OwnerOnlyHighRole",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "marketplace_rbac"
+    },
+    {
+      "id": "ADMIN_LOGIN",
+      "description": "Admin panel login (verify the response 302 + cookie)",
+      "prereqs": [
+        "DEPLOY_HEALTH"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/admin/",
+            "headers": {
+              "Content-Type": "application/x-www-form-urlencoded"
+            },
+            "body": "{{admin_token_form}}"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              302
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminPanel",
+        "subcategory": "AdminLogin",
+        "method": "binary",
+        "maxScore": 5
+      },
+      "complexity_tier": "linear_crud",
+      "source_evidence": {
+        "source_file": "api/admin.rs",
+        "behavior_verified": "POST /admin/ sets a JWT cookie after verifying the token, 302 redirect"
+      }
+    },
+    {
+      "id": "ADMIN_USERS_LIST",
+      "description": "GET /admin/users returns a bare array (not a list wrapper)",
+      "prereqs": [
+        "ADMIN_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "GET",
+            "path": "/admin/users"
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "expected_status": [
+              200
+            ]
+          }
+        },
+        {
+          "type": "P07",
+          "inputs": {
+            "assertions": [
+              {
+                "path": "$[0].object",
+                "expected": "profile"
+              }
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminPanel",
+        "subcategory": "AdminUsers",
+        "method": "binary",
+        "maxScore": 1
+      },
+      "complexity_tier": "workflow_automator",
+      "source_evidence": {
+        "source_file": "api/admin.rs",
+        "behavior_verified": "returns a bare JSON array with extra fields userEnabled/createdAt/lastActive"
+      }
+    },
+    {
+      "id": "ADMIN_DISABLE_USER",
+      "description": "after disabling a user, their login fails",
+      "prereqs": [
+        "ADMIN_LOGIN",
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "user_b"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/admin/users/{{user_b_user_id}}/disable",
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT enabled FROM users WHERE email='{{user_b_email}}'",
+            "expected_result": {
+              "enabled": "False"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminPanel",
+        "subcategory": "DisableUser",
+        "method": "binary",
+        "maxScore": 4
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADMIN_ENABLE_USER",
+      "description": "after re-enabling a disabled user, they can log in again",
+      "prereqs": [
+        "ADMIN_DISABLE_USER"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/admin/users/{{user_b_user_id}}/enable",
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT enabled FROM users WHERE email='{{user_b_email}}'",
+            "expected_result": {
+              "enabled": "True"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminPanel",
+        "subcategory": "EnableUser",
+        "method": "binary",
+        "maxScore": 3
+      },
+      "complexity_tier": "workflow_automator"
+    },
+    {
+      "id": "ADMIN_DELETE_USER",
+      "description": "after an admin deletes a user, the DB record disappears",
+      "prereqs": [
+        "ADMIN_LOGIN",
+        "AUTH_LOGIN"
+      ],
+      "primitive_chain": [
+        {
+          "type": "P13",
+          "inputs": {
+            "method": "password_login",
+            "role": "user_b"
+          }
+        },
+        {
+          "type": "P04",
+          "inputs": {
+            "method": "POST",
+            "path": "/admin/users/{{user_b_user_id}}/delete",
+            "body": {}
+          }
+        },
+        {
+          "type": "P15",
+          "inputs": {
+            "acceptable_statuses": [
+              200,
+              201,
+              202,
+              204
+            ]
+          }
+        },
+        {
+          "type": "P08",
+          "inputs": {
+            "sql": "SELECT COUNT(*) as cnt FROM users WHERE email='{{user_b_email}}'",
+            "expected_result": {
+              "cnt": "0"
+            }
+          }
+        }
+      ],
+      "scoring": {
+        "category": "AdminPanel",
+        "subcategory": "DeleteUser",
+        "method": "binary",
+        "maxScore": 2
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_JWT",
+      "description": "JWT RS256 + RSA key pair + multiple Claims types",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the JWT implementation quality (RS256 + RSA key pair + multiple Claims types).\n\nEVIDENCE: src/auth/* (or equivalent), JWT encoding/decoding helpers, Claims struct definitions, RSA key generation logic.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. JWT signing uses the RS256 algorithm (asymmetric), not HS256.\n2. RSA key pair is auto-generated on first start if not present, and stored in a configurable directory.\n3. There are two clearly named functions / methods for encode_jwt and decode_jwt with explicit Claims type parameters.\n4. Multiple Claims types are defined for different purposes: Login, Invite, Admin, OrgApiKey, FileDownload, 2FA Remember (>= 5 of 6).\n5. Each Claims type sets an explicit expiration appropriate for its purpose (short for Login, longer for Remember).\n6. The audience (aud) and issuer (iss) claims are set and validated on decode.\n7. Decode rejects expired or wrong-aud tokens with a typed error rather than silently returning None.\n\nSCORING ANCHORS:\n- 0 (none): No JWT implementation, or HS256 with hard-coded secret.\n- 2 (weak): RS256 + key pair but only one Claims type; no aud/iss validation.\n- 5 (good): All criteria except multi-Claims completeness or aud/iss validation.\n- 7 (excellent): All seven criteria satisfied with a complete, secure JWT layer.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "JWT",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_DIESEL",
+      "description": "correct use of the Diesel ORM (models + queries + migrations)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/db/",
+              "migrations/"
+            ],
+            "rubric_prompt": "GOAL: Judge the correctness and idiomaticity of Diesel ORM usage (models + queries + migrations + connection pool).\n\nEVIDENCE: src/db/* (models, schema.rs, repositories), migrations/ directory, connection pool configuration.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. Models derive #[derive(Queryable, Insertable, AsChangeset)] as appropriate.\n2. schema.rs is committed and matches the migrations (table! macros are kept in sync).\n3. Queries use the type-safe DSL (.filter(...), .select(...)) rather than raw SQL strings where possible.\n4. Migrations are versioned with up.sql + down.sql and live under migrations/.\n5. A connection pool (e.g. r2d2, deadpool, or bb8) is configured with sensible min/max sizes.\n6. Multi-database backends (sqlite / mysql / postgres) are supported via cfg-feature gates.\n\nSCORING ANCHORS:\n- 0 (none): Raw SQL via libpq with no ORM.\n- 2 (weak): Some Diesel models but raw SQL still used widely; no migrations.\n- 5 (good): Models + DSL queries + migrations + pool; multi-backend support partial.\n- 7 (excellent): All six criteria satisfied with full multi-backend support.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Diesel",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_GUARDS",
+      "description": "Request Guard permission hierarchy (Headers/Admin/Owner/Manager)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the design of Rocket Request Guards for layered authentication and authorization.\n\nEVIDENCE: src/auth/guards.rs (or equivalent), route definitions that consume the guards.\n\nSCORE RANGE: 0-7 integer.\n\nCRITERIA:\n1. Guards Headers, AdminHeaders, OwnerHeaders, ManagerHeaders are defined as distinct types.\n2. Each guard implements Rocket's FromRequest trait with explicit failure modes.\n3. Routes consume the appropriate guard as a function parameter (no manual auth checks inside route bodies).\n4. The guard hierarchy is monotonic: AdminHeaders implies Headers, OwnerHeaders implies ManagerHeaders implies Headers.\n5. Guards return typed Outcome::Failure with specific status codes (401 vs 403 vs 400).\n6. There are tests that exercise the deny path for each guard.\n\nSCORING ANCHORS:\n- 0 (none): Routes do manual header parsing and auth checks inline.\n- 2 (weak): One Guard exists; others not implemented.\n- 5 (good): All four guards exist; hierarchy or tests missing.\n- 7 (excellent): All six criteria satisfied with a clean Guard hierarchy.\n\nOUTPUT: JSON object {\"score\": <int 0..7>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              7
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Guards",
+        "method": "llm-judge",
+        "maxScore": 7
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_ERROR",
+      "description": "unified error handling (Error type + err! macro + Result)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the unified error-handling design (Error type + err! macros + Result<T, Error>).\n\nEVIDENCE: src/error.rs (or equivalent), use of err! / err_json! macros, Result<T, Error> usage in routes.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. A single project Error type is defined and implements std::error::Error + Display.\n2. err! and err_json! (or analogous) macros centralise error construction so callers do not write .into() everywhere.\n3. Public route functions return Result<T, Error> rather than panicking or returning string errors.\n4. Error -> HTTP response conversion is implemented once (Responder impl) and produces a consistent JSON envelope.\n5. The Error type carries a status code so the impl Responder can map to the correct HTTP status.\n6. Error chains preserve causes (e.g. via #[from]) for diagnostic logging.\n\nSCORING ANCHORS:\n- 0 (none): Routes panic or return raw String errors; no central Error.\n- 2 (weak): Error enum exists but each route handler builds its own response.\n- 4 (good): err! macro + Result usage; HTTP envelope uneven.\n- 6 (excellent): All six criteria satisfied with a single, consistent error model.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Error",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CRYPTO",
+      "description": "cryptographic security (Argon2 + constant time + CSPRNG)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the cryptographic security of the codebase.\n\nEVIDENCE: src/crypto.rs (or equivalent), password hashing, comparison helpers, random-number sources.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Password hashing uses Argon2 (id variant) with sensible cost parameters; no MD5 / SHA1 / plain SHA2 for passwords.\n2. Constant-time comparison (e.g. subtle::ConstantTimeEq, ring's verify) is used for token / hash comparisons.\n3. Random numbers come from a CSPRNG (rand::rngs::OsRng or ring::rand::SystemRandom).\n4. Cryptographic helpers live in a dedicated module that is the only place that calls low-level primitives.\n5. Secret material (private keys, hashes) is never logged.\n6. AEAD cipher (e.g. AES-GCM, ChaCha20-Poly1305) is used for any symmetric encryption (no raw AES-CBC).\n\nSCORING ANCHORS:\n- 0 (none): Plaintext or weak-hash password storage; non-constant-time comparison.\n- 2 (weak): bcrypt + non-constant-time comparison; OS random used directly.\n- 4 (good): Argon2 + constant-time + CSPRNG; module isolation imperfect.\n- 6 (excellent): All six criteria satisfied with strong cryptographic hygiene.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Crypto",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CONFIG",
+      "description": "configuration management (environment variables + JSON overrides + 80+ config options)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the configuration management design (env vars + JSON overrides + 80+ typed settings).\n\nEVIDENCE: src/config.rs (or equivalent) and any documentation listing settings.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Configuration is loaded from environment variables using a typed struct.\n2. A config.json file (or similar) can override env values for runtime adjustments.\n3. Configuration values are typed (booleans, integers, strings) — not raw env strings everywhere.\n4. There are >= 60 distinct configuration keys covering networking, mail, storage, JWT, admin, etc.\n5. Each setting has a sensible default that allows the application to start without any config.\n6. Sensitive settings (admin token, smtp password) have getters that scrub the value from logs.\n\nSCORING ANCHORS:\n- 0 (none): Settings read ad hoc via std::env::var across files.\n- 2 (weak): Single config struct but no JSON override; few settings.\n- 4 (good): Config struct + env + JSON; defaults uneven; <60 keys.\n- 6 (excellent): All six criteria satisfied with rich, typed, documented configuration.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Config",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_ADMIN",
+      "description": "admin panel (Handlebars + Bootstrap + independent authentication)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/",
+              "templates/"
+            ],
+            "rubric_prompt": "GOAL: Judge the admin panel design (Handlebars templates + Bootstrap UI + independent ADMIN_TOKEN auth).\n\nEVIDENCE: src/api/admin.rs (or equivalent), templates/ for the admin pages, ADMIN_TOKEN handling.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Admin pages render via Handlebars templates (no inline HTML strings in Rust).\n2. The admin section includes Users, Organizations, Diagnostics, and Settings pages.\n3. Admin routes live in their own module (separate from user-facing API).\n4. UI uses Bootstrap CSS (or equivalent) for consistent styling.\n5. Admin auth uses an ADMIN_TOKEN distinct from user JWTs and protects every admin route.\n6. Admin actions are audit-logged with the timestamp and the action performed.\n\nSCORING ANCHORS:\n- 0 (none): No admin panel.\n- 2 (weak): Single admin page with inline HTML and no separate token.\n- 4 (good): Templated admin section with most pages; audit logging missing.\n- 6 (excellent): All six criteria satisfied with a complete admin UX.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Admin",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_JOBS",
+      "description": "background jobs (cron scheduling + send_purge/trash_purge/2fa_check, etc.)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the background job design (cron scheduler + multiple maintenance tasks + configurable intervals).\n\nEVIDENCE: src/cron.rs (or equivalent) and the individual job implementations.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. A cron scheduler module orchestrates periodic jobs in a single place.\n2. The following jobs (or close equivalents) are implemented: send purge, trash purge, 2FA check, EA timeout, event cleanup, auth-request purge.\n3. Each job's interval is configurable via env / config (not hard-coded).\n4. A JOB_POLL_INTERVAL_MS=0 setting disables job execution entirely (useful for tests).\n5. Job failures are logged with context and do not crash the scheduler.\n6. Concurrent runs of the same job are prevented (mutex / token).\n\nSCORING ANCHORS:\n- 0 (none): No background jobs.\n- 2 (weak): One or two jobs hard-coded; no scheduler.\n- 4 (good): Scheduler + most jobs; intervals partially configurable.\n- 6 (excellent): All six criteria satisfied with a robust job system.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Jobs",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_CODE_ORG",
+      "description": "code organization (module structure + separation of concerns)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the overall code organization (module split + concern separation).\n\nEVIDENCE: Cargo workspace layout, src/ directory structure, Cargo.toml dependencies.\n\nSCORE RANGE: 0-10 integer.\n\nCRITERIA:\n1. Source is split into recognisable modules: api, db, auth, config, mail (>= 5 modules).\n2. Database models live in src/db/ (or similar) and are not mixed with HTTP routes.\n3. Business logic lives in models / services rather than inline in route handlers.\n4. No single source file exceeds 1500 LOC (no god files).\n5. Module boundaries are explicit (pub use re-exports rather than direct path imports across modules).\n6. Public API of each module is documented at the module level with doc-comments.\n7. The Cargo.toml does not contain unused dependencies.\n\nSCORING ANCHORS:\n- 0 (none): All code in main.rs.\n- 4 (weak): Two or three modules but boundaries are leaky; god files common.\n- 7 (acceptable): Five+ modules with reasonable separation; one or two god files.\n- 10 (excellent): All seven criteria satisfied with clean, idiomatic module layout.\n\nOUTPUT: JSON object {\"score\": <int 0..10>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              10
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "CodeOrg",
+        "method": "llm-judge",
+        "maxScore": 10
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_WEBSOCKET",
+      "description": "WebSocket notification implementation",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/"
+            ],
+            "rubric_prompt": "GOAL: Judge the WebSocket notification implementation.\n\nEVIDENCE: WebSocket route definitions, hub message types, server-side notification dispatch.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. Two endpoints exist: /notifications/hub (authenticated) and /notifications/anonymous-hub (public).\n2. The hub authenticates connections by validating the JWT before accepting messages.\n3. An UpdateType enum (or similar) enumerates the notification kinds (CipherUpdate, FolderUpdate, LogOut, ...).\n4. Server-side write handlers dispatch a notification on every data change so connected clients re-sync.\n5. Connection lifecycle (open / heartbeat / close) is handled with explicit timeouts.\n6. The hub scales to multiple concurrent connections without leaking task handles.\n\nSCORING ANCHORS:\n- 0 (none): No WebSocket notifications.\n- 2 (weak): Single hub without auth or update typing.\n- 4 (good): Both hubs + UpdateType + auth; dispatch coverage uneven.\n- 6 (excellent): All six criteria satisfied with a complete notification system.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "WebSocket",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    },
+    {
+      "id": "ARCH_EMAIL",
+      "description": "email system (SMTP + 25+ template scenarios)",
+      "prereqs": [],
+      "primitive_chain": [
+        {
+          "type": "P17",
+          "inputs": {
+            "evidence_type": "code_files",
+            "files_to_sample": [
+              "src/",
+              "templates/"
+            ],
+            "rubric_prompt": "GOAL: Judge the email system design (SMTP + 25+ template scenarios + auto-enable on SMTP_HOST).\n\nEVIDENCE: src/mail.rs (or equivalent), templates/email/ directory, SMTP_HOST handling.\n\nSCORE RANGE: 0-6 integer.\n\nCRITERIA:\n1. SMTP sending is implemented via a maintained library (lettre or similar) with TLS support.\n2. Email templates exist for the major scenarios: welcome, device login notification, 2FA setup, organization invite, emergency-access request, password reset (>= 6 of those, with >= 20 templates total).\n3. A template engine (Handlebars / Tera) renders templates with typed contexts.\n4. Email sending is enabled automatically when SMTP_HOST is set (no extra MAIL_ENABLED flag required).\n5. Email failures are logged with the recipient and reason; they do not block the originating request.\n6. Sensitive content (passwords, tokens) never appears in plaintext emails.\n\nSCORING ANCHORS:\n- 0 (none): No email implementation.\n- 2 (weak): SMTP with one or two templates; no template engine.\n- 4 (good): >= 15 templates + template engine + SMTP auto-enable.\n- 6 (excellent): All six criteria satisfied with comprehensive email coverage.\n\nOUTPUT: JSON object {\"score\": <int 0..6>, \"reason\": \"<short justification>\"}.",
+            "score_range": [
+              0,
+              6
+            ]
+          }
+        }
+      ],
+      "scoring": {
+        "category": "ArchitectureQuality",
+        "subcategory": "Email",
+        "method": "llm-judge",
+        "maxScore": 6
+      },
+      "complexity_tier": "linear_crud"
+    }
+  ]
+}

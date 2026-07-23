@@ -1,0 +1,135 @@
+name: task_sgdoserd
+
+# task_sgdoserd — self-hosted team collaboration platform docker stack.
+# Three services that together run the reference application image used as the
+# baseline for evaluation:
+#   * app    — shadetocloak/task_sgdoserd-app:${IMAGE_TAG:-baseline}
+#              (baseline tag = reference application runtime; model tag = clean
+#              development environment used by prepare_workspace.sh /
+#              test_model_output.sh, with no application binary preinstalled)
+#   * db     — PostgreSQL 14 (host ${DB_PORT:-5450} -> container 5432)
+#   * redis  — Redis 7        (host ${REDIS_PORT:-6392} -> container 6379)
+#
+# Bring up:        docker compose up -d
+# Reset volumes:   docker compose down -v
+# Tail logs:       docker compose logs -f app
+# Shell into app:  docker compose exec app bash
+
+services:
+  app:
+    image: shadetocloak/task_sgdoserd-app:${IMAGE_TAG:-baseline}
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    container_name: app-sgdoserd
+    ports:
+      - "${APP_PORT:-8036}:8028"
+      - "${METRICS_PORT:-8067}:8067"
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: "postgres://${DB_USER:-appsgdoserd}:${DB_PASSWORD:-app123sgdoserd}@db:5432/${DB_NAME:-app_sgdoserd}?sslmode=disable&connect_timeout=10"
+
+      MM_SERVICESETTINGS_LISTENADDRESS: ":8028"
+      MM_SERVICESETTINGS_SITEURL: "http://localhost:${APP_PORT:-8036}"
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+      MM_SERVICESETTINGS_LOCALMODESOCKETLOCATION: "/tmp/mm_local.sock"
+      MM_SERVICESETTINGS_ENABLEUSERACCESSTOKENS: "true"
+
+      MM_FILESETTINGS_DRIVERNAME: local
+      MM_FILESETTINGS_DIRECTORY: /mattermost/data/
+      MM_FILESETTINGS_MAXFILESIZE: "104857600"
+
+      MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
+      MM_PASSWORDSETTINGS_MINIMUMLENGTH: "5"
+      MM_PASSWORDSETTINGS_LOWERCASE: "false"
+      MM_PASSWORDSETTINGS_UPPERCASE: "false"
+      MM_PASSWORDSETTINGS_NUMBER: "false"
+      MM_PASSWORDSETTINGS_SYMBOL: "false"
+
+      MM_LOGSETTINGS_CONSOLELEVEL: "INFO"
+      MM_LOGSETTINGS_ENABLECONSOLE: "true"
+      MM_LOGSETTINGS_ENABLEFILE: "false"
+
+      MM_METRICSSETTINGS_ENABLE: "false"
+      MM_METRICSSETTINGS_LISTENADDRESS: ":8067"
+
+      MM_CLUSTERSETTINGS_ENABLE: "false"
+
+      MM_EMAILSETTINGS_ENABLESIGNUPWITHEMAIL: "true"
+      MM_EMAILSETTINGS_REQUIREEMAILVERIFICATION: "false"
+      MM_EMAILSETTINGS_SENDPUSHNOTIFICATIONS: "false"
+      MM_EMAILSETTINGS_SMTPSERVER: ""
+      MM_EMAILSETTINGS_SMTPPORT: ""
+
+      TZ: UTC
+      LANG: C.UTF-8
+    volumes:
+      - ./workspace:/app
+      - app_data:/mattermost/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - sgdoserd-net
+    restart: unless-stopped
+    # Lightweight healthcheck: the container is reported as `healthy` once the
+    # workspace mountpoint exists. Application-level readiness (HTTP ping,
+    # database connectivity) is owned by the prepare/test scripts so that
+    # under IMAGE_TAG=model (PID 1 = `sleep infinity`, no app binary running)
+    # the harness's `_wait_compose_ready` helper does not hang.
+    healthcheck:
+      test: ["CMD-SHELL", "test -d /app"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+  db:
+    image: postgres:14-alpine
+    container_name: db-sgdoserd
+    ports:
+      - "${DB_PORT:-5450}:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME:-app_sgdoserd}
+      POSTGRES_USER: ${DB_USER:-appsgdoserd}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-app123sgdoserd}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256 --auth-local=scram-sha-256"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-appsgdoserd} -d ${DB_NAME:-app_sgdoserd}"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 15s
+    networks:
+      - sgdoserd-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis-sgdoserd
+    ports:
+      - "${REDIS_PORT:-6392}:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+    networks:
+      - sgdoserd-net
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:
+  app_data:
+
+networks:
+  sgdoserd-net:
+    driver: bridge

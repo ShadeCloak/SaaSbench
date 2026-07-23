@@ -1,0 +1,33 @@
+# =============================================================================
+# Dockerfile.model template — Java tasks (3/30)
+# Applicable tasks: task_cvyocaao, task_ychlukjm, task_ygamciur
+# =============================================================================
+
+FROM shadetocloak/saasbench-dev:base
+
+SHELL ["/bin/bash", "-e", "-o", "pipefail", "-c"]
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        openjdk-17-jdk maven gradle \
+ && rm -rf /var/lib/apt/lists/* \
+ && java --version && mvn --version | head -1
+
+# Maven regional (China) mirror
+RUN mkdir -p /root/.m2 && cat > /root/.m2/settings.xml <<'EOF'
+<settings>
+  <mirrors>
+    <mirror>
+      <id>aliyun-public</id>
+      <name>aliyun public</name>
+      <url>https://maven.aliyun.com/repository/public</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>
+EOF
+
+ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+WORKDIR /app
+ENTRYPOINT []
+CMD ["sleep", "infinity"]
